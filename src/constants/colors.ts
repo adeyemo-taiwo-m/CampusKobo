@@ -1,0 +1,16 @@
+export const PRIMARY_GREEN = '#1A9E3F';       // Dark green — primary brand color
+export const LIGHT_GREEN = '#22C55E';         // Light green — secondary/accent
+export const SURFACE_GREEN = '#E8F5E9';       // Very light green — card backgrounds when selected
+export const BLACK = '#0A0A0A';               // Near-black for dark cards and headers
+export const DARK_CARD = '#111827';           // Dark card background (used in header cards)
+export const WHITE = '#FFFFFF';               // White background
+export const LIGHT_GRAY = '#F5F5F5';          // Light gray for page backgrounds
+export const BORDER_GRAY = '#E0E0E0';         // Border color for input fields
+export const TEXT_PRIMARY = '#0A0A0A';        // Primary text
+export const TEXT_SECONDARY = '#6B7280';      // Secondary/subtext
+export const TEXT_PLACEHOLDER = '#9CA3AF';    // Placeholder text in inputs
+export const RED = '#EF4444';                 // Expense color / danger state
+export const YELLOW = '#F59E0B';              // Warning state (70-90% budget used)
+export const SUCCESS_GREEN = '#16A34A';       // Checkmark and success icons
+export const INCOME_GREEN = '#22C55E';        // Income amount text color
+export const EXPENSE_RED = '#EF4444';         // Expense amount text color
