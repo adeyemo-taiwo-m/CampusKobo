@@ -38,11 +38,19 @@
             "backgroundColor": "#000000"
           }
         }
-      ]
+      ],
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "a041dcdc-30ee-4d33-917c-260f761a38ad"
+      }
+    },
+    "owner": "adeyemotaiwom"
   }
 }
