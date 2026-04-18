@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, SafeAreaView, StatusBar } from 'react-native';
 import { useRouter } from 'expo-router';
-import { WHITE, PRIMARY_GREEN, TEXT_SECONDARY, SPACING, FONT_SIZE, LIGHT_GREEN } from '../../src/constants';
+import { WHITE, PRIMARY_GREEN, TEXT_SECONDARY, SPACING, FONT_SIZE, LIGHT_GREEN, Fonts } from '../../src/constants';
 import { Button } from '../../src/components/Button';
 import { PaginationDots } from '../../src/components/PaginationDots';
 
@@ -75,6 +75,7 @@ const styles = StyleSheet.create({
   placeholderText: {
     color: PRIMARY_GREEN,
     fontWeight: 'bold',
+    fontFamily: Fonts.medium,
   },
   textContainer: {
     alignItems: 'center',
@@ -86,12 +87,14 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: '#000',
     marginBottom: SPACING.MD,
+    fontFamily: Fonts.semiBold,
   },
   subtitle: {
     fontSize: FONT_SIZE.LG,
     color: TEXT_SECONDARY,
     textAlign: 'center',
     lineHeight: 24,
+    fontFamily: Fonts.regular,
   },
   buttonContainer: {
     width: '100%',

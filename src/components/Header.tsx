@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { TEXT_PRIMARY, WHITE, SPACING, FONT_SIZE, BORDER_GRAY } from '../constants';
+import { TEXT_PRIMARY, WHITE, SPACING, FONT_SIZE, BORDER_GRAY, Fonts } from '../constants';
 
 interface HeaderProps {
   title: string;
@@ -103,9 +103,10 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   title: {
-    fontSize: FONT_SIZE.XL,
+    fontSize: 20,
     fontWeight: '700',
     color: TEXT_PRIMARY,
+    fontFamily: Fonts.semiBold,
   },
   iconButton: {
     padding: SPACING.XS,

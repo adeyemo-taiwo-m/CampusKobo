@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, SafeAreaView, StatusBar } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import ConfettiCannon from 'react-native-confetti-cannon';
-import { DARK_CARD, WHITE, PRIMARY_GREEN, SPACING, FONT_SIZE } from '../../src/constants';
+import { DARK_CARD, WHITE, PRIMARY_GREEN, SPACING, FONT_SIZE, Fonts } from '../../src/constants';
 import { Button } from '../../src/components/Button';
 import { useAppContext } from '../../src/context/AppContext';
 
@@ -90,6 +90,7 @@ const styles = StyleSheet.create({
     color: WHITE,
     textAlign: 'center',
     marginBottom: SPACING.MD,
+    fontFamily: Fonts.semiBold,
   },
   subtitle: {
     fontSize: FONT_SIZE.LG,
@@ -97,6 +98,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 26,
     paddingHorizontal: SPACING.MD,
+    fontFamily: Fonts.regular,
   },
   footer: {
     marginBottom: SPACING.LG,

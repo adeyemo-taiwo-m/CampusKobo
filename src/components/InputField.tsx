@@ -1,104 +1,145 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, KeyboardTypeOptions } from 'react-native';
-import { PRIMARY_GREEN, TEXT_PRIMARY, TEXT_SECONDARY, RED, BORDER_GRAY, SPACING, FONT_SIZE } from '../constants';
+import React from 'react';
+import { 
+  View, 
+  Text, 
+  TextInput, 
+  StyleSheet, 
+  TextInputProps, 
+  TextStyle, 
+  ViewStyle 
+} from 'react-native';
+import { 
+  Colors, 
+  TEXT_SECONDARY, 
+  SPACING, 
+  Fonts, 
+  PRIMARY_GREEN, 
+  RED, 
+  BORDER_GRAY 
+} from '../constants';
 
-interface InputFieldProps {
+type InputState = 'default' | 'active' | 'success' | 'error' | 'disabled';
+
+interface InputFieldProps extends Omit<TextInputProps, 'onChangeText'> {
   label: string;
   placeholder: string;
+  state?: InputState;
   value: string;
-  onChangeText: (text: string) => void;
-  keyboardType?: KeyboardTypeOptions;
-  secureTextEntry?: boolean;
-  rightIcon?: React.ReactNode;
-  error?: string;
-  onBlur?: () => void;
+  onChange: (text: string) => void;
+  errorMessage?: string;
+  successMessage?: string;
 }
 
 export const InputField = ({
   label,
   placeholder,
+  state = 'default',
   value,
-  onChangeText,
-  keyboardType = 'default',
-  secureTextEntry = false,
-  rightIcon,
-  error,
-  onBlur,
+  onChange,
+  errorMessage,
+  successMessage,
+  style,
+  ...props
 }: InputFieldProps) => {
-  const [isFocused, setIsFocused] = useState(false);
+  
+  const getContainerStyle = (): ViewStyle[] => {
+    const base: ViewStyle[] = [styles.inputContainer];
+    
+    switch (state) {
+      case 'active':
+        base.push(styles.activeBorder);
+        break;
+      case 'success':
+        base.push(styles.successBorder);
+        break;
+      case 'error':
+        base.push(styles.errorBorder);
+        break;
+      case 'disabled':
+        base.push(styles.disabledBg);
+        break;
+    }
+    
+    return base;
+  };
 
   return (
-    <View style={styles.container}>
+    <View style={styles.outerContainer}>
       <Text style={styles.label}>{label}</Text>
-      <View style={[
-        styles.inputContainer,
-        isFocused && styles.focusedInput,
-        error ? styles.errorInput : null
-      ]}>
+      
+      <View style={getContainerStyle()}>
         <TextInput
-          style={styles.input}
+          style={[styles.input, style as TextStyle]}
           placeholder={placeholder}
-          placeholderTextColor="#9CA3AF"
+          placeholderTextColor={Colors.neutral.N400}
           value={value}
-          onChangeText={onChangeText}
-          keyboardType={keyboardType}
-          secureTextEntry={secureTextEntry}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => {
-            setIsFocused(false);
-            if (onBlur) onBlur();
-          }}
+          onChangeText={onChange}
+          editable={state !== 'disabled'}
+          {...props}
         />
-        {rightIcon && (
-          <View style={styles.iconContainer}>
-            {rightIcon}
-          </View>
-        )}
       </View>
-      {error ? <Text style={styles.errorText}>{error}</Text> : null}
+      
+      {state === 'error' && errorMessage && (
+        <Text style={styles.errorText}>{errorMessage}</Text>
+      )}
+      
+      {state === 'success' && successMessage && (
+        <Text style={styles.successText}>{successMessage}</Text>
+      )}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    marginBottom: SPACING.MD,
+  outerContainer: {
     width: '100%',
+    marginBottom: SPACING.MD,
   },
   label: {
-    fontSize: FONT_SIZE.MD,
-    color: TEXT_SECONDARY,
-    marginBottom: SPACING.XS,
-    fontWeight: '500',
+    fontFamily: Fonts.medium,
+    fontSize: 13,
+    color: '#6B7280', // Muted gray
+    marginBottom: 6,
   },
   inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    height: 48,
     borderWidth: 1,
     borderColor: BORDER_GRAY,
-    borderRadius: 12,
-    backgroundColor: '#F9FAFB',
-    paddingHorizontal: SPACING.MD,
+    borderRadius: 6,
+    paddingHorizontal: 12,
+    backgroundColor: '#FFFFFF',
+    justifyContent: 'center',
   },
   input: {
-    flex: 1,
-    height: 52,
-    fontSize: FONT_SIZE.LG,
-    color: TEXT_PRIMARY,
+    fontFamily: Fonts.regular,
+    fontSize: 14,
+    color: Colors.neutral.N900,
+    width: '100%',
+    height: '100%',
   },
-  focusedInput: {
+  activeBorder: {
+    borderColor: Colors.neutral.N900,
+  },
+  successBorder: {
     borderColor: PRIMARY_GREEN,
-    backgroundColor: '#FFFFFF',
   },
-  errorInput: {
+  errorBorder: {
     borderColor: RED,
   },
-  errorText: {
-    color: RED,
-    fontSize: FONT_SIZE.SM,
-    marginTop: SPACING.XS,
+  disabledBg: {
+    backgroundColor: '#F3F4F6', // Light gray background
+    borderColor: BORDER_GRAY,
   },
-  iconContainer: {
-    marginLeft: SPACING.SM,
+  errorText: {
+    fontFamily: Fonts.regular,
+    fontSize: 12,
+    color: RED,
+    marginTop: 4,
+  },
+  successText: {
+    fontFamily: Fonts.regular,
+    fontSize: 12,
+    color: PRIMARY_GREEN,
+    marginTop: 4,
   },
 });

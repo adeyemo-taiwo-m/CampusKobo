@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import { PRIMARY_GREEN, BORDER_GRAY, SPACING } from '../../src/constants';
+import { PRIMARY_GREEN, BORDER_GRAY, SPACING } from '../constants';
 
 export const PaginationDots = ({ total, activeIndex }: { total: number, activeIndex: number }) => {
   return (

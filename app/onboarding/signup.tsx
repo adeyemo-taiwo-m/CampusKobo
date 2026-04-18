@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { WHITE, PRIMARY_GREEN, TEXT_SECONDARY, TEXT_PRIMARY, SPACING, FONT_SIZE } from '../../src/constants';
+import { WHITE, PRIMARY_GREEN, TEXT_SECONDARY, TEXT_PRIMARY, SPACING, FONT_SIZE, Fonts } from '../../src/constants';
 import { Button } from '../../src/components/Button';
 import { InputField } from '../../src/components/InputField';
 import { useAppContext } from '../../src/context/AppContext';
@@ -148,11 +148,13 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZE.XXXL,
     fontWeight: 'bold',
     color: TEXT_PRIMARY,
+    fontFamily: Fonts.semiBold,
   },
   subtitle: {
     fontSize: FONT_SIZE.LG,
     color: TEXT_SECONDARY,
     marginTop: SPACING.XS,
+    fontFamily: Fonts.regular,
   },
   form: {
     marginBottom: SPACING.XL,
@@ -164,6 +166,7 @@ const styles = StyleSheet.create({
   strengthText: {
     fontSize: FONT_SIZE.SM,
     fontWeight: '500',
+    fontFamily: Fonts.medium,
   },
   footer: {
     marginTop: SPACING.MD,
@@ -176,10 +179,12 @@ const styles = StyleSheet.create({
   footerText: {
     color: TEXT_SECONDARY,
     fontSize: FONT_SIZE.MD,
+    fontFamily: Fonts.regular,
   },
   linkText: {
     color: PRIMARY_GREEN,
     fontSize: FONT_SIZE.MD,
     fontWeight: 'bold',
+    fontFamily: Fonts.semiBold,
   },
 });

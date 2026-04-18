@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, TextInput, ScrollView, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { WHITE, PRIMARY_GREEN, TEXT_SECONDARY, TEXT_PRIMARY, SPACING, FONT_SIZE, BORDER_GRAY } from '../../src/constants';
+import { WHITE, PRIMARY_GREEN, TEXT_SECONDARY, TEXT_PRIMARY, SPACING, FONT_SIZE, BORDER_GRAY, Fonts } from '../../src/constants';
 import { Button } from '../../src/components/Button';
 import { InputField } from '../../src/components/InputField';
 import { CategoryBottomSheet } from '../../src/components/CategoryBottomSheet';
@@ -167,11 +167,13 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: TEXT_PRIMARY,
     marginBottom: SPACING.SM,
+    fontFamily: Fonts.semiBold,
   },
   subtitle: {
     fontSize: FONT_SIZE.LG,
     color: TEXT_SECONDARY,
     marginBottom: 40,
+    fontFamily: Fonts.regular,
   },
   amountContainer: {
     flexDirection: 'row',
@@ -184,6 +186,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: TEXT_PRIMARY,
     marginRight: SPACING.XS,
+    fontFamily: Fonts.semiBold,
   },
   amountInput: {
     fontSize: 32,
@@ -193,6 +196,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: BORDER_GRAY,
     paddingHorizontal: SPACING.SM,
+    fontFamily: Fonts.semiBold,
   },
   form: {
     gap: SPACING.MD,
@@ -202,6 +206,7 @@ const styles = StyleSheet.create({
     color: TEXT_SECONDARY,
     marginBottom: -SPACING.SM,
     fontWeight: '500',
+    fontFamily: Fonts.medium,
   },
   categorySelector: {
     flexDirection: 'row',
@@ -231,6 +236,7 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZE.LG,
     color: TEXT_PRIMARY,
     fontWeight: '500',
+    fontFamily: Fonts.medium,
   },
   footer: {
     marginTop: SPACING.XL,
@@ -243,5 +249,6 @@ const styles = StyleSheet.create({
     color: TEXT_SECONDARY,
     fontSize: FONT_SIZE.MD,
     fontWeight: '500',
+    fontFamily: Fonts.medium,
   },
 });

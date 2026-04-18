@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Animated, StatusBar } from 'react-native';
 import { useRouter } from 'expo-router';
-import { PRIMARY_GREEN, WHITE, TEXT_SECONDARY, FONT_SIZE } from '../../src/constants';
+import { PRIMARY_GREEN, WHITE, TEXT_SECONDARY, FONT_SIZE, Fonts } from '../../src/constants';
 
 export default function SplashScreen() {
   const router = useRouter();
@@ -61,15 +61,18 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     textAlign: 'center',
+    fontFamily: Fonts.semiBold,
   },
   brandText: {
     fontSize: FONT_SIZE.XXXL,
     fontWeight: 'bold',
     color: PRIMARY_GREEN,
     marginBottom: 4,
+    fontFamily: Fonts.semiBold,
   },
   subText: {
     fontSize: FONT_SIZE.MD,
     color: TEXT_SECONDARY,
+    fontFamily: Fonts.regular,
   },
 });
