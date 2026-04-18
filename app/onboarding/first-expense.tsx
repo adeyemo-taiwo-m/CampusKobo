@@ -94,7 +94,7 @@ export default function FirstExpenseScreen() {
               label="Note (Optional)" 
               placeholder="e.g. Lunch at Optop kitchen" 
               value={note} 
-              onChangeText={setNote}
+              onChange={setNote}
             />
           </View>
         </ScrollView>

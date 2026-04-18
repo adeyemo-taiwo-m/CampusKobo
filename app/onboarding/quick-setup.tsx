@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, FlatList } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { WHITE, PRIMARY_GREEN, TEXT_SECONDARY, TEXT_PRIMARY, SPACING, FONT_SIZE, BORDER_GRAY, SURFACE_GREEN, RED, LIGHT_GREEN, YELLOW } from '../../src/constants';
+import { WHITE, PRIMARY_GREEN, TEXT_SECONDARY, TEXT_PRIMARY, SPACING, FONT_SIZE, BORDER_GRAY, SURFACE_GREEN, RED, LIGHT_GREEN, YELLOW, Fonts } from '../../src/constants';
 import { Button } from '../../src/components/Button';
 import { useAppContext } from '../../src/context/AppContext';
 
@@ -145,11 +145,13 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: TEXT_PRIMARY,
     marginBottom: SPACING.SM,
+    fontFamily: Fonts.semiBold,
   },
   subtitle: {
     fontSize: FONT_SIZE.LG,
     color: TEXT_SECONDARY,
     marginBottom: SPACING.XL,
+    fontFamily: Fonts.regular,
   },
   listContent: {
     paddingBottom: SPACING.LG,
@@ -185,6 +187,7 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZE.LG,
     fontWeight: '600',
     color: TEXT_PRIMARY,
+    fontFamily: Fonts.semiBold,
   },
   selectedName: {
     color: PRIMARY_GREEN,
@@ -211,5 +214,6 @@ const styles = StyleSheet.create({
     color: TEXT_SECONDARY,
     fontSize: FONT_SIZE.MD,
     fontWeight: '500',
+    fontFamily: Fonts.medium,
   },
 });

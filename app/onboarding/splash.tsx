@@ -1,37 +1,38 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Animated, StatusBar } from 'react-native';
+import { View, StyleSheet, Animated, StatusBar } from 'react-native';
 import { useRouter } from 'expo-router';
-import { PRIMARY_GREEN, WHITE, TEXT_SECONDARY, FONT_SIZE, Fonts } from '../../src/constants';
+import { Image } from 'expo-image';
+import { WHITE } from '../../src/constants';
 
 export default function SplashScreen() {
   const router = useRouter();
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    // Fade in animation
+    // Smooth fade in
     Animated.timing(fadeAnim, {
       toValue: 1,
-      duration: 800,
+      duration: 1000,
       useNativeDriver: true,
     }).start();
 
-    // Auto-navigate after 2.5 seconds
+    // Navigate to welcome screen after 3 seconds
     const timer = setTimeout(() => {
       router.replace('/onboarding/welcome1');
-    }, 2500);
+    }, 3000);
 
     return () => clearTimeout(timer);
   }, []);
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={WHITE} />
+      <StatusBar barStyle="dark-content" backgroundColor="#FAFAFA" />
       <Animated.View style={[styles.content, { opacity: fadeAnim }]}>
-        <View style={styles.logoPlaceholder}>
-          <Text style={styles.logoText}>CampusKobo</Text>
-        </View>
-        <Text style={styles.brandText}>CampusKobo</Text>
-        <Text style={styles.subText}>by BOF OAU</Text>
+        <Image
+          source={require('../../assets/images/logo-vertical.svg')}
+          style={styles.logo}
+          contentFit="contain"
+        />
       </Animated.View>
     </View>
   );
@@ -40,39 +41,17 @@ export default function SplashScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: WHITE,
+    backgroundColor: '#FAFAFA', // Subtle off-white from your screenshot
     alignItems: 'center',
     justifyContent: 'center',
   },
   content: {
     alignItems: 'center',
-  },
-  logoPlaceholder: {
-    width: 100,
-    height: 100,
-    backgroundColor: PRIMARY_GREEN,
-    borderRadius: 20,
-    alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 20,
+    width: '100%',
   },
-  logoText: {
-    color: WHITE,
-    fontSize: 16,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    fontFamily: Fonts.semiBold,
-  },
-  brandText: {
-    fontSize: FONT_SIZE.XXXL,
-    fontWeight: 'bold',
-    color: PRIMARY_GREEN,
-    marginBottom: 4,
-    fontFamily: Fonts.semiBold,
-  },
-  subText: {
-    fontSize: FONT_SIZE.MD,
-    color: TEXT_SECONDARY,
-    fontFamily: Fonts.regular,
+  logo: {
+    width: 280, // Sized perfectly for the center
+    height: 280,
   },
 });

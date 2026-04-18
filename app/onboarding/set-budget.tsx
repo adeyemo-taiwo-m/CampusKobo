@@ -1,116 +1,144 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, TextInput, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
-import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { WHITE, PRIMARY_GREEN, TEXT_SECONDARY, TEXT_PRIMARY, SPACING, FONT_SIZE, BORDER_GRAY, SURFACE_GREEN } from '../../src/constants';
-import { Button } from '../../src/components/Button';
-import { useAppContext } from '../../src/context/AppContext';
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  SafeAreaView,
+  TouchableOpacity,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+} from "react-native";
+import { useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import {
+  WHITE,
+  PRIMARY_GREEN,
+  TEXT_SECONDARY,
+  TEXT_PRIMARY,
+  SPACING,
+  FONT_SIZE,
+  BORDER_GRAY,
+  SURFACE_GREEN,
+  Fonts,
+  Colors,
+} from "../../src/constants";
+import { Button } from "../../src/components/Button";
+import { InputField } from "../../src/components/InputField";
+import { useAppContext } from "../../src/context/AppContext";
 
 const BUDGET_SUGGESTIONS = [
-  { label: '₦20,000', value: 20000 },
-  { label: '₦30,000', value: 30000 },
-  { label: '₦50,000', value: 50000 },
-  { label: '₦60,000', value: 60000 },
-  { label: '₦80,000', value: 80000 },
+  { label: "₦20,000", value: 20000 },
+  { label: "₦30,000", value: 30000 },
+  { label: "₦40,000", value: 40000 },
+  { label: "₦80,000", value: 80000 },
 ];
 
 export default function SetMonthlyBudgetScreen() {
   const router = useRouter();
   const { updateUser } = useAppContext();
-  const [budget, setBudget] = useState('0');
+  const [budget, setBudget] = useState("");
 
   const handleContinue = () => {
-    const amount = parseFloat(budget.replace(/[^0-9]/g, ''));
+    const amount = parseFloat(budget.replace(/[^0-9]/g, "")) || 0;
     updateUser({ monthlyBudget: amount });
-    router.push('/onboarding/quick-setup');
+    router.push("/onboarding/quick-setup");
   };
 
   const selectSuggestion = (value: number) => {
-    setBudget(value.toString());
-  };
-
-  const formatCurrency = (text: string) => {
-    const cleanNumber = text.replace(/[^0-9]/g, '');
-    if (!cleanNumber) return '0';
-    return parseInt(cleanNumber, 10).toLocaleString();
+    setBudget(value.toLocaleString());
   };
 
   const handleInputChange = (text: string) => {
-    const cleanNumber = text.replace(/[^0-9]/g, '');
-    setBudget(cleanNumber);
+    // Remove non-numeric characters for processing but format for display
+    const cleanNumber = text.replace(/[^0-9]/g, "");
+    if (!cleanNumber) {
+      setBudget("");
+      return;
+    }
+    const formatted = parseInt(cleanNumber, 10).toLocaleString();
+    setBudget(formatted);
   };
 
-  const numericValue = parseInt(budget, 10) || 0;
+  const numericValue = parseInt(budget.replace(/[^0-9]/g, ""), 10) || 0;
 
   return (
     <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1 }}
       >
         <View style={styles.content}>
+          {/* Custom Header */}
           <View style={styles.header}>
-            <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+            <TouchableOpacity
+              onPress={() => router.back()}
+              style={styles.backButton}
+            >
               <Ionicons name="arrow-back" size={24} color={TEXT_PRIMARY} />
             </TouchableOpacity>
+            
             <View style={styles.progressContainer}>
-              {[1, 2, 3, 4, 5].map(i => (
-                <View key={i} style={[styles.dot, i === 2 ? styles.activeDot : styles.inactiveDot]} />
-              ))}
+              <View style={[styles.progressDash, styles.completedDash]} />
+              <View style={[styles.progressDash, styles.activeDash]} />
+              <View style={[styles.progressDash, styles.pendingDash]} />
+              <View style={[styles.progressDash, styles.pendingDash]} />
             </View>
+
+            <TouchableOpacity 
+              onPress={() => router.push("/onboarding/quick-setup")}
+              style={styles.skipHeaderButton}
+            >
+              <Text style={styles.skipHeaderText}>Skip</Text>
+            </TouchableOpacity>
           </View>
 
-          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-            <Text style={styles.title}>Set Your Monthly Budget</Text>
-            <Text style={styles.subtitle}>How much do you plan to spend this month?</Text>
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.scrollContent}
+          >
+            <View style={styles.textSection}>
+              <Text style={styles.title}>Set Monthly Budget</Text>
+              <Text style={styles.subtitle}>
+                Set a limit so you don't overspend
+              </Text>
+            </View>
 
-            <View style={styles.inputWrapper}>
-              <Text style={styles.currencySymbol}>₦</Text>
-              <TextInput
-                style={styles.amountInput}
-                value={numericValue === 0 ? '' : numericValue.toLocaleString()}
-                onChangeText={handleInputChange}
-                keyboardType="numeric"
+            <View style={styles.inputContainer}>
+              <InputField
+                label="Your monthly budget"
                 placeholder="0"
-                placeholderTextColor={TEXT_SECONDARY}
+                prefix="₦"
+                value={budget}
+                onChange={handleInputChange}
+                keyboardType="numeric"
                 autoFocus
               />
             </View>
 
-            <View style={styles.suggestionsContainer}>
-               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipsScroll}>
-                {BUDGET_SUGGESTIONS.map((item) => {
-                  const isSelected = numericValue === item.value;
-                  return (
-                    <TouchableOpacity 
-                      key={item.value} 
-                      style={[styles.chip, isSelected && styles.selectedChip]}
-                      onPress={() => selectSuggestion(item.value)}
-                    >
-                      <Text style={[styles.chipText, isSelected && styles.selectedChipText]}>{item.label}</Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </ScrollView>
+            <View style={styles.suggestionsWrapper}>
+              {BUDGET_SUGGESTIONS.map((item) => (
+                <TouchableOpacity
+                  key={item.value}
+                  style={styles.suggestionChip}
+                  onPress={() => selectSuggestion(item.value)}
+                >
+                  <Text style={styles.suggestionText}>{item.label}</Text>
+                </TouchableOpacity>
+              ))}
             </View>
 
-            <View style={styles.helperBox}>
-              <Ionicons name="bulb-outline" size={20} color={PRIMARY_GREEN} />
-              <Text style={styles.helperText}>
-                Most students set between ₦30,000 – ₦80,000
-              </Text>
-            </View>
+            <Text style={styles.recommendationText}>
+              Most students set <Text style={styles.boldGreen}>₦30,000 – ₦80,000</Text>
+            </Text>
           </ScrollView>
 
           <View style={styles.footer}>
-            <Button 
-              title="Continue" 
-              onPress={handleContinue} 
-              disabled={numericValue === 0}
+            <Button
+              title="Continue"
+              onPress={handleContinue}
+              variant="primary"
             />
-            <TouchableOpacity onPress={() => router.push('/onboarding/quick-setup')} style={styles.skipButton}>
-              <Text style={styles.skipText}>Skip</Text>
-            </TouchableOpacity>
           </View>
         </View>
       </KeyboardAvoidingView>
@@ -125,123 +153,106 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    padding: SPACING.LG,
+    paddingHorizontal: SPACING.LG,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: SPACING.XL,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: SPACING.MD,
+    marginBottom: SPACING.MD,
   },
   backButton: {
-    marginRight: SPACING.LG,
+    padding: SPACING.XS,
   },
   progressContainer: {
-    flexDirection: 'row',
-    flex: 1,
-    justifyContent: 'center',
-    marginRight: 40,
+    flexDirection: "row",
+    alignItems: "center",
   },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginHorizontal: 4,
+  progressDash: {
+    height: 4,
+    width: 24,
+    borderRadius: 2,
+    marginHorizontal: 2,
   },
-  activeDot: {
+  completedDash: {
+    backgroundColor: "#A7F3D0", // Light green
+  },
+  activeDash: {
     backgroundColor: PRIMARY_GREEN,
-    width: SPACING.LG,
   },
-  inactiveDot: {
-    backgroundColor: BORDER_GRAY,
+  pendingDash: {
+    backgroundColor: "#F3F4F6", // Light grey
+  },
+  skipHeaderButton: {
+    backgroundColor: SURFACE_GREEN,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  skipHeaderText: {
+    color: PRIMARY_GREEN,
+    fontFamily: Fonts.medium,
+    fontSize: FONT_SIZE.MD,
   },
   scrollContent: {
-    flexGrow: 1,
+    paddingTop: SPACING.MD,
   },
-  title: {
-    fontSize: FONT_SIZE.XXXL,
-    fontWeight: 'bold',
-    color: TEXT_PRIMARY,
-    marginBottom: SPACING.SM,
-  },
-  subtitle: {
-    fontSize: FONT_SIZE.LG,
-    color: TEXT_SECONDARY,
-    marginBottom: 60,
-  },
-  inputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderBottomWidth: 2,
-    borderBottomColor: PRIMARY_GREEN,
-    paddingBottom: SPACING.SM,
-    marginHorizontal: SPACING.XL,
-  },
-  currencySymbol: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: TEXT_PRIMARY,
-    marginRight: SPACING.XS,
-  },
-  amountInput: {
-    fontSize: 36,
-    fontWeight: 'bold',
-    color: TEXT_PRIMARY,
-    textAlign: 'center',
-    minWidth: 100,
-  },
-  suggestionsContainer: {
-    marginTop: 40,
+  textSection: {
     marginBottom: SPACING.XL,
   },
-  chipsScroll: {
-    paddingVertical: SPACING.SM,
-  },
-  chip: {
-    paddingHorizontal: SPACING.LG,
-    paddingVertical: SPACING.SM,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: BORDER_GRAY,
-    marginRight: SPACING.SM,
-    backgroundColor: WHITE,
-  },
-  selectedChip: {
-    backgroundColor: PRIMARY_GREEN,
-    borderColor: PRIMARY_GREEN,
-  },
-  chipText: {
-    fontSize: FONT_SIZE.MD,
+  title: {
+    fontSize: 28,
+    fontFamily: Fonts.semiBold,
     color: TEXT_PRIMARY,
-    fontWeight: '600',
+    marginBottom: SPACING.XS,
   },
-  selectedChipText: {
-    color: WHITE,
-  },
-  helperBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F0FDF4',
-    padding: SPACING.MD,
-    borderRadius: 12,
-    marginTop: SPACING.MD,
-  },
-  helperText: {
+  subtitle: {
     fontSize: FONT_SIZE.MD,
+    fontFamily: Fonts.regular,
+    color: TEXT_SECONDARY,
+  },
+  inputContainer: {
+    marginBottom: SPACING.MD,
+  },
+  suggestionsWrapper: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    marginBottom: SPACING.LG,
+  },
+  suggestionChip: {
+    width: "23%",
+    backgroundColor: WHITE,
+    borderWidth: 1,
+    borderColor: "#F3F4F6",
+    borderRadius: 8,
+    paddingVertical: 12,
+    alignItems: "center",
+    marginBottom: SPACING.SM,
+    // Subtle shadow
+    elevation: 1,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+  },
+  suggestionText: {
+    fontSize: 12,
+    fontFamily: Fonts.medium,
+    color: "#6B7280",
+  },
+  recommendationText: {
+    fontSize: FONT_SIZE.MD,
+    fontFamily: Fonts.medium,
     color: PRIMARY_GREEN,
-    marginLeft: SPACING.SM,
-    fontWeight: '500',
+  },
+  boldGreen: {
+    fontFamily: Fonts.bold,
   },
   footer: {
-    marginTop: SPACING.XL,
-  },
-  skipButton: {
-    alignItems: 'center',
-    marginTop: SPACING.MD,
-  },
-  skipText: {
-    color: TEXT_SECONDARY,
-    fontSize: FONT_SIZE.MD,
-    fontWeight: '500',
+    paddingVertical: SPACING.LG,
+    backgroundColor: WHITE,
   },
 });
+

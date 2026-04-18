@@ -1,7 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet, SafeAreaView, StatusBar } from 'react-native';
 import { useRouter } from 'expo-router';
-import { WHITE, PRIMARY_GREEN, TEXT_SECONDARY, SPACING, FONT_SIZE, LIGHT_GREEN } from '../../src/constants';
+import { Image } from 'expo-image';
+import { WHITE, TEXT_SECONDARY, SPACING, Fonts } from '../../src/constants';
 import { Button } from '../../src/components/Button';
 import { PaginationDots } from '../../src/components/PaginationDots';
 
@@ -10,35 +11,39 @@ export default function WelcomeScreen2() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle="dark-content" backgroundColor={WHITE} />
       <View style={styles.content}>
         {/* Illustration Area */}
         <View style={styles.illustrationContainer}>
-          <View style={[styles.illustrationPlaceholder, { backgroundColor: '#EFF6FF' }]}>
-            <Text style={[styles.placeholderText, { color: '#2563EB' }]}>Illustration 2</Text>
-          </View>
+          <Image
+            source={require('../../assets/images/welcome-2.svg')}
+            style={styles.illustration}
+            contentFit="contain"
+          />
         </View>
 
         <View style={styles.textContainer}>
-          <Text style={styles.title}>Know Where Your Money Goes</Text>
+          <Text style={styles.title}>Know where your money goes</Text>
           <Text style={styles.subtitle}>
-            Log expenses instantly, set budgets by category, and see exactly where you stand.
+            Track every expense in seconds
           </Text>
         </View>
 
-        <PaginationDots total={3} activeIndex={1} />
+        <View style={styles.dotsWrapper}>
+          <PaginationDots total={3} activeIndex={1} />
+        </View>
 
         <View style={styles.buttonContainer}>
+          <Button 
+            title="Login" 
+            onPress={() => router.push('/onboarding/login')} 
+            variant="tertiary"
+            style={styles.topButton}
+          />
           <Button 
             title="Sign Up" 
             onPress={() => router.push('/onboarding/welcome3')} 
             variant="primary"
-          />
-          <Button 
-            title="Log In" 
-            onPress={() => router.push('/onboarding/login')} 
-            variant="outline"
-            style={styles.loginButton}
           />
         </View>
       </View>
@@ -57,47 +62,45 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   illustrationContainer: {
-    flex: 1,
+    flex: 2,
     justifyContent: 'center',
     alignItems: 'center',
+    marginTop: 20,
+    width: '110%',
+    marginLeft: '-5%',
   },
-  illustrationPlaceholder: {
+  illustration: {
     width: '100%',
-    height: 250,
-    backgroundColor: '#F0FDF4',
-    borderRadius: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: LIGHT_GREEN,
-    borderStyle: 'dashed',
-  },
-  placeholderText: {
-    color: PRIMARY_GREEN,
-    fontWeight: 'bold',
+    height: '100%',
   },
   textContainer: {
     alignItems: 'center',
-    marginVertical: SPACING.XL,
+    marginBottom: SPACING.XL,
+    paddingHorizontal: 20,
   },
   title: {
-    fontSize: FONT_SIZE.XXXL,
+    fontSize: 28,
     fontWeight: 'bold',
     textAlign: 'center',
     color: '#000',
-    marginBottom: SPACING.MD,
+    marginBottom: SPACING.SM,
+    fontFamily: Fonts.semiBold,
   },
   subtitle: {
-    fontSize: FONT_SIZE.LG,
+    fontSize: 16,
     color: TEXT_SECONDARY,
     textAlign: 'center',
     lineHeight: 24,
+    fontFamily: Fonts.regular,
+  },
+  dotsWrapper: {
+    marginBottom: SPACING.XL,
   },
   buttonContainer: {
     width: '100%',
     marginBottom: SPACING.LG,
   },
-  loginButton: {
-    borderWidth: 0,
-  }
+  topButton: {
+    marginBottom: SPACING.MD,
+  },
 });

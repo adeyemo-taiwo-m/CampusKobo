@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   View, 
   Text, 
@@ -6,11 +6,12 @@ import {
   StyleSheet, 
   TextInputProps, 
   TextStyle, 
-  ViewStyle 
+  StyleProp,
+  ViewStyle,
+  Platform
 } from 'react-native';
 import { 
   Colors, 
-  TEXT_SECONDARY, 
   SPACING, 
   Fonts, 
   PRIMARY_GREEN, 
@@ -20,7 +21,7 @@ import {
 
 type InputState = 'default' | 'active' | 'success' | 'error' | 'disabled';
 
-interface InputFieldProps extends Omit<TextInputProps, 'onChangeText'> {
+interface InputFieldProps extends Omit<TextInputProps, 'onChange' | 'onChangeText'> {
   label: string;
   placeholder: string;
   state?: InputState;
@@ -28,37 +29,42 @@ interface InputFieldProps extends Omit<TextInputProps, 'onChangeText'> {
   onChange: (text: string) => void;
   errorMessage?: string;
   successMessage?: string;
+  prefix?: string;
+  rightIcon?: React.ReactNode;
 }
 
 export const InputField = ({
   label,
   placeholder,
-  state = 'default',
+  state: externalState,
   value,
   onChange,
   errorMessage,
   successMessage,
+  prefix,
+  rightIcon,
   style,
+  onFocus,
+  onBlur,
   ...props
 }: InputFieldProps) => {
-  
-  const getContainerStyle = (): ViewStyle[] => {
-    const base: ViewStyle[] = [styles.inputContainer];
+  const [isFocused, setIsFocused] = useState(false);
+
+  const getEffectiveState = (): InputState => {
+    if (externalState && externalState !== 'default') return externalState;
+    if (isFocused) return 'active';
+    return 'default';
+  };
+
+  const effectiveState = getEffectiveState();
+
+  const getContainerStyle = (): StyleProp<ViewStyle> => {
+    const base: any[] = [styles.inputContainer];
     
-    switch (state) {
-      case 'active':
-        base.push(styles.activeBorder);
-        break;
-      case 'success':
-        base.push(styles.successBorder);
-        break;
-      case 'error':
-        base.push(styles.errorBorder);
-        break;
-      case 'disabled':
-        base.push(styles.disabledBg);
-        break;
-    }
+    if (effectiveState === 'active') base.push(styles.activeBorder);
+    if (effectiveState === 'success') base.push(styles.successBorder);
+    if (effectiveState === 'error') base.push(styles.errorBorder);
+    if (effectiveState === 'disabled') base.push(styles.disabledBg);
     
     return base;
   };
@@ -68,24 +74,36 @@ export const InputField = ({
       <Text style={styles.label}>{label}</Text>
       
       <View style={getContainerStyle()}>
-        <TextInput
-          style={[styles.input, style as TextStyle]}
-          placeholder={placeholder}
-          placeholderTextColor={Colors.neutral.N400}
-          value={value}
-          onChangeText={onChange}
-          editable={state !== 'disabled'}
-          {...props}
-        />
+        <View style={styles.inputInnerContainer}>
+          {prefix ? <Text style={styles.prefix}>{prefix}</Text> : null}
+          <TextInput
+            style={[styles.input, style as TextStyle]}
+            placeholder={placeholder}
+            placeholderTextColor="#9CA3AF"
+            value={value}
+            onChangeText={onChange}
+            editable={effectiveState !== 'disabled'}
+            onFocus={(e) => {
+              setIsFocused(true);
+              if (onFocus) onFocus(e);
+            }}
+            onBlur={(e) => {
+              setIsFocused(false);
+              if (onBlur) onBlur(e);
+            }}
+            {...props}
+          />
+          {rightIcon && <View style={styles.rightIconWrapper}>{rightIcon}</View>}
+        </View>
       </View>
       
-      {state === 'error' && errorMessage && (
+      {effectiveState === 'error' && errorMessage ? (
         <Text style={styles.errorText}>{errorMessage}</Text>
-      )}
+      ) : null}
       
-      {state === 'success' && successMessage && (
+      {effectiveState === 'success' && successMessage ? (
         <Text style={styles.successText}>{successMessage}</Text>
-      )}
+      ) : null}
     </View>
   );
 };
@@ -98,27 +116,47 @@ const styles = StyleSheet.create({
   label: {
     fontFamily: Fonts.medium,
     fontSize: 13,
-    color: '#6B7280', // Muted gray
+    color: '#6B7280',
     marginBottom: 6,
+    marginLeft: 2,
   },
   inputContainer: {
-    height: 48,
-    borderWidth: 1,
-    borderColor: BORDER_GRAY,
-    borderRadius: 6,
-    paddingHorizontal: 12,
+    height: 52, // Increased slightly for better look
+    borderWidth: 1.5,
+    borderColor: '#F3F4F6', // Lighter border by default
+    borderRadius: 12,
+    paddingHorizontal: 16,
     backgroundColor: '#FFFFFF',
     justifyContent: 'center',
   },
-  input: {
-    fontFamily: Fonts.regular,
-    fontSize: 14,
-    color: Colors.neutral.N900,
-    width: '100%',
+  inputInnerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
     height: '100%',
   },
+  prefix: {
+    fontFamily: Fonts.medium,
+    fontSize: 16,
+    color: '#9CA3AF',
+    marginRight: 8,
+  },
+  input: {
+    fontFamily: Fonts.medium,
+    fontSize: 16,
+    color: Colors.neutral.N900,
+    flex: 1,
+    height: '100%',
+    ...Platform.select({
+      web: {
+        outlineStyle: 'none',
+      } as any,
+    }),
+  },
+  rightIconWrapper: {
+    marginLeft: 8,
+  },
   activeBorder: {
-    borderColor: Colors.neutral.N900,
+    borderColor: PRIMARY_GREEN,
   },
   successBorder: {
     borderColor: PRIMARY_GREEN,
@@ -127,7 +165,7 @@ const styles = StyleSheet.create({
     borderColor: RED,
   },
   disabledBg: {
-    backgroundColor: '#F3F4F6', // Light gray background
+    backgroundColor: '#F3F4F6',
     borderColor: BORDER_GRAY,
   },
   errorText: {
@@ -135,11 +173,14 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: RED,
     marginTop: 4,
+    marginLeft: 2,
   },
   successText: {
     fontFamily: Fonts.regular,
     fontSize: 12,
     color: PRIMARY_GREEN,
     marginTop: 4,
+    marginLeft: 2,
   },
 });
+
