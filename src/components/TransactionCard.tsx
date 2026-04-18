@@ -20,6 +20,7 @@ export interface Transaction {
   type: "income" | "expense";
   category: string;
   categoryIcon: string;
+  categoryColor: string; // Added color field
   description: string;
   date: string;
   isRecurring: boolean;
@@ -48,11 +49,16 @@ export const TransactionCard = ({
       activeOpacity={0.7}
     >
       <View style={styles.leftContent}>
-        <View style={styles.iconContainer}>
+        <View
+          style={[
+            styles.iconContainer,
+            { backgroundColor: transaction.categoryColor + "20" },
+          ]}
+        >
           <Ionicons
             name={transaction.categoryIcon as any}
             size={24}
-            color={Colors.primary.P600}
+            color={transaction.categoryColor}
           />
         </View>
         <View style={styles.textContainer}>
@@ -96,7 +102,6 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: "#DCFCE7",
     alignItems: "center",
     justifyContent: "center",
     marginRight: SPACING.MD,
