@@ -73,27 +73,27 @@ export default function SignUpScreen() {
             label="Full Name" 
             placeholder="Enter your full name" 
             value={name} 
-            onChange={setName}
+            onChangeText={setName}
             state={errors.name ? 'error' : 'default'}
-            errorMessage={errors.name}
+            error={errors.name}
           />
           <InputField 
             label="Email Address" 
             placeholder="Enter your email" 
             value={email} 
-            onChange={setEmail}
+            onChangeText={setEmail}
             keyboardType="email-address"
             state={errors.email ? 'error' : 'default'}
-            errorMessage={errors.email}
+            error={errors.email}
           />
           <InputField 
             label="Password" 
             placeholder="Create a password" 
             value={password} 
-            onChange={setPassword}
+            onChangeText={setPassword}
             secureTextEntry={!showPassword}
             state={errors.password ? 'error' : 'default'}
-            errorMessage={errors.password}
+            error={errors.password}
             rightIcon={
               <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
                 <Ionicons name={showPassword ? "eye-off" : "eye"} size={20} color={TEXT_SECONDARY} />

@@ -13,15 +13,19 @@ interface Category {
 }
 
 const CATEGORIES: Category[] = [
-  { id: 'food', name: 'Food', icon: 'restaurant', color: '#EF4444' },
-  { id: 'transport', name: 'Transport', icon: 'car', color: '#3B82F6' },
+  { id: 'food', name: 'Food', icon: 'fast-food', color: '#EF4444' },
+  { id: 'transport', name: 'Transport', icon: 'bus', color: '#3B82F6' },
   { id: 'data', name: 'Data', icon: 'wifi', color: '#8B5CF6' },
-  { id: 'entertainment', name: 'game-controller', icon: 'game-controller', color: '#F59E0B' },
-  { id: 'shopping', name: 'bag', icon: 'bag', color: '#EC4899' },
-  { id: 'health', name: 'heart', icon: 'heart', color: '#10B981' },
-  { id: 'salary', name: 'cash', icon: 'cash', color: '#059669' },
-  { id: 'education', name: 'school', icon: 'school', color: '#6366F1' },
-  { id: 'others', name: 'grid', icon: 'grid', color: '#6B7280' },
+  { id: 'entertainment', name: 'Entertainment', icon: 'game-controller', color: '#F59E0B' },
+  { id: 'shopping', name: 'Shopping', icon: 'cart', color: '#EC4899' },
+  { id: 'health', name: 'Health', icon: 'heart', color: '#10B981' },
+  { id: 'salary', name: 'Salary', icon: 'cash', color: '#059669' },
+  { id: 'freelance', name: 'Freelance', icon: 'briefcase', color: '#0891B2' },
+  { id: 'transfer', name: 'Transfer', icon: 'swap-horizontal', color: '#6366F1' },
+  { id: 'education', name: 'Education', icon: 'school', color: '#4F46E5' },
+  { id: 'savings', name: 'Savings', icon: 'wallet', color: '#22C55E' },
+  { id: 'bills', name: 'Bills', icon: 'receipt', color: '#F43F5E' },
+  { id: 'others', name: 'Others', icon: 'grid', color: '#6B7280' },
 ];
 
 interface CategoryBottomSheetProps {

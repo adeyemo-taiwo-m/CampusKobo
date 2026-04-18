@@ -25,6 +25,7 @@ import {
 } from "../../src/constants";
 import { Button } from "../../src/components/Button";
 import { InputField } from "../../src/components/InputField";
+import { OnboardingHeader } from "../../src/components/OnboardingHeader";
 import { useAppContext } from "../../src/context/AppContext";
 
 const BUDGET_SUGGESTIONS = [
@@ -69,29 +70,11 @@ export default function SetMonthlyBudgetScreen() {
         style={{ flex: 1 }}
       >
         <View style={styles.content}>
-          {/* Custom Header */}
-          <View style={styles.header}>
-            <TouchableOpacity
-              onPress={() => router.back()}
-              style={styles.backButton}
-            >
-              <Ionicons name="arrow-back" size={24} color={TEXT_PRIMARY} />
-            </TouchableOpacity>
-            
-            <View style={styles.progressContainer}>
-              <View style={[styles.progressDash, styles.completedDash]} />
-              <View style={[styles.progressDash, styles.activeDash]} />
-              <View style={[styles.progressDash, styles.pendingDash]} />
-              <View style={[styles.progressDash, styles.pendingDash]} />
-            </View>
-
-            <TouchableOpacity 
-              onPress={() => router.push("/onboarding/quick-setup")}
-              style={styles.skipHeaderButton}
-            >
-              <Text style={styles.skipHeaderText}>Skip</Text>
-            </TouchableOpacity>
-          </View>
+          <OnboardingHeader
+            currentStep={1}
+            totalSteps={4}
+            onSkip={() => router.push("/onboarding/quick-setup")}
+          />
 
           <ScrollView
             showsVerticalScrollIndicator={false}
@@ -110,7 +93,7 @@ export default function SetMonthlyBudgetScreen() {
                 placeholder="0"
                 prefix="₦"
                 value={budget}
-                onChange={handleInputChange}
+                onChangeText={handleInputChange}
                 keyboardType="numeric"
                 autoFocus
               />
@@ -154,46 +137,6 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingHorizontal: SPACING.LG,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingVertical: SPACING.MD,
-    marginBottom: SPACING.MD,
-  },
-  backButton: {
-    padding: SPACING.XS,
-  },
-  progressContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  progressDash: {
-    height: 4,
-    width: 24,
-    borderRadius: 2,
-    marginHorizontal: 2,
-  },
-  completedDash: {
-    backgroundColor: "#A7F3D0", // Light green
-  },
-  activeDash: {
-    backgroundColor: PRIMARY_GREEN,
-  },
-  pendingDash: {
-    backgroundColor: "#F3F4F6", // Light grey
-  },
-  skipHeaderButton: {
-    backgroundColor: SURFACE_GREEN,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-  },
-  skipHeaderText: {
-    color: PRIMARY_GREEN,
-    fontFamily: Fonts.medium,
-    fontSize: FONT_SIZE.MD,
   },
   scrollContent: {
     paddingTop: SPACING.MD,
@@ -248,7 +191,7 @@ const styles = StyleSheet.create({
     color: PRIMARY_GREEN,
   },
   boldGreen: {
-    fontFamily: Fonts.bold,
+    fontFamily: Fonts.semiBold,
   },
   footer: {
     paddingVertical: SPACING.LG,

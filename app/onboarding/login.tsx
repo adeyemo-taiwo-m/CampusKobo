@@ -64,14 +64,14 @@ export default function LoginScreen() {
             label="Email Address" 
             placeholder="Enter your email" 
             value={email} 
-            onChange={setEmail}
+            onChangeText={setEmail}
             keyboardType="email-address"
           />
           <InputField 
             label="Password" 
             placeholder="Enter your password" 
             value={password} 
-            onChange={setPassword}
+            onChangeText={setPassword}
             secureTextEntry={!showPassword}
             rightIcon={
               <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>

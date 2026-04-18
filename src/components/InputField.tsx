@@ -15,19 +15,18 @@ import {
   SPACING, 
   Fonts, 
   PRIMARY_GREEN, 
-  RED, 
   BORDER_GRAY 
 } from '../constants';
 
 type InputState = 'default' | 'active' | 'success' | 'error' | 'disabled';
 
-interface InputFieldProps extends Omit<TextInputProps, 'onChange' | 'onChangeText'> {
+interface InputFieldProps extends Omit<TextInputProps, 'onChangeText'> {
   label: string;
   placeholder: string;
   state?: InputState;
   value: string;
-  onChange: (text: string) => void;
-  errorMessage?: string;
+  onChangeText: (text: string) => void;
+  error?: string;
   successMessage?: string;
   prefix?: string;
   rightIcon?: React.ReactNode;
@@ -38,8 +37,8 @@ export const InputField = ({
   placeholder,
   state: externalState,
   value,
-  onChange,
-  errorMessage,
+  onChangeText,
+  error,
   successMessage,
   prefix,
   rightIcon,
@@ -51,6 +50,7 @@ export const InputField = ({
   const [isFocused, setIsFocused] = useState(false);
 
   const getEffectiveState = (): InputState => {
+    if (error) return 'error';
     if (externalState && externalState !== 'default') return externalState;
     if (isFocused) return 'active';
     return 'default';
@@ -81,7 +81,7 @@ export const InputField = ({
             placeholder={placeholder}
             placeholderTextColor="#9CA3AF"
             value={value}
-            onChangeText={onChange}
+            onChangeText={onChangeText}
             editable={effectiveState !== 'disabled'}
             onFocus={(e) => {
               setIsFocused(true);
@@ -97,8 +97,8 @@ export const InputField = ({
         </View>
       </View>
       
-      {effectiveState === 'error' && errorMessage ? (
-        <Text style={styles.errorText}>{errorMessage}</Text>
+      {error ? (
+        <Text style={styles.errorText}>{error}</Text>
       ) : null}
       
       {effectiveState === 'success' && successMessage ? (
@@ -121,9 +121,9 @@ const styles = StyleSheet.create({
     marginLeft: 2,
   },
   inputContainer: {
-    height: 52, // Increased slightly for better look
+    height: 52,
     borderWidth: 1.5,
-    borderColor: '#F3F4F6', // Lighter border by default
+    borderColor: '#F3F4F6',
     borderRadius: 12,
     paddingHorizontal: 16,
     backgroundColor: '#FFFFFF',
@@ -162,7 +162,7 @@ const styles = StyleSheet.create({
     borderColor: PRIMARY_GREEN,
   },
   errorBorder: {
-    borderColor: RED,
+    borderColor: '#EF4444',
   },
   disabledBg: {
     backgroundColor: '#F3F4F6',
@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
   errorText: {
     fontFamily: Fonts.regular,
     fontSize: 12,
-    color: RED,
+    color: '#EF4444',
     marginTop: 4,
     marginLeft: 2,
   },
@@ -183,4 +183,5 @@ const styles = StyleSheet.create({
     marginLeft: 2,
   },
 });
+
 
