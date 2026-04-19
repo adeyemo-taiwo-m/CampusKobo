@@ -4,6 +4,7 @@ export interface Transaction {
   type: 'income' | 'expense';
   category: string;
   categoryIcon: string;
+  categoryColor: string;
   description: string;
   date: string; // ISO date string
   note?: string;

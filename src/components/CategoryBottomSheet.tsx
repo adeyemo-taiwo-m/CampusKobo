@@ -9,32 +9,43 @@ interface Category {
   id: string;
   name: string;
   icon: string;
-  color: string;
 }
 
-const CATEGORIES: Category[] = [
-  { id: 'food', name: 'Food', icon: 'fast-food', color: '#EF4444' },
-  { id: 'transport', name: 'Transport', icon: 'bus', color: '#3B82F6' },
-  { id: 'data', name: 'Data', icon: 'wifi', color: '#8B5CF6' },
-  { id: 'entertainment', name: 'Entertainment', icon: 'game-controller', color: '#F59E0B' },
-  { id: 'shopping', name: 'Shopping', icon: 'cart', color: '#EC4899' },
-  { id: 'health', name: 'Health', icon: 'heart', color: '#10B981' },
-  { id: 'salary', name: 'Salary', icon: 'cash', color: '#059669' },
-  { id: 'freelance', name: 'Freelance', icon: 'briefcase', color: '#0891B2' },
-  { id: 'transfer', name: 'Transfer', icon: 'swap-horizontal', color: '#6366F1' },
-  { id: 'education', name: 'Education', icon: 'school', color: '#4F46E5' },
-  { id: 'savings', name: 'Savings', icon: 'wallet', color: '#22C55E' },
-  { id: 'bills', name: 'Bills', icon: 'receipt', color: '#F43F5E' },
-  { id: 'others', name: 'Others', icon: 'grid', color: '#6B7280' },
+const EXPENSE_CATEGORIES: Category[] = [
+  { id: 'lunch', name: 'Lunch', icon: 'fast-food-outline' },
+  { id: 'data', name: 'Data', icon: 'wifi-outline' },
+  { id: 'health', name: 'Health', icon: 'heart-outline' },
+  { id: 'fuel', name: 'Fuel', icon: 'car-outline' },
+  { id: 'shopping', name: 'Shopping', icon: 'cart-outline' },
+  { id: 'groceries', name: 'Groceries', icon: 'basket-outline' },
+  { id: 'bills', name: 'Bills', icon: 'receipt-outline' },
+  { id: 'entertainment', name: 'Entertainment', icon: 'game-controller-outline' },
+  { id: 'transport', name: 'Transport', icon: 'car-sport-outline' },
+  { id: 'others', name: 'Others', icon: 'chatbox-ellipses-outline' },
+];
+
+const INCOME_CATEGORIES: Category[] = [
+  { id: 'salary', name: 'Salary', icon: 'briefcase-outline' },
+  { id: 'freelance', name: 'Freelance', icon: 'laptop-outline' },
+  { id: 'refund', name: 'Refund', icon: 'arrow-undo-outline' },
+  { id: 'business', name: 'Business Income', icon: 'trending-up-outline' },
+  { id: 'investment', name: 'Investment', icon: 'stats-chart-outline' },
+  { id: 'interest', name: 'Interest', icon: 'flash-outline' },
+  { id: 'health_inc', name: 'Health', icon: 'heart-outline' },
+  { id: 'gift', name: 'Gift', icon: 'gift-outline' },
+  { id: 'others_inc', name: 'Others', icon: 'chatbox-ellipses-outline' },
 ];
 
 interface CategoryBottomSheetProps {
   isVisible: boolean;
   onClose: () => void;
-  onSelect: (category: Category) => void;
+  onSelect: (category: { name: string, icon: string, color: string }) => void;
+  type: 'expense' | 'income';
 }
 
-export const CategoryBottomSheet = ({ isVisible, onClose, onSelect }: CategoryBottomSheetProps) => {
+export const CategoryBottomSheet = ({ isVisible, onClose, onSelect, type }: CategoryBottomSheetProps) => {
+  const categories = type === 'expense' ? EXPENSE_CATEGORIES : INCOME_CATEGORIES;
+
   return (
     <Modal
       visible={isVisible}
@@ -46,29 +57,34 @@ export const CategoryBottomSheet = ({ isVisible, onClose, onSelect }: CategoryBo
         <View style={styles.overlay}>
           <TouchableWithoutFeedback>
             <View style={styles.sheetContainer}>
-              <View style={styles.handle} />
-              <Text style={styles.title}>Select Category</Text>
+              <View style={styles.header}>
+                <View style={{ width: 24 }} />
+                <Text style={styles.title}>Choose Category</Text>
+                <TouchableOpacity onPress={onClose}>
+                  <Ionicons name="arrow-forward" size={24} color={TEXT_PRIMARY} />
+                </TouchableOpacity>
+              </View>
               
-              <FlatList
-                data={CATEGORIES}
-                numColumns={3}
-                keyExtractor={(item) => item.id}
-                renderItem={({ item }) => (
+              <View style={styles.categoryGrid}>
+                {categories.map((item) => (
                   <TouchableOpacity 
-                    style={styles.categoryCard} 
+                    key={item.id}
+                    style={[
+                      styles.categoryCard,
+                      item.name === 'Others' && styles.fullWidthCard
+                    ]} 
                     onPress={() => {
-                      onSelect(item);
+                      onSelect({ name: item.name, icon: item.icon, color: PRIMARY_GREEN });
                       onClose();
                     }}
                   >
-                    <View style={[styles.iconContainer, { backgroundColor: item.color + '20' }]}>
-                      <Ionicons name={item.icon as any} size={28} color={item.color} />
+                    <View style={styles.iconWrapper}>
+                      <Ionicons name={item.icon as any} size={20} color={PRIMARY_GREEN} />
                     </View>
                     <Text style={styles.categoryName}>{item.name}</Text>
                   </TouchableOpacity>
-                )}
-                contentContainerStyle={styles.list}
-              />
+                ))}
+              </View>
             </View>
           </TouchableWithoutFeedback>
         </View>
@@ -85,47 +101,53 @@ const styles = StyleSheet.create({
   },
   sheetContainer: {
     backgroundColor: WHITE,
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
-    padding: SPACING.LG,
-    maxHeight: height * 0.6,
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    padding: 24,
+    paddingBottom: 40,
   },
-  handle: {
-    width: 40,
-    height: 4,
-    backgroundColor: BORDER_GRAY,
-    borderRadius: 2,
-    alignSelf: 'center',
-    marginBottom: SPACING.MD,
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 24,
   },
   title: {
-    fontSize: FONT_SIZE.XL,
-    fontWeight: 'bold',
+    fontSize: 18,
     color: TEXT_PRIMARY,
-    marginBottom: SPACING.LG,
-    textAlign: 'center',
     fontFamily: Fonts.semiBold,
   },
-  list: {
-    paddingBottom: SPACING.XL,
+  categoryGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
   },
   categoryCard: {
-    flex: 1,
+    flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: SPACING.LG,
+    backgroundColor: '#F9FAFB',
+    borderRadius: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    minWidth: '30%',
+    flexGrow: 1,
   },
-  iconContainer: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+  fullWidthCard: {
+    width: '100%',
+    justifyContent: 'center',
+  },
+  iconWrapper: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#E7F5ED',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: SPACING.XS,
+    marginRight: 10,
   },
   categoryName: {
-    fontSize: FONT_SIZE.MD,
-    color: TEXT_PRIMARY,
-    fontWeight: '500',
+    fontSize: 15,
+    color: '#4B5563',
     fontFamily: Fonts.medium,
   },
 });

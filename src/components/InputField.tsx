@@ -31,6 +31,9 @@ interface InputFieldProps extends Omit<TextInputProps, 'onChangeText'> {
   prefix?: string;
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
+  prefixStyle?: StyleProp<TextStyle>;
+  labelStyle?: StyleProp<TextStyle>;
+  containerStyle?: StyleProp<ViewStyle>;
   outerContainerStyle?: StyleProp<ViewStyle>;
 }
 
@@ -45,6 +48,9 @@ export const InputField = ({
   prefix,
   leftIcon,
   rightIcon,
+  prefixStyle,
+  labelStyle,
+  containerStyle,
   outerContainerStyle,
   style,
   onFocus,
@@ -63,7 +69,7 @@ export const InputField = ({
   const effectiveState = getEffectiveState();
 
   const getContainerStyle = (): StyleProp<ViewStyle> => {
-    const base: any[] = [styles.inputContainer];
+    const base: any[] = [styles.inputContainer, containerStyle];
     
     if (effectiveState === 'active') base.push(styles.activeBorder);
     if (effectiveState === 'success') base.push(styles.successBorder);
@@ -75,12 +81,12 @@ export const InputField = ({
 
   return (
     <View style={[styles.outerContainer, outerContainerStyle]}>
-      {label ? <Text style={styles.label}>{label}</Text> : null}
+      {label ? <Text style={[styles.label, labelStyle]}>{label}</Text> : null}
       
       <View style={getContainerStyle()}>
         <View style={styles.inputInnerContainer}>
           {leftIcon && <View style={styles.leftIconWrapper}>{leftIcon}</View>}
-          {prefix ? <Text style={styles.prefix}>{prefix}</Text> : null}
+          {prefix ? <Text style={[styles.prefix, prefixStyle]}>{prefix}</Text> : null}
           <TextInput
             style={[styles.input, style as TextStyle]}
             placeholder={placeholder}

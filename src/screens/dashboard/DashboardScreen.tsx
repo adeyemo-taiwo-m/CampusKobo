@@ -18,6 +18,7 @@ import {
   TEXT_SECONDARY,
   SPACING,
   Fonts,
+  BACKGROUND,
 } from "../../constants";
 import { useAppContext } from "../../context/AppContext";
 import { DarkCard } from "../../components/DarkCard";
@@ -252,7 +253,7 @@ export default function DashboardScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: WHITE,
+    backgroundColor: BACKGROUND,
   },
   headerBackground: {
     backgroundColor: PRIMARY_GREEN,

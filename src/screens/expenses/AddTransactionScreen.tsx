@@ -19,7 +19,8 @@ import {
   TEXT_SECONDARY, 
   SPACING, 
   Fonts,
-  BORDER_GRAY 
+  BORDER_GRAY,
+  BACKGROUND 
 } from '../../constants';
 import { InputField } from '../../components/InputField';
 import { Button } from '../../components/Button';
@@ -48,16 +49,23 @@ export default function AddTransactionScreen() {
     } : null
   );
   const [description, setDescription] = useState(editTransaction?.description || '');
-  const [note, setNote] = useState(editTransaction?.description || ''); // Using description as placeholder for note if not exists
+  const [note, setNote] = useState(editTransaction?.description || ''); 
   
-  // UI State
+  // UI & Validation State
   const [isCategorySheetVisible, setIsCategorySheetVisible] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
-
-  const isFormValid = parseFloat(amount) > 0 && category !== null;
+  const [validationErrors, setValidationErrors] = useState<Record<string, boolean>>({});
 
   const handleSave = async () => {
-    if (!isFormValid) return;
+    // Basic validation
+    const errors: Record<string, boolean> = {};
+    if (!amount || parseFloat(amount) <= 0) errors.amount = true;
+    if (!category) errors.category = true;
+
+    if (Object.keys(errors).length > 0) {
+      setValidationErrors(errors);
+      return;
+    }
 
     const transactionData: Transaction = {
       id: isEditMode ? editTransaction.id : Math.random().toString(36).substring(7),
@@ -100,7 +108,7 @@ export default function AddTransactionScreen() {
           style={styles.backButton} 
           onPress={() => router.back()}
         >
-          <Ionicons name="chevron-back" size={24} color={TEXT_PRIMARY} />
+          <Ionicons name="chevron-back" size={20} color={TEXT_PRIMARY} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>
           {isEditMode ? 'Edit Transaction' : 'Add Transaction'}
@@ -114,12 +122,12 @@ export default function AddTransactionScreen() {
       >
         <ScrollView 
           contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
         >
-          {/* Date Display */}
-          <View style={styles.dateContainer}>
-            <Ionicons name="calendar-outline" size={18} color={PRIMARY_GREEN} />
-            <Text style={styles.dateText}>
+          {/* Date Group */}
+          <View style={styles.dateGroup}>
+            <Ionicons name="calendar-outline" size={16} color={PRIMARY_GREEN} />
+            <Text style={styles.dateLabelText}>
               {new Date().toLocaleDateString('en-GB', { 
                 weekday: 'short', 
                 day: '2-digit', 
@@ -129,78 +137,82 @@ export default function AddTransactionScreen() {
             </Text>
           </View>
 
-          {/* Toggle Tabs */}
-          <View style={styles.tabContainer}>
+          {/* Toggle Tabs (Dot style) */}
+          <View style={styles.radioGroup}>
             <TouchableOpacity 
-              style={styles.tabItem}
+              style={styles.radioButton} 
               onPress={() => setType('expense')}
             >
               <View style={[
-                styles.tabIndicator, 
-                { backgroundColor: type === 'expense' ? PRIMARY_GREEN : '#E5E7EB' }
+                styles.dot, 
+                type === 'expense' ? styles.activeDot : styles.inactiveDot
               ]} />
               <Text style={[
-                styles.tabLabel,
-                { color: type === 'expense' ? TEXT_PRIMARY : TEXT_SECONDARY }
+                styles.radioLabel, 
+                type === 'expense' ? styles.activeRadioLabel : styles.inactiveRadioLabel
               ]}>Expenses</Text>
             </TouchableOpacity>
 
             <TouchableOpacity 
-              style={styles.tabItem}
+              style={styles.radioButton} 
               onPress={() => setType('income')}
             >
               <View style={[
-                styles.tabIndicator, 
-                { backgroundColor: type === 'income' ? PRIMARY_GREEN : '#E5E7EB' }
+                styles.dot, 
+                type === 'income' ? styles.activeDot : styles.inactiveDot
               ]} />
               <Text style={[
-                styles.tabLabel,
-                { color: type === 'income' ? TEXT_PRIMARY : TEXT_SECONDARY }
+                styles.radioLabel, 
+                type === 'income' ? styles.activeRadioLabel : styles.inactiveRadioLabel
               ]}>Income</Text>
             </TouchableOpacity>
           </View>
 
-          {/* Form */}
-          <View style={styles.form}>
+          {/* Form Fields */}
+          <View style={styles.formSection}>
             <InputField
               label="Amount"
-              placeholder="0.00"
+              placeholder=""
               value={amount}
-              onChangeText={setAmount}
+              onChangeText={(val) => {
+                setAmount(val);
+                if (validationErrors.amount) setValidationErrors({...validationErrors, amount: false});
+              }}
               keyboardType="numeric"
               prefix="₦"
-              style={styles.amountInput}
+              prefixStyle={styles.amountPrefix}
+              containerStyle={[styles.inputField, validationErrors.amount && styles.errorField]}
+              labelStyle={styles.fieldLabel}
+              outerContainerStyle={styles.fieldGroup}
             />
 
             <TouchableOpacity 
-              activeOpacity={0.7}
+              activeOpacity={0.8}
               onPress={() => setIsCategorySheetVisible(true)}
+              style={styles.fieldGroup}
             >
               <InputField
                 label="Category"
                 placeholder="Choose a category"
                 value={category?.name || ''}
-                onChangeText={() => {}} // Read only
                 editable={false}
                 pointerEvents="none"
-                rightIcon={<Ionicons name="chevron-down" size={20} color={TEXT_SECONDARY} />}
+                rightIcon={<Ionicons name="chevron-down" size={20} color="#9CA3AF" />}
+                containerStyle={[styles.inputField, validationErrors.category && styles.errorField]}
+                labelStyle={styles.fieldLabel}
+                outerContainerStyle={{ marginBottom: 0 }}
               />
             </TouchableOpacity>
 
             <InputField
-              label="Description"
-              placeholder="e.g. Lunch at Optop kitchen"
-              value={description}
-              onChangeText={setDescription}
-            />
-
-            <InputField
               label="Note (optional)"
-              placeholder="Add a note..."
+              placeholder=""
               value={note}
               onChangeText={setNote}
               multiline
-              style={styles.noteInput}
+              containerStyle={[styles.inputField, styles.textArea]}
+              labelStyle={styles.fieldLabel}
+              outerContainerStyle={styles.fieldGroup}
             />
           </View>
         </ScrollView>
@@ -211,15 +223,19 @@ export default function AddTransactionScreen() {
         <Button 
           title={isEditMode ? 'Save Changes' : `Save ${type === 'expense' ? 'Expense' : 'Income'}`}
           onPress={handleSave}
-          disabled={!isFormValid}
           variant="primary"
+          style={styles.saveButton}
         />
       </View>
 
       <CategoryBottomSheet 
         isVisible={isCategorySheetVisible}
+        type={type}
         onClose={() => setIsCategorySheetVisible(false)}
-        onSelect={(cat) => setCategory(cat)}
+        onSelect={(cat) => {
+          setCategory(cat);
+          if (validationErrors.category) setValidationErrors({...validationErrors, category: false});
+        }}
       />
     </SafeAreaView>
   );
@@ -228,81 +244,122 @@ export default function AddTransactionScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FAFAFA',
+    backgroundColor: BACKGROUND,
   },
   header: {
+    height: 64,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: SPACING.LG,
-    paddingVertical: SPACING.MD,
+    paddingHorizontal: 16,
   },
   backButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: '#E5E5EA',
     alignItems: 'center',
     justifyContent: 'center',
   },
   headerTitle: {
-    fontFamily: Fonts.semiBold,
     fontSize: 18,
-    color: TEXT_PRIMARY,
+    fontFamily: Fonts.semiBold,
+    color: '#000000',
   },
   scrollContent: {
-    paddingHorizontal: SPACING.LG,
-    paddingTop: SPACING.MD,
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 100,
   },
-  dateContainer: {
+  dateGroup: {
     flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'center',
     gap: 8,
-    marginBottom: SPACING.XL,
+    marginBottom: 24,
   },
-  dateText: {
-    fontFamily: Fonts.medium,
+  dateLabelText: {
     fontSize: 15,
-    color: TEXT_PRIMARY,
+    fontFamily: Fonts.regular,
+    color: '#4B5563',
   },
-  tabContainer: {
+  radioGroup: {
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: 40,
-    marginBottom: SPACING.XL,
+    gap: 60,
+    marginBottom: 32,
   },
-  tabItem: {
+  radioButton: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
   },
-  tabIndicator: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
+  dot: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    borderWidth: 1,
   },
-  tabLabel: {
-    fontFamily: Fonts.medium,
+  activeDot: {
+    backgroundColor: PRIMARY_GREEN,
+    borderColor: PRIMARY_GREEN,
+  },
+  inactiveDot: {
+    backgroundColor: '#E5E7EB',
+    borderColor: '#D1D5DB',
+  },
+  radioLabel: {
     fontSize: 16,
+    fontFamily: Fonts.medium,
   },
-  form: {
-    gap: SPACING.MD,
+  activeRadioLabel: {
+    color: TEXT_PRIMARY,
   },
-  amountInput: {
-    fontSize: 20,
-    fontFamily: Fonts.bold,
+  inactiveRadioLabel: {
+    color: '#9CA3AF',
   },
-  noteInput: {
-    height: 100,
+  formSection: {
+    gap: 0,
+  },
+  fieldGroup: {
+    marginBottom: 20,
+  },
+  fieldLabel: {
+    fontSize: 14,
+    fontFamily: Fonts.regular,
+    color: '#374151',
+    marginBottom: 8,
+  },
+  inputField: {
+    backgroundColor: WHITE,
+    height: 52,
+    borderColor: '#E0E0E0',
+    borderRadius: 12,
+  },
+  errorField: {
+    borderColor: '#EF4444',
+    borderWidth: 1.5,
+  },
+  amountPrefix: {
+    color: PRIMARY_GREEN,
+    fontSize: 18,
+    fontFamily: Fonts.semiBold,
+  },
+  textArea: {
+    height: 90,
     textAlignVertical: 'top',
     paddingTop: 12,
   },
   footer: {
-    padding: SPACING.LG,
-    backgroundColor: '#FAFAFA',
-    borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
-    paddingBottom: Platform.OS === 'ios' ? 30 : SPACING.LG,
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: 16,
+    backgroundColor: BACKGROUND,
+  },
+  saveButton: {
+    height: 56,
+    borderRadius: 16,
   }
 });

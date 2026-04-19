@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { WHITE, PRIMARY_GREEN, TEXT_PRIMARY, Fonts } from '@/src/constants';
+import { BACKGROUND, PRIMARY_GREEN, TEXT_PRIMARY, Fonts } from '../../src/constants';
 
 export default function BudgetScreen() {
   return (
@@ -13,7 +13,7 @@ export default function BudgetScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: WHITE,
+    backgroundColor: BACKGROUND,
     alignItems: 'center',
     justifyContent: 'center',
   },

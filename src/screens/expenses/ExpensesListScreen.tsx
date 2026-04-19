@@ -20,7 +20,8 @@ import {
   TEXT_SECONDARY, 
   SPACING, 
   Fonts,
-  BORDER_GRAY 
+  BORDER_GRAY,
+  BACKGROUND 
 } from '../../constants';
 import { useAppContext } from '../../context/AppContext';
 import { TransactionCard } from '../../components/TransactionCard';
@@ -222,7 +223,7 @@ export default function ExpensesListScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: WHITE,
+    backgroundColor: BACKGROUND,
   },
   headerBackground: {
     backgroundColor: PRIMARY_GREEN,

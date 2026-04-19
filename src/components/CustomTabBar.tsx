@@ -2,14 +2,16 @@ import React from 'react';
 import { View, StyleSheet, TouchableOpacity, Dimensions, Platform } from 'react-native';
 import { Svg, Path } from 'react-native-svg';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
-import { PRIMARY_GREEN, WHITE, TEXT_SECONDARY, SPACING } from '../constants';
+import { PRIMARY_GREEN, WHITE, TEXT_SECONDARY, SPACING, Fonts } from '../constants';
 import { Text } from 'react-native';
 
 const { width } = Dimensions.get('window');
 const TAB_BAR_HEIGHT = 80;
 
 export const CustomTabBar = ({ state, descriptors, navigation }: BottomTabBarProps) => {
+  const router = useRouter();
   return (
     <View style={styles.container}>
       <Svg width={width} height={TAB_BAR_HEIGHT} style={styles.svg}>
@@ -77,19 +79,21 @@ export const CustomTabBar = ({ state, descriptors, navigation }: BottomTabBarPro
 
           // Add FAB at the center (middle of 4 tabs)
           if (index === 2) {
-            return [
-              <TouchableOpacity
-                key="fab-button"
-                activeOpacity={0.8}
-                onPress={() => navigation.navigate('add-transaction' as any)}
-                style={styles.fabButton}
-              >
-                <View style={styles.fabIconContainer}>
-                  <Ionicons name="add" size={32} color={WHITE} />
-                </View>
-              </TouchableOpacity>,
-              tabItem
-            ];
+            return (
+              <React.Fragment key="fab-container">
+                <TouchableOpacity
+                  key="fab-button"
+                  activeOpacity={0.8}
+                  onPress={() => router.push('/add-transaction')}
+                  style={styles.fabButton}
+                >
+                  <View style={styles.fabIconContainer}>
+                    <Ionicons name="add" size={32} color={WHITE} />
+                  </View>
+                </TouchableOpacity>
+                {tabItem}
+              </React.Fragment>
+            );
           }
 
           return tabItem;
