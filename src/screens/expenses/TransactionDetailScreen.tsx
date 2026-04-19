@@ -131,6 +131,11 @@ export default function TransactionDetailScreen() {
               value={transaction.description} 
             />
             <DetailRow 
+              icon="apps-outline" 
+              label="Category" 
+              value={transaction.category} 
+            />
+            <DetailRow 
               icon="card-outline" 
               label="Payment Method" 
               value="Main Wallet" 
@@ -145,7 +150,7 @@ export default function TransactionDetailScreen() {
             <DetailRow 
               icon="clipboard-outline" 
               label="Notes" 
-              value={transaction.note || "Received from employer"} 
+              value={transaction.note || "No notes added"} 
               isLast
             />
           </View>

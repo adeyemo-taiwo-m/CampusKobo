@@ -100,8 +100,20 @@ export const DarkCard = ({
                     <Text style={styles.categoryNameText}>{categoryName}</Text>
                   </View>
 
-                  <View style={styles.monthTag}>
-                    <Text style={styles.monthTagText}>This Month</Text>
+                  <View style={styles.tagRow}>
+                    <View style={[
+                      styles.typeTag, 
+                      { backgroundColor: isIncome ? '#2DBB6D' : '#FFE6E6' }
+                    ]}>
+                      <Text style={[
+                        styles.tagText, 
+                        { color: isIncome ? WHITE : '#E03A3A' }
+                      ]}>{isIncome ? 'Income' : 'Expense'}</Text>
+                    </View>
+
+                    <View style={styles.monthTag}>
+                      <Text style={styles.monthTagText}>This Month</Text>
+                    </View>
                   </View>
                 </View>
               )}
@@ -319,6 +331,20 @@ const styles = StyleSheet.create({
   categoryNameText: {
     color: WHITE,
     fontSize: 18,
+    fontFamily: Fonts.medium,
+  },
+  tagRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  typeTag: {
+    paddingVertical: 6,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+  },
+  tagText: {
+    fontSize: 13,
     fontFamily: Fonts.medium,
   },
   monthTag: {
