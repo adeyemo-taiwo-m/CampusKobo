@@ -50,33 +50,33 @@ export const EmptyState = ({
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    padding: SPACING.XXL,
+    paddingVertical: SPACING.XL,
+    paddingHorizontal: SPACING.LG,
   },
   iconCircle: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     backgroundColor: "#F3F4F6",
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: SPACING.LG,
+    marginBottom: SPACING.MD,
   },
   title: {
     fontFamily: Fonts.semiBold,
-    fontSize: 20,
+    fontSize: 18,
     color: TEXT_PRIMARY,
     textAlign: "center",
-    marginBottom: SPACING.XS,
+    marginBottom: 4,
   },
   subtitle: {
     fontFamily: Fonts.regular,
-    fontSize: FONT_SIZE.MD,
+    fontSize: 14,
     color: TEXT_SECONDARY,
     textAlign: "center",
-    marginBottom: SPACING.XL,
+    marginBottom: SPACING.LG,
   },
   buttonContainer: {
     minWidth: 160,
