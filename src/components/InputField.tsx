@@ -21,7 +21,7 @@ import {
 type InputState = 'default' | 'active' | 'success' | 'error' | 'disabled';
 
 interface InputFieldProps extends Omit<TextInputProps, 'onChangeText'> {
-  label: string;
+  label?: string;
   placeholder: string;
   state?: InputState;
   value: string;
@@ -29,7 +29,9 @@ interface InputFieldProps extends Omit<TextInputProps, 'onChangeText'> {
   error?: string;
   successMessage?: string;
   prefix?: string;
+  leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
+  outerContainerStyle?: StyleProp<ViewStyle>;
 }
 
 export const InputField = ({
@@ -41,7 +43,9 @@ export const InputField = ({
   error,
   successMessage,
   prefix,
+  leftIcon,
   rightIcon,
+  outerContainerStyle,
   style,
   onFocus,
   onBlur,
@@ -70,11 +74,12 @@ export const InputField = ({
   };
 
   return (
-    <View style={styles.outerContainer}>
-      <Text style={styles.label}>{label}</Text>
+    <View style={[styles.outerContainer, outerContainerStyle]}>
+      {label ? <Text style={styles.label}>{label}</Text> : null}
       
       <View style={getContainerStyle()}>
         <View style={styles.inputInnerContainer}>
+          {leftIcon && <View style={styles.leftIconWrapper}>{leftIcon}</View>}
           {prefix ? <Text style={styles.prefix}>{prefix}</Text> : null}
           <TextInput
             style={[styles.input, style as TextStyle]}
@@ -151,6 +156,9 @@ const styles = StyleSheet.create({
         outlineStyle: 'none',
       } as any,
     }),
+  },
+  leftIconWrapper: {
+    marginRight: 8,
   },
   rightIconWrapper: {
     marginLeft: 8,

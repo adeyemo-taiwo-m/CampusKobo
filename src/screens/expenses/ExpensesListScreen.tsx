@@ -27,6 +27,7 @@ import { TransactionCard } from '../../components/TransactionCard';
 import { ProgressBar } from '../../components/ProgressBar';
 import { EmptyState } from '../../components/EmptyState';
 import { DarkCard } from '../../components/DarkCard';
+import { InputField } from '../../components/InputField';
 import { format, isToday, isYesterday, isThisWeek, isThisMonth, subMonths } from 'date-fns';
 
 type FilterType = 'This Month' | 'Last Month' | 'This Week' | 'All';
@@ -165,14 +166,15 @@ export default function ExpensesListScreen() {
 
         {/* Search & Actions */}
         <View style={styles.searchSection}>
-          <View style={styles.searchBar}>
-            <Ionicons name="search-outline" size={20} color={TEXT_SECONDARY} />
-            <TextInput
-              style={styles.searchInput}
+          <View style={styles.searchBarContainer}>
+            <InputField
               placeholder="Search transactions or categories..."
-              placeholderTextColor={TEXT_SECONDARY}
               value={searchQuery}
               onChangeText={setSearchQuery}
+              prefix="" // No prefix needed here
+              style={styles.searchInputCustom}
+              outerContainerStyle={styles.searchFieldOuter}
+              leftIcon={<Ionicons name="search-outline" size={20} color={TEXT_SECONDARY} />}
             />
           </View>
           <TouchableOpacity style={styles.actionButton} onPress={() => router.push("/recurring")}>
@@ -280,7 +282,9 @@ const styles = StyleSheet.create({
   },
   filterChip: {
     paddingHorizontal: 18,
-    paddingVertical: 10,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
     borderRadius: 20,
     backgroundColor: WHITE,
     borderWidth: 1,
@@ -305,23 +309,15 @@ const styles = StyleSheet.create({
     gap: 10,
     marginBottom: 24,
   },
-  searchBar: {
+  searchBarContainer: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F9FAFB',
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    height: 52,
-    borderWidth: 1,
-    borderColor: BORDER_GRAY,
   },
-  searchInput: {
-    flex: 1,
+  searchFieldOuter: {
+    marginBottom: 0,
+  },
+  searchInputCustom: {
     fontFamily: Fonts.regular,
     fontSize: 14,
-    color: TEXT_PRIMARY,
-    marginLeft: 10,
   },
   actionButton: {
     width: 52,
