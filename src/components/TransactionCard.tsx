@@ -63,9 +63,16 @@ export const TransactionCard = ({
         </View>
         <View style={styles.textContainer}>
           <Text style={styles.categoryTitle}>{transaction.category}</Text>
-          <Text style={styles.description} numberOfLines={1}>
-            {transaction.description}
-          </Text>
+          <View style={styles.detailsRow}>
+             <Ionicons name="document-text-outline" size={12} color={TEXT_SECONDARY} style={{ marginRight: 4 }} />
+             <Text style={styles.description} numberOfLines={1}>
+               {transaction.description}
+             </Text>
+          </View>
+          <View style={styles.detailsRow}>
+             <Ionicons name="time-outline" size={12} color={TEXT_SECONDARY} style={{ marginRight: 4 }} />
+             <Text style={styles.time}>{formattedTime}</Text>
+          </View>
         </View>
       </View>
 
@@ -78,7 +85,6 @@ export const TransactionCard = ({
         >
           {isIncome ? "+" : "-"}₦{transaction.amount.toLocaleString()}
         </Text>
-        <Text style={styles.time}>{formattedTime}</Text>
       </View>
     </TouchableOpacity>
   );
@@ -108,6 +114,11 @@ const styles = StyleSheet.create({
   },
   textContainer: {
     flex: 1,
+  },
+  detailsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 2,
   },
   categoryTitle: {
     fontFamily: Fonts.semiBold,
