@@ -8,6 +8,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import {
   PRIMARY_GREEN,
+  WHITE,
   SPACING,
   Fonts,
   TEXT_PRIMARY,
@@ -95,9 +96,15 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingVertical: SPACING.MD,
-    borderBottomWidth: 1,
-    borderBottomColor: "#F3F4F6",
+    padding: SPACING.MD,
+    backgroundColor: WHITE,
+    borderRadius: 24,
+    marginBottom: SPACING.MD,
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
   },
   leftContent: {
     flexDirection: "row",
@@ -129,19 +136,17 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.regular,
     fontSize: 13,
     color: TEXT_SECONDARY,
-    marginTop: 2,
   },
   rightContent: {
     alignItems: "flex-end",
   },
   amount: {
-    fontFamily: Fonts.semiBold,
-    fontSize: 16,
+    fontFamily: Fonts.bold,
+    fontSize: 18,
   },
   time: {
     fontFamily: Fonts.regular,
-    fontSize: 12,
-    color: TEXT_SECONDARY,
-    marginTop: 2,
+    fontSize: 11,
+    color: "#9CA3AF",
   },
 });

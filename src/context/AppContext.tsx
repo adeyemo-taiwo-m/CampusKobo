@@ -48,40 +48,111 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       const s = await StorageService.getSavingsGoals();
       const r = await StorageService.getRecurringExpenses();
 
-      // Add sample data if empty
-      if (t.length === 0) {
-        const sampleTransactions: Transaction[] = [
-          {
-            id: 'sample-1',
-            amount: 60000,
-            type: 'income',
-            category: 'Salary',
-            categoryIcon: 'cash',
-            description: 'Monthly Salary',
-            date: new Date().toISOString(),
-            isRecurring: true,
-          },
-          {
-            id: 'sample-2',
-            amount: 200,
-            type: 'expense',
-            category: 'Food',
-            categoryIcon: 'fast-food',
-            description: 'Lunch',
-            date: new Date().toISOString(),
-            isRecurring: false,
-          },
-          {
-            id: 'sample-3',
-            amount: 2000,
-            type: 'expense',
-            category: 'Data',
-            categoryIcon: 'wifi',
-            description: 'Internet Subscription',
-            date: new Date().toISOString(),
-            isRecurring: true,
-          }
-        ];
+      // Sample data to ensure it matches the latest mockup
+      const sampleTransactions: Transaction[] = [
+        {
+          id: 'sample-1',
+          amount: 60000,
+          type: 'income',
+          category: 'Salary',
+          categoryIcon: 'cash-outline',
+          categoryColor: '#10B981',
+          description: 'Monthly Salary',
+          date: new Date().toISOString(),
+          isRecurring: true,
+        },
+        {
+          id: 'sample-2',
+          amount: 1500,
+          type: 'expense',
+          category: 'Food',
+          categoryIcon: 'restaurant-outline',
+          categoryColor: '#EF4444',
+          description: 'Lunch at Shade\'s store',
+          date: new Date().toISOString(),
+          isRecurring: false,
+        },
+        {
+          id: 'sample-3',
+          amount: 2200,
+          type: 'expense',
+          category: 'Transport',
+          categoryIcon: 'car-sport-outline',
+          categoryColor: '#F59E0B',
+          description: 'Uber to Island',
+          date: new Date().toISOString(),
+          isRecurring: false,
+        },
+        {
+          id: 'sample-4',
+          amount: 5000,
+          type: 'expense',
+          category: 'Shopping',
+          categoryIcon: 'cart-outline',
+          categoryColor: '#EC4899',
+          description: 'Shoprite groceries',
+          date: new Date().toISOString(),
+          isRecurring: false,
+        },
+        {
+          id: 'sample-5',
+          amount: 1800,
+          type: 'expense',
+          category: 'Food',
+          categoryIcon: 'cafe-outline',
+          categoryColor: '#EF4444',
+          description: 'Breakfast at Chicken Republic',
+          date: new Date(Date.now() - 86400000).toISOString(),
+          isRecurring: false,
+        },
+        {
+          id: 'sample-6',
+          amount: 500,
+          type: 'expense',
+          category: 'Airtime',
+          categoryIcon: 'call-outline',
+          categoryColor: '#3B82F6',
+          description: 'MTN recharge',
+          date: new Date(Date.now() - 86400000).toISOString(),
+          isRecurring: false,
+        },
+        {
+          id: 'sample-7',
+          amount: 8000,
+          type: 'expense',
+          category: 'Utilities',
+          categoryIcon: 'flash-outline',
+          categoryColor: '#EF4444',
+          description: 'EKEDC electricity bill',
+          date: new Date(2025, 3, 18, 10, 0).toISOString(), 
+          isRecurring: true,
+        },
+        {
+          id: 'sample-8',
+          amount: 3500,
+          type: 'expense',
+          category: 'Health',
+          categoryIcon: 'heart-outline',
+          categoryColor: '#EF4444',
+          description: 'Pharmacy - Medplus',
+          date: new Date(2025, 3, 18, 13, 30).toISOString(),
+          isRecurring: false,
+        },
+        {
+          id: 'sample-9',
+          amount: 1000,
+          type: 'expense',
+          category: 'Airtime',
+          categoryIcon: 'call-outline',
+          categoryColor: '#EF4444',
+          description: 'MTN recharge',
+          date: new Date(2025, 3, 18, 18, 0).toISOString(),
+          isRecurring: false,
+        }
+      ];
+
+      // If existing transactions are just the old samples, replace them
+      if (t.length === 0 || t.some(tr => tr.id.startsWith('sample'))) {
         await StorageService.saveTransactions(sampleTransactions);
         t = sampleTransactions;
       }
