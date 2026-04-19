@@ -1,5 +1,11 @@
+import { Stack } from 'expo-router';
 import TransactionDetailScreen from '../../src/screens/expenses/TransactionDetailScreen';
 
 export default function TransactionDetail() {
-  return <TransactionDetailScreen />;
+  return (
+    <>
+      <Stack.Screen options={{ headerShown: false }} />
+      <TransactionDetailScreen />
+    </>
+  );
 }

@@ -16,28 +16,28 @@ import {
 import { Button } from "./Button";
 
 interface DeleteConfirmModalProps {
-  visible: boolean;
+  isVisible: boolean;
   title: string;
   message: string;
-  onCancel: () => void;
+  onClose: () => void;
   onConfirm: () => void;
 }
 
 export const DeleteConfirmModal = ({
-  visible,
+  isVisible,
   title,
   message,
-  onCancel,
+  onClose,
   onConfirm,
 }: DeleteConfirmModalProps) => {
   return (
     <Modal
-      visible={visible}
+      visible={isVisible}
       transparent
       animationType="fade"
-      onRequestClose={onCancel}
+      onRequestClose={onClose}
     >
-      <TouchableWithoutFeedback onPress={onCancel}>
+      <TouchableWithoutFeedback onPress={onClose}>
         <View style={styles.overlay}>
           <TouchableWithoutFeedback>
             <View style={styles.modalContainer}>
@@ -48,7 +48,7 @@ export const DeleteConfirmModal = ({
                 <View style={styles.buttonWrapper}>
                   <Button
                     title="Cancel"
-                    onPress={onCancel}
+                    onPress={onClose}
                     variant="secondary"
                     size="md"
                   />
