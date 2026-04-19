@@ -19,9 +19,7 @@ import {
   SPACING,
   FONT_SIZE,
   BORDER_GRAY,
-  SURFACE_GREEN,
   Fonts,
-  Colors,
 } from "../../src/constants";
 import { Button } from "../../src/components/Button";
 import { InputField } from "../../src/components/InputField";

@@ -7,7 +7,7 @@ import {
   TEXT_PRIMARY,
   SPACING,
   FONT_SIZE,
-  SURFACE_GREEN,
+  LIGHT_GREEN,
   Fonts,
 } from "../constants";
 
@@ -97,7 +97,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#F3F4F6", // Light grey
   },
   skipHeaderButton: {
-    backgroundColor: SURFACE_GREEN,
+    backgroundColor: LIGHT_GREEN,
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 8,

@@ -8,10 +8,12 @@ import {
   useFonts, 
   Poppins_400Regular, 
   Poppins_500Medium, 
-  Poppins_600SemiBold 
+  Poppins_600SemiBold,
+  Poppins_700Bold
 } from '@expo-google-fonts/poppins';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
+
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
@@ -27,6 +29,7 @@ export default function RootLayout() {
     Poppins_400Regular,
     Poppins_500Medium,
     Poppins_600SemiBold,
+    Poppins_700Bold,
   });
 
   useEffect(() => {

@@ -17,10 +17,8 @@ import {
   TEXT_SECONDARY,
   SPACING,
   Fonts,
-  DARK_CARD,
 } from "../../constants";
 import { useAppContext } from "../../context/AppContext";
-import { Header } from "../../components/Header";
 import { DarkCard } from "../../components/DarkCard";
 import { ProgressBar } from "../../components/ProgressBar";
 import { TransactionCard } from "../../components/TransactionCard";
@@ -118,46 +116,15 @@ export default function DashboardScreen() {
             </View>
           </View>
 
-          {/* Balance Card */}
-          <DarkCard style={styles.balanceCard}>
-            <Text style={styles.balanceLabel}>Current Balance</Text>
-            <View style={styles.balanceRow}>
-              <Text style={styles.balanceAmount}>
-                {isBalanceVisible ? `₦${totalBalance.toLocaleString()}` : "₦ ••••••"}
-                {isBalanceVisible && <Text style={styles.balanceDecimals}>.00</Text>}
-              </Text>
-              <TouchableOpacity onPress={() => setIsBalanceVisible(!isBalanceVisible)}>
-                <Ionicons 
-                  name={isBalanceVisible ? "eye-outline" : "eye-off-outline"} 
-                  size={24} 
-                  color={WHITE} 
-                  style={styles.eyeIcon}
-                />
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.incomeExpenseRow}>
-              <View style={styles.statItem}>
-                <View style={styles.statIconContainer}>
-                  <Ionicons name="arrow-up-outline" size={14} color="#10B981" />
-                </View>
-                <View>
-                  <Text style={styles.statLabel}>Income</Text>
-                  <Text style={styles.statValue}>+₦{totalIncome.toLocaleString()}</Text>
-                </View>
-              </View>
-              <View style={styles.statDivider} />
-              <View style={styles.statItem}>
-                <View style={[styles.statIconContainer, { backgroundColor: 'rgba(239, 68, 68, 0.2)' }]}>
-                  <Ionicons name="arrow-down-outline" size={14} color="#EF4444" />
-                </View>
-                <View>
-                  <Text style={styles.statLabel}>Expenses</Text>
-                  <Text style={styles.statValue}>-₦{totalExpenses.toLocaleString()}</Text>
-                </View>
-              </View>
-            </View>
-          </DarkCard>
+          {/* Balance Card Section */}
+          <DarkCard
+            balance={totalBalance}
+            income={totalIncome}
+            expenses={totalExpenses}
+            isBalanceVisible={isBalanceVisible}
+            onToggleVisibility={() => setIsBalanceVisible(!isBalanceVisible)}
+            style={styles.balanceCard}
+          />
         </SafeAreaView>
       </View>
 
@@ -324,73 +291,6 @@ const styles = StyleSheet.create({
   },
   balanceCard: {
     marginHorizontal: SPACING.LG,
-    backgroundColor: DARK_CARD,
-    elevation: 8,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-  },
-  balanceLabel: {
-    fontFamily: Fonts.regular,
-    color: "rgba(255, 255, 255, 0.6)",
-    fontSize: 14,
-    marginBottom: SPACING.XS,
-  },
-  balanceRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: SPACING.LG,
-  },
-  balanceAmount: {
-    fontFamily: Fonts.bold,
-    color: WHITE,
-    fontSize: 34,
-  },
-  balanceDecimals: {
-    fontSize: 20,
-    color: "rgba(255, 255, 255, 0.6)",
-  },
-  eyeIcon: {
-    marginLeft: SPACING.MD,
-  },
-  incomeExpenseRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderTopWidth: 1,
-    borderTopColor: "rgba(255, 255, 255, 0.1)",
-    paddingTop: SPACING.MD,
-  },
-  statItem: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  statIconContainer: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: "rgba(16, 185, 129, 0.2)",
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: SPACING.SM,
-  },
-  statDivider: {
-    width: 1,
-    height: 30,
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
-    marginHorizontal: SPACING.MD,
-  },
-  statLabel: {
-    fontFamily: Fonts.regular,
-    color: "rgba(255, 255, 255, 0.5)",
-    fontSize: 11,
-  },
-  statValue: {
-    fontFamily: Fonts.semiBold,
-    color: WHITE,
-    fontSize: 14,
   },
   scrollContent: {
     paddingHorizontal: SPACING.LG,
