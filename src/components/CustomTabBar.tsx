@@ -47,28 +47,13 @@ export const CustomTabBar = ({ state, descriptors, navigation }: BottomTabBarPro
             }
           };
 
-          if (route.name === 'add-transaction') {
-            return (
-              <TouchableOpacity
-                key={route.key}
-                activeOpacity={0.8}
-                onPress={onPress}
-                style={styles.fabButton}
-              >
-                <View style={styles.fabIconContainer}>
-                  <Ionicons name="add" size={32} color={WHITE} />
-                </View>
-              </TouchableOpacity>
-            );
-          }
-
           let iconName: any = 'home-outline';
           if (route.name === 'index') iconName = isFocused ? 'home' : 'home-outline';
           else if (route.name === 'expenses') iconName = isFocused ? 'list' : 'list-outline';
           else if (route.name === 'savings') iconName = isFocused ? 'disc' : 'disc-outline';
           else if (route.name === 'budget') iconName = isFocused ? 'bar-chart' : 'bar-chart-outline';
 
-          return (
+          const tabItem = (
             <TouchableOpacity
               key={route.key}
               onPress={onPress}
@@ -89,6 +74,25 @@ export const CustomTabBar = ({ state, descriptors, navigation }: BottomTabBarPro
               </Text>
             </TouchableOpacity>
           );
+
+          // Add FAB at the center (middle of 4 tabs)
+          if (index === 2) {
+            return [
+              <TouchableOpacity
+                key="fab-button"
+                activeOpacity={0.8}
+                onPress={() => navigation.navigate('add-transaction' as any)}
+                style={styles.fabButton}
+              >
+                <View style={styles.fabIconContainer}>
+                  <Ionicons name="add" size={32} color={WHITE} />
+                </View>
+              </TouchableOpacity>,
+              tabItem
+            ];
+          }
+
+          return tabItem;
         })}
       </View>
     </View>

@@ -18,10 +18,6 @@ export default function TabLayout() {
         options={{ title: 'Expenses' }}
       />
       <Tabs.Screen
-        name="add-transaction"
-        options={{ title: '' }}
-      />
-      <Tabs.Screen
         name="savings"
         options={{ title: 'Savings' }}
       />
