@@ -24,6 +24,7 @@ interface DarkCardProps {
   periodLabel?: string;
   progress?: number;
   statusCaption?: string;
+  progressLabel?: string;
   // Type: 'transaction' specific props
   isIncome?: boolean;
   categoryName?: string;
@@ -42,6 +43,7 @@ export const DarkCard = ({
   periodLabel = "This Month",
   progress,
   statusCaption,
+  progressLabel,
   isIncome = false,
   categoryName,
   categoryIcon,
@@ -169,14 +171,17 @@ export const DarkCard = ({
 
           {type === 'expenses' && progress !== undefined && (
             <>
+              {statusCaption && (
+                <Text style={styles.statusCaptionTop}>{statusCaption}</Text>
+              )}
               <View style={styles.progressSection}>
                 <View style={{ flex: 1 }}>
                   <ProgressBar progress={progress} />
                 </View>
                 <Text style={styles.progressPercent}>{Math.round(progress * 100)}%</Text>
               </View>
-              {statusCaption && (
-                <Text style={styles.statusCaption}>{statusCaption}</Text>
+              {progressLabel && (
+                <Text style={styles.progressLabel}>{progressLabel}</Text>
               )}
             </>
           )}
@@ -309,6 +314,19 @@ const styles = StyleSheet.create({
     color: "rgba(255, 255, 255, 0.6)",
     textAlign: 'center',
     marginTop: 10,
+  },
+  statusCaptionTop: {
+    fontFamily: Fonts.regular,
+    fontSize: 11,
+    color: "rgba(255, 255, 255, 0.6)",
+    marginTop: 10,
+    marginBottom: 4,
+  },
+  progressLabel: {
+    fontFamily: Fonts.regular,
+    fontSize: 11,
+    color: "rgba(255, 255, 255, 0.6)",
+    marginTop: 6,
   },
   transactionMeta: {
     alignItems: 'center',

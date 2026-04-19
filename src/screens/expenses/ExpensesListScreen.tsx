@@ -178,7 +178,7 @@ export default function ExpensesListScreen() {
             />
           </View>
           <TouchableOpacity style={styles.actionButton} onPress={() => router.push("/recurring")}>
-            <Ionicons name="swap-horizontal" size={22} color={PRIMARY_GREEN} />
+            <Ionicons name="repeat" size={22} color={PRIMARY_GREEN} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionButton} onPress={() => setIsExportVisible(true)}>
             <Ionicons name="document-text-outline" size={22} color={PRIMARY_GREEN} />

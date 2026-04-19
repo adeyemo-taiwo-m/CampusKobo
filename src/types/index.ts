@@ -16,6 +16,8 @@ export interface RecurringExpense {
   name: string;
   amount: number;
   category: string;
+  categoryIcon: string;
+  categoryColor: string;
   frequency: 'daily' | 'weekly' | 'monthly';
   startDate: string;
   nextDueDate: string;
