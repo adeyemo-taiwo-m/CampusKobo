@@ -25,6 +25,7 @@ interface DarkCardProps {
   progress?: number;
   statusCaption?: string;
   progressLabel?: string;
+  hideIncomeExpenses?: boolean;
   // Type: 'transaction' specific props
   isIncome?: boolean;
   categoryName?: string;
@@ -44,6 +45,7 @@ export const DarkCard = ({
   progress,
   statusCaption,
   progressLabel,
+  hideIncomeExpenses = false,
   isIncome = false,
   categoryName,
   categoryIcon,

@@ -1,17 +1,7 @@
 import React, { useState } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  TouchableOpacity, 
-  SafeAreaView, 
-  ScrollView, 
-  StatusBar,
-  Dimensions,
-  Image,
-  Alert
-} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView, StatusBar, Dimensions, Alert } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
+import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { 
   PRIMARY_GREEN, 
@@ -133,6 +123,7 @@ export default function RecurringExpensesScreen() {
           amount={activeSum}
           income={0}
           expenses={activeSum}
+          hideIncomeExpenses={true}
           periodLabel="Recurring this month"
           progress={progress}
           statusCaption="This will be deducted automatically every month"
@@ -161,9 +152,9 @@ export default function RecurringExpensesScreen() {
             <View style={styles.emptyState}>
               <View style={styles.illustrationContainer}>
                  <Image 
-                   source={require("../../../assets/images/no-recurring.png")} 
+                   source={require("../../../assets/images/no-recurring.svg")} 
                    style={styles.emptyImage}
-                   resizeMode="contain"
+                   contentFit="contain"
                  />
               </View>
               <Text style={styles.emptyHeading}>No recurring expenses yet</Text>
@@ -218,8 +209,8 @@ const styles = StyleSheet.create({
   },
   summaryCard: {
     marginHorizontal: 16,
-    marginTop: 10,
-    marginBottom: 24,
+    marginTop: 0,
+    marginBottom: 12,
   },
   whiteCard: {
     flex: 1,
@@ -322,15 +313,16 @@ const styles = StyleSheet.create({
   emptyState: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
+    paddingTop: 50,
     paddingHorizontal: 40,
   },
   illustrationContainer: {
-    marginBottom: 24,
+    marginBottom: 12,
   },
   emptyImage: {
-    width: 200,
-    height: 200,
+    width: 220,
+    height: 220,
   },
   emptyHeading: {
     fontSize: 18,
