@@ -28,6 +28,7 @@ import { ProgressBar } from '../../components/ProgressBar';
 import { EmptyState } from '../../components/EmptyState';
 import { DarkCard } from '../../components/DarkCard';
 import { InputField } from '../../components/InputField';
+import { ExportBottomSheet } from '../../components/ExportBottomSheet';
 import { format, isToday, isYesterday, isThisWeek, isThisMonth, subMonths } from 'date-fns';
 
 type FilterType = 'This Month' | 'Last Month' | 'This Week' | 'All';
@@ -37,6 +38,7 @@ export default function ExpensesListScreen() {
   const { transactions, budgets } = useAppContext();
   const [activeFilter, setActiveFilter] = useState<FilterType>('This Month');
   const [searchQuery, setSearchQuery] = useState('');
+  const [isExportVisible, setIsExportVisible] = useState(false);
 
   // Helper calculation for budget progress
   const budgetTotal = useMemo(() => budgets.reduce((sum, b) => sum + b.limitAmount, 0), [budgets]);
@@ -96,12 +98,9 @@ export default function ExpensesListScreen() {
     filteredTransactions.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0), 
   [filteredTransactions]);
 
-  const handleExport = () => {
-    Alert.alert('Export Transactions', 'Choose export format', [
-      { text: 'Export as PDF', onPress: () => Alert.alert('Export feature coming soon') },
-      { text: 'Export as Excel', onPress: () => Alert.alert('Export feature coming soon') },
-      { text: 'Cancel', style: 'cancel' }
-    ]);
+  const handleExport = (format: 'pdf' | 'excel') => {
+    setIsExportVisible(false);
+    Alert.alert('Export feature coming soon', `Exporting as ${format.toUpperCase()}...`);
   };
 
   return (
@@ -151,7 +150,7 @@ export default function ExpensesListScreen() {
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Filter Chips */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filtersWrapper}>
-          {(['This Month', 'Last Month', 'All', 'This Week'] as FilterType[]).map(filter => (
+          {(['This Month', 'This Week', 'Last Month', 'All'] as FilterType[]).map(filter => (
             <TouchableOpacity 
               key={filter}
               style={[styles.filterChip, activeFilter === filter && styles.activeFilterChip]}
@@ -180,10 +179,17 @@ export default function ExpensesListScreen() {
           <TouchableOpacity style={styles.actionButton} onPress={() => router.push("/recurring")}>
             <Ionicons name="swap-horizontal" size={22} color={PRIMARY_GREEN} />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.actionButton} onPress={handleExport}>
+          <TouchableOpacity style={styles.actionButton} onPress={() => setIsExportVisible(true)}>
             <Ionicons name="document-text-outline" size={22} color={PRIMARY_GREEN} />
           </TouchableOpacity>
         </View>
+
+        {/* Export Bottom Sheet */}
+        <ExportBottomSheet 
+          isVisible={isExportVisible}
+          onClose={() => setIsExportVisible(false)}
+          onExport={handleExport}
+        />
 
         {/* Transactions List */}
         {Object.keys(groupedTransactions).length > 0 ? (
