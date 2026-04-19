@@ -10,24 +10,37 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { WHITE, Fonts, SPACING } from "../constants";
+import { ProgressBar } from "./ProgressBar";
 
 interface DarkCardProps {
-  balance: number;
+  type: 'balance' | 'expenses';
+  amount: number;
   income: number;
   expenses: number;
-  isBalanceVisible: boolean;
-  onToggleVisibility: () => void;
+  // Type: 'balance' specific props
+  isBalanceVisible?: boolean;
+  onToggleVisibility?: () => void;
+  // Type: 'expenses' specific props
+  periodLabel?: string;
+  progress?: number;
+  statusCaption?: string;
   style?: StyleProp<ViewStyle>;
 }
 
 export const DarkCard = ({
-  balance,
+  type,
+  amount,
   income,
   expenses,
-  isBalanceVisible,
+  isBalanceVisible = true,
   onToggleVisibility,
+  periodLabel = "This Month",
+  progress,
+  statusCaption,
   style,
 }: DarkCardProps) => {
+  const isBalanceType = type === 'balance';
+
   return (
     <View style={[styles.outerContainer, style]}>
       <LinearGradient
@@ -37,28 +50,41 @@ export const DarkCard = ({
         style={styles.gradient}
       >
         <View style={styles.content}>
-          <View style={styles.topRow}>
-            <View>
-              <Text style={styles.label}>Current Balance</Text>
-              <View style={styles.balanceRow}>
-                <Text style={styles.balanceText}>
-                  {isBalanceVisible
-                    ? `₦${Math.max(0, balance).toLocaleString()}`
-                    : "₦ ••••••"}
-                  {isBalanceVisible && <Text style={styles.decimals}>.00</Text>}
+          <View style={isBalanceType ? styles.topRow : styles.topRowCenter}>
+            <View style={isBalanceType ? null : styles.centerAlign}>
+              {isBalanceType ? (
+                <Text style={styles.label}>Current Balance</Text>
+              ) : (
+                <View style={styles.periodBadge}>
+                  <Text style={styles.periodLabel}>{periodLabel}</Text>
+                  <Ionicons name="calendar-outline" size={12} color="rgba(255, 255, 255, 0.6)" />
+                </View>
+              )}
+              
+              <View style={styles.amountRow}>
+                <Text style={styles.amountText}>
+                  {isBalanceType 
+                    ? (isBalanceVisible ? `₦${Math.max(0, amount).toLocaleString()}` : "₦ ••••••")
+                    : `₦${amount.toLocaleString()}`
+                  }
+                  {isBalanceType && isBalanceVisible && <Text style={styles.decimals}>.00</Text>}
+                  {!isBalanceType && <Text style={styles.spentLabel}> spent</Text>}
                 </Text>
               </View>
             </View>
-            <TouchableOpacity
-              onPress={onToggleVisibility}
-              style={styles.eyeButton}
-            >
-              <Ionicons
-                name={isBalanceVisible ? "eye-outline" : "eye-off-outline"}
-                size={22}
-                color="rgba(255, 255, 255, 0.65)"
-              />
-            </TouchableOpacity>
+
+            {isBalanceType && onToggleVisibility && (
+              <TouchableOpacity
+                onPress={onToggleVisibility}
+                style={styles.eyeButton}
+              >
+                <Ionicons
+                  name={isBalanceVisible ? "eye-outline" : "eye-off-outline"}
+                  size={22}
+                  color="rgba(255, 255, 255, 0.65)"
+                />
+              </TouchableOpacity>
+            )}
           </View>
 
           <View style={styles.divider} />
@@ -92,6 +118,20 @@ export const DarkCard = ({
               </Text>
             </View>
           </View>
+
+          {!isBalanceType && progress !== undefined && (
+            <>
+              <View style={styles.progressSection}>
+                <View style={{ flex: 1 }}>
+                  <ProgressBar progress={progress} />
+                </View>
+                <Text style={styles.progressPercent}>{Math.round(progress * 100)}%</Text>
+              </View>
+              {statusCaption && (
+                <Text style={styles.statusCaption}>{statusCaption}</Text>
+              )}
+            </>
+          )}
         </View>
       </LinearGradient>
     </View>
@@ -124,23 +164,47 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "flex-start",
   },
+  topRowCenter: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  centerAlign: {
+    alignItems: 'center',
+  },
   label: {
     fontFamily: Fonts.regular,
     fontSize: 13,
     color: "rgba(255, 255, 255, 0.65)",
     marginBottom: 4,
   },
-  balanceRow: {
+  periodBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginBottom: 4,
+  },
+  periodLabel: {
+    fontFamily: Fonts.medium,
+    fontSize: 13,
+    color: "rgba(255, 255, 255, 0.7)",
+  },
+  amountRow: {
     flexDirection: "row",
     alignItems: "baseline",
   },
-  balanceText: {
+  amountText: {
     fontFamily: Fonts.bold,
     fontSize: 40,
     color: WHITE,
+    textAlign: 'center',
   },
   decimals: {
     fontSize: 24,
+    color: "rgba(255, 255, 255, 0.7)",
+  },
+  spentLabel: {
+    fontSize: 18,
+    fontFamily: Fonts.regular,
     color: "rgba(255, 255, 255, 0.7)",
   },
   eyeButton: {
@@ -180,4 +244,22 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(255, 255, 255, 0.2)",
     marginHorizontal: SPACING.MD,
   },
+  progressSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 20,
+    gap: 12,
+  },
+  progressPercent: {
+    fontFamily: Fonts.semiBold,
+    fontSize: 14,
+    color: WHITE,
+  },
+  statusCaption: {
+    fontFamily: Fonts.regular,
+    fontSize: 11,
+    color: "rgba(255, 255, 255, 0.6)",
+    textAlign: 'center',
+    marginTop: 10,
+  }
 });

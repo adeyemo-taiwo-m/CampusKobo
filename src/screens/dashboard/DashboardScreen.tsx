@@ -122,7 +122,8 @@ export default function DashboardScreen() {
 
           {/* Balance Card Section */}
           <DarkCard
-            balance={totalBalance}
+            type="balance"
+            amount={totalBalance}
             income={totalIncome}
             expenses={totalExpenses}
             isBalanceVisible={isBalanceVisible}

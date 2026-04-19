@@ -26,6 +26,7 @@ import { useAppContext } from '../../context/AppContext';
 import { TransactionCard } from '../../components/TransactionCard';
 import { ProgressBar } from '../../components/ProgressBar';
 import { EmptyState } from '../../components/EmptyState';
+import { DarkCard } from '../../components/DarkCard';
 import { format, isToday, isYesterday, isThisWeek, isThisMonth, subMonths } from 'date-fns';
 
 type FilterType = 'This Month' | 'Last Month' | 'This Week' | 'All';
@@ -132,48 +133,17 @@ export default function ExpensesListScreen() {
             </View>
           </View>
 
-          {/* Dark Summary Card */}
-          <View style={styles.summaryCard}>
-            <View style={styles.summaryTop}>
-              <Text style={styles.summaryPeriod}>This Month</Text>
-              <Ionicons name="calendar-outline" size={14} color="rgba(255,255,255,0.7)" />
-            </View>
-            
-            <View style={styles.amountContainer}>
-              <Text style={styles.summaryAmount}>₦{totalExpenses.toLocaleString()}</Text>
-              <Text style={styles.spentLabel}>spent</Text>
-            </View>
-
-            <View style={styles.divider} />
-
-            <View style={styles.statsRow}>
-              <View style={styles.statItem}>
-                <Ionicons name="arrow-up" size={12} color="#4ADE80" style={{ marginTop: 2 }} />
-                <View style={{ marginLeft: 6 }}>
-                  <Text style={styles.statLabel}>Income</Text>
-                  <Text style={styles.incomeValue}>+₦{totalIncome.toLocaleString()}</Text>
-                </View>
-              </View>
-              <View style={styles.statDivider} />
-              <View style={styles.statItem}>
-                <Ionicons name="arrow-down" size={12} color="#F87171" style={{ marginTop: 2 }} />
-                <View style={{ marginLeft: 6 }}>
-                  <Text style={styles.statLabel}>Expenses</Text>
-                  <Text style={styles.expenseValue}>-₦{totalExpenses.toLocaleString()}</Text>
-                </View>
-              </View>
-            </View>
-
-            <View style={styles.progressContainer}>
-              <View style={styles.progressBarWrapper}>
-                <ProgressBar progress={budgetProgress} />
-              </View>
-              <Text style={styles.progressText}>{Math.round(budgetProgress * 100)}%</Text>
-            </View>
-            <Text style={styles.budgetStatus}>
-              You've spent {Math.round(budgetProgress * 100)}% of your monthly budget
-            </Text>
-          </View>
+          {/* Reusable Dark Summary Card */}
+          <DarkCard
+            type="expenses"
+            amount={totalExpenses}
+            income={totalIncome}
+            expenses={totalExpenses}
+            progress={budgetProgress}
+            periodLabel="This Month"
+            statusCaption={`You've spent ${Math.round(budgetProgress * 100)}% of your monthly budget`}
+            style={styles.summaryCard}
+          />
         </SafeAreaView>
       </View>
 
@@ -299,99 +269,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   summaryCard: {
-    backgroundColor: "rgba(255,255,255,0.15)",
     marginHorizontal: SPACING.LG,
-    borderRadius: 24,
-    padding: SPACING.LG,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.2)",
-  },
-  summaryTop: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 8,
-  },
-  summaryPeriod: {
-    color: "rgba(255,255,255,0.8)",
-    fontFamily: Fonts.medium,
-    fontSize: 13,
-    marginRight: 6,
-  },
-  amountContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    justifyContent: 'center',
-    marginBottom: 16,
-  },
-  summaryAmount: {
-    color: WHITE,
-    fontFamily: Fonts.bold,
-    fontSize: 36,
-  },
-  spentLabel: {
-    color: WHITE,
-    fontFamily: Fonts.regular,
-    fontSize: 18,
-    marginLeft: 8,
-    marginBottom: 6,
-    opacity: 0.9,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: "rgba(255,255,255,0.1)",
-    marginVertical: 12,
-  },
-  statsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 10,
-  },
-  statItem: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-  },
-  statLabel: {
-    color: "rgba(255,255,255,0.6)",
-    fontSize: 11,
-    fontFamily: Fonts.regular,
-  },
-  incomeValue: {
-    color: WHITE,
-    fontFamily: Fonts.semiBold,
-    fontSize: 14,
-  },
-  expenseValue: {
-    color: WHITE,
-    fontFamily: Fonts.semiBold,
-    fontSize: 14,
-  },
-  statDivider: {
-    width: 1,
-    height: 20,
-    backgroundColor: "rgba(255,255,255,0.1)",
-  },
-  progressContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 20,
-  },
-  progressBarWrapper: {
-    flex: 1,
-    marginRight: 12,
-  },
-  progressText: {
-    color: WHITE,
-    fontFamily: Fonts.semiBold,
-    fontSize: 13,
-  },
-  budgetStatus: {
-    color: "rgba(255,255,255,0.7)",
-    fontSize: 12,
-    fontFamily: Fonts.regular,
-    textAlign: 'center',
-    marginTop: 12,
   },
   scrollContent: {
     paddingTop: 24,
@@ -464,10 +342,5 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: TEXT_PRIMARY,
     marginBottom: 12,
-  },
-  viewAllText: {
-    fontFamily: Fonts.medium,
-    color: TEXT_SECONDARY,
-    fontSize: 13,
   },
 });
