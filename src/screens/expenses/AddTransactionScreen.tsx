@@ -50,6 +50,7 @@ export default function AddTransactionScreen() {
   );
   const [description, setDescription] = useState(editTransaction?.description || '');
   const [note, setNote] = useState(editTransaction?.description || ''); 
+  const [customCategoryName, setCustomCategoryName] = useState('');
   
   // UI & Validation State
   const [isCategorySheetVisible, setIsCategorySheetVisible] = useState(false);
@@ -61,6 +62,7 @@ export default function AddTransactionScreen() {
     const errors: Record<string, boolean> = {};
     if (!amount || parseFloat(amount) <= 0) errors.amount = true;
     if (!category) errors.category = true;
+    if (category?.name === 'Others' && !customCategoryName) errors.customCategory = true;
 
     if (Object.keys(errors).length > 0) {
       setValidationErrors(errors);
@@ -71,10 +73,10 @@ export default function AddTransactionScreen() {
       id: isEditMode ? editTransaction.id : Math.random().toString(36).substring(7),
       amount: parseFloat(amount),
       type: type,
-      category: category!.name,
+      category: category?.name === 'Others' ? customCategoryName : category!.name,
       categoryIcon: category!.icon,
       categoryColor: category!.color,
-      description: description || category!.name,
+      description: description || (category?.name === 'Others' ? customCategoryName : category!.name),
       date: isEditMode ? editTransaction.date : new Date().toISOString(),
       isRecurring: isEditMode ? editTransaction.isRecurring : false,
     };
@@ -200,9 +202,25 @@ export default function AddTransactionScreen() {
                 rightIcon={<Ionicons name="chevron-down" size={20} color="#9CA3AF" />}
                 containerStyle={[styles.inputField, validationErrors.category && styles.errorField]}
                 labelStyle={styles.fieldLabel}
-                outerContainerStyle={{ marginBottom: 0 }}
+                outerContainerStyle={{ marginBottom: category?.name === 'Others' ? 12 : 20 }}
               />
             </TouchableOpacity>
+
+            {category?.name === 'Others' && (
+              <InputField
+                label="Specify Category"
+                placeholder="e.g. Club Dues"
+                value={customCategoryName}
+                onChangeText={(val) => {
+                  setCustomCategoryName(val);
+                  if (validationErrors.customCategory) setValidationErrors({...validationErrors, customCategory: false});
+                }}
+                containerStyle={[styles.inputField, validationErrors.customCategory && styles.errorField]}
+                labelStyle={styles.fieldLabel}
+                outerContainerStyle={styles.fieldGroup}
+                autoFocus
+              />
+            )}
 
             <InputField
               label="Note (optional)"
