@@ -83,7 +83,7 @@ export default function AddTransactionScreen() {
 
     if (isEditMode) {
       await updateTransaction(editTransaction.id, transactionData);
-      router.back();
+      setShowSuccess(true);
     } else {
       await addTransaction(transactionData);
       setShowSuccess(true);
@@ -93,9 +93,9 @@ export default function AddTransactionScreen() {
   if (showSuccess) {
     return (
       <SuccessScreen 
-        title={`${type === 'expense' ? 'Expense' : 'Income'} Added!`}
-        subtitle="Your transaction has been recorded successfully."
-        onDone={() => router.push('/(tabs)')}
+        title={isEditMode ? 'Changes Saved!' : `${type === 'expense' ? 'Expense' : 'Income'} Added!`}
+        subtitle={isEditMode ? 'Your transaction details have been updated.' : 'Your transaction has been recorded successfully.'}
+        onDone={() => isEditMode ? router.back() : router.push('/(tabs)')}
       />
     );
   }

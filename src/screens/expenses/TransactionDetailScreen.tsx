@@ -25,6 +25,7 @@ import { useAppContext } from '../../context/AppContext';
 import { Transaction } from '../../types';
 import { DeleteConfirmModal } from '../../components/DeleteConfirmModal';
 import { ProgressBar } from '../../components/ProgressBar';
+import { DarkCard } from '../../components/DarkCard';
 
 export default function TransactionDetailScreen() {
   const router = useRouter();
@@ -100,6 +101,7 @@ export default function TransactionDetailScreen() {
             isIncome={isIncome}
             categoryName={transaction.category}
             categoryIcon={transaction.categoryIcon}
+            centered={true}
             style={styles.heroSummaryCard}
           />
         </SafeAreaView>

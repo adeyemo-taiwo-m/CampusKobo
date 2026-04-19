@@ -28,6 +28,7 @@ interface DarkCardProps {
   isIncome?: boolean;
   categoryName?: string;
   categoryIcon?: string;
+  centered?: boolean;
   style?: StyleProp<ViewStyle>;
 }
 
@@ -44,6 +45,7 @@ export const DarkCard = ({
   isIncome = false,
   categoryName,
   categoryIcon,
+  centered = false,
   style,
 }: DarkCardProps) => {
   const isBalanceType = type === 'balance';
@@ -58,8 +60,8 @@ export const DarkCard = ({
         style={styles.gradient}
       >
         <View style={styles.content}>
-          <View style={(isBalanceType || isTransactionType) ? styles.topRow : styles.topRowCenter}>
-            <View style={isBalanceType ? null : styles.centerAlign}>
+          <View style={(isBalanceType || isTransactionType) && !centered ? styles.topRow : styles.topRowCenter}>
+            <View style={isBalanceType || centered ? null : styles.centerAlign}>
               {isBalanceType ? (
                 <Text style={styles.label}>Current Balance</Text>
               ) : isTransactionType ? null : (
@@ -70,7 +72,7 @@ export const DarkCard = ({
               )}
               
               <View style={styles.amountRow}>
-                <Text style={styles.amountText}>
+                <Text style={[styles.amountText, centered && { textAlign: 'center' }]}>
                   {isBalanceType 
                     ? (isBalanceVisible ? `₦${Math.max(0, amount).toLocaleString()}` : "₦ ••••••")
                     : isTransactionType
