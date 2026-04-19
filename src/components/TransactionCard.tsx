@@ -7,7 +7,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import {
-  Colors,
+  PRIMARY_GREEN,
   SPACING,
   Fonts,
   TEXT_PRIMARY,
@@ -52,13 +52,13 @@ export const TransactionCard = ({
         <View
           style={[
             styles.iconContainer,
-            { backgroundColor: transaction.categoryColor + "20" },
+            { backgroundColor: (transaction.categoryColor || PRIMARY_GREEN) + "15" },
           ]}
         >
           <Ionicons
             name={transaction.categoryIcon as any}
             size={24}
-            color={transaction.categoryColor}
+            color={transaction.categoryColor || PRIMARY_GREEN}
           />
         </View>
         <View style={styles.textContainer}>

@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   SafeAreaView,
   StatusBar,
+  Image,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -95,9 +96,12 @@ export default function DashboardScreen() {
               onPress={() => router.push("/profile")}
             >
               <View style={styles.avatar}>
-                <Text style={styles.avatarText}>{initials}</Text>
+                <Image 
+                  source={require("../../../assets/images/avatar.jpeg")} 
+                  style={styles.avatarImage} 
+                />
               </View>
-              <Text style={styles.welcomeText}>Hi, {user?.name?.split(" ")[0] || "Taiwo"}</Text>
+              <Text style={styles.welcomeText}>Hi, Taiwo</Text>
             </TouchableOpacity>
 
             <View style={styles.headerActions}>
@@ -165,34 +169,50 @@ export default function DashboardScreen() {
         </TouchableOpacity>
 
         {/* Section 3 — Savings Progress */}
-        {primaryGoal ? (
-          <TouchableOpacity 
-            style={styles.sectionCard}
-            onPress={() => router.push("/savings")}
-          >
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Savings Progress</Text>
-            </View>
-            <View style={styles.savingsRow}>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.goalName}>{primaryGoal.title}</Text>
-                <Text style={styles.goalAmount}>
-                  ₦{primaryGoal.savedAmount.toLocaleString()}
-                  <Text style={styles.goalTarget}>/₦{primaryGoal.targetAmount.toLocaleString()}</Text>
-                </Text>
+        <TouchableOpacity 
+          style={styles.sectionCard}
+          onPress={() => router.push(primaryGoal ? "/savings" : "/savings/add")}
+        >
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Savings Progress</Text>
+          </View>
+          
+          {primaryGoal ? (
+            <>
+              <View style={styles.savingsRow}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.goalName}>{primaryGoal.title}</Text>
+                  <Text style={styles.goalAmount}>
+                    ₦{primaryGoal.savedAmount.toLocaleString()}
+                    <Text style={styles.goalTarget}>/₦{primaryGoal.targetAmount.toLocaleString()}</Text>
+                  </Text>
+                </View>
+                <View style={[styles.circularProgress, { borderRightColor: PRIMARY_GREEN, borderTopColor: PRIMARY_GREEN }]}>
+                   <Text style={styles.circleText}>{Math.round((primaryGoal.savedAmount / primaryGoal.targetAmount) * 100)}%</Text>
+                </View>
               </View>
-              <View style={styles.circularProgress}>
-                 <Text style={styles.circleText}>{Math.round((primaryGoal.savedAmount / primaryGoal.targetAmount) * 100)}%</Text>
+              <TouchableOpacity 
+                style={styles.addFundsButton}
+                onPress={() => router.push(`/savings/add-funds?id=${primaryGoal.id}`)}
+              >
+                <Text style={styles.addFundsText}>Add funds</Text>
+              </TouchableOpacity>
+            </>
+          ) : (
+            <View style={styles.emptySavingsContainer}>
+              <View style={styles.emptySavingsInfo}>
+                <Text style={styles.emptySavingsTitle}>No active goal</Text>
+                <Text style={styles.emptySavingsSubtitle}>Start saving for your dreams today</Text>
               </View>
+              <TouchableOpacity 
+                style={styles.setGoalButton}
+                onPress={() => router.push("/savings/add")}
+              >
+                <Text style={styles.setGoalText}>Set a goal</Text>
+              </TouchableOpacity>
             </View>
-            <TouchableOpacity 
-              style={styles.addFundsButton}
-              onPress={() => router.push(`/savings/add-funds?id=${primaryGoal.id}`)}
-            >
-              <Text style={styles.addFundsText}>Add funds</Text>
-            </TouchableOpacity>
-          </TouchableOpacity>
-        ) : null}
+          )}
+        </TouchableOpacity>
 
         {/* Section 4 — Recent Transactions */}
         <View style={styles.transactionsSection}>
@@ -224,13 +244,6 @@ export default function DashboardScreen() {
         <View style={{ height: 100 }} />
       </ScrollView>
 
-      {/* FAB */}
-      <TouchableOpacity 
-        style={styles.fab}
-        onPress={() => router.push("/transaction/add")}
-      >
-        <Ionicons name="add" size={32} color={WHITE} />
-      </TouchableOpacity>
     </View>
   );
 }
@@ -271,6 +284,11 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.semiBold,
     color: WHITE,
     fontSize: 14,
+  },
+  avatarImage: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
   },
   welcomeText: {
     fontFamily: Fonts.semiBold,
@@ -387,45 +405,80 @@ const styles = StyleSheet.create({
   },
   goalName: {
     fontFamily: Fonts.bold,
-    fontSize: 20,
+    fontSize: 28,
     color: TEXT_PRIMARY,
     marginBottom: 4,
+    letterSpacing: -0.5,
   },
   goalAmount: {
-    fontFamily: Fonts.semiBold,
-    fontSize: 16,
+    fontFamily: Fonts.medium,
+    fontSize: 32,
     color: TEXT_PRIMARY,
   },
   goalTarget: {
-    fontSize: 14,
-    color: TEXT_SECONDARY,
+    fontSize: 20,
+    color: "#D1D5DB",
+    fontFamily: Fonts.regular,
   },
   circularProgress: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    borderWidth: 4,
-    borderColor: "#F0FDF4",
-    borderRightColor: PRIMARY_GREEN,
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    borderWidth: 5,
+    borderColor: "#DCFCE7", // Light green background ring
     alignItems: "center",
     justifyContent: "center",
   },
   circleText: {
     fontFamily: Fonts.bold,
-    fontSize: 14,
+    fontSize: 18,
     color: PRIMARY_GREEN,
   },
   addFundsButton: {
     backgroundColor: PRIMARY_GREEN,
-    borderRadius: 12,
-    height: 44,
+    borderRadius: 16,
+    height: 56,
     alignItems: "center",
     justifyContent: "center",
+    marginTop: 24,
+    width: "100%",
   },
   addFundsText: {
     fontFamily: Fonts.semiBold,
     color: WHITE,
-    fontSize: 15,
+    fontSize: 18,
+  },
+  emptySavingsContainer: {
+    flexDirection: "column",
+    alignItems: "flex-start",
+  },
+  emptySavingsInfo: {
+    flex: 1,
+  },
+  emptySavingsTitle: {
+    fontFamily: Fonts.bold,
+    fontSize: 18,
+    color: TEXT_PRIMARY,
+    marginBottom: 2,
+  },
+  emptySavingsSubtitle: {
+    fontFamily: Fonts.regular,
+    fontSize: 13,
+    color: TEXT_SECONDARY,
+  },
+  setGoalButton: {
+    backgroundColor: "#EFFDF5",
+    width: "100%",
+    height: 52,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 20,
+  },
+  setGoalText: {
+    fontFamily: Fonts.semiBold,
+    color: PRIMARY_GREEN,
+    fontSize: 14,
   },
   transactionsSection: {
     marginBottom: SPACING.XL,
@@ -434,21 +487,5 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.medium,
     color: TEXT_SECONDARY,
     fontSize: 14,
-  },
-  fab: {
-    position: "absolute",
-    bottom: 20,
-    right: 20,
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: PRIMARY_GREEN,
-    alignItems: "center",
-    justifyContent: "center",
-    elevation: 8,
-    shadowColor: PRIMARY_GREEN,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 10,
   },
 });

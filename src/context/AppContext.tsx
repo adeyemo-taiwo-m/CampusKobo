@@ -42,13 +42,50 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const loadAllData = async () => {
     setIsLoading(true);
     try {
-      const [u, t, b, s, r] = await Promise.all([
-        StorageService.getUser(),
-        StorageService.getTransactions(),
-        StorageService.getBudgets(),
-        StorageService.getSavingsGoals(),
-        StorageService.getRecurringExpenses(),
-      ]);
+      let t = await StorageService.getTransactions();
+      const u = await StorageService.getUser();
+      const b = await StorageService.getBudgets();
+      const s = await StorageService.getSavingsGoals();
+      const r = await StorageService.getRecurringExpenses();
+
+      // Add sample data if empty
+      if (t.length === 0) {
+        const sampleTransactions: Transaction[] = [
+          {
+            id: 'sample-1',
+            amount: 60000,
+            type: 'income',
+            category: 'Salary',
+            categoryIcon: 'cash',
+            description: 'Monthly Salary',
+            date: new Date().toISOString(),
+            isRecurring: true,
+          },
+          {
+            id: 'sample-2',
+            amount: 200,
+            type: 'expense',
+            category: 'Food',
+            categoryIcon: 'fast-food',
+            description: 'Lunch',
+            date: new Date().toISOString(),
+            isRecurring: false,
+          },
+          {
+            id: 'sample-3',
+            amount: 2000,
+            type: 'expense',
+            category: 'Data',
+            categoryIcon: 'wifi',
+            description: 'Internet Subscription',
+            date: new Date().toISOString(),
+            isRecurring: true,
+          }
+        ];
+        await StorageService.saveTransactions(sampleTransactions);
+        t = sampleTransactions;
+      }
+
       setUserState(u);
       setTransactions(t);
       setBudgets(b);
