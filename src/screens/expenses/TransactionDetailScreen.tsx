@@ -93,30 +93,15 @@ export default function TransactionDetailScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* Hero Amount Card */}
-          <View style={styles.heroCard}>
-            <Text style={styles.heroAmount}>
-              {isIncome ? '+' : '−'}₦{transaction.amount.toLocaleString()}
-            </Text>
-            
-            <View style={styles.categoryRow}>
-              <View style={[
-                styles.categoryBadge, 
-                { backgroundColor: isIncome ? '#2DBB6D' : '#FFE6E6' }
-              ]}>
-                <Ionicons 
-                  name={transaction.categoryIcon as any} 
-                  size={20} 
-                  color={isIncome ? WHITE : '#E03A3A'} 
-                />
-              </View>
-              <Text style={styles.categoryNameText}>{transaction.category}</Text>
-            </View>
-
-            <View style={styles.timeBadge}>
-              <Text style={styles.timeBadgeText}>This Month</Text>
-            </View>
-          </View>
+          {/* Hero Amount Card using Reusable DarkCard */}
+          <DarkCard 
+            type="transaction"
+            amount={transaction.amount}
+            isIncome={isIncome}
+            categoryName={transaction.category}
+            categoryIcon={transaction.categoryIcon}
+            style={styles.heroSummaryCard}
+          />
         </SafeAreaView>
       </View>
 
@@ -276,48 +261,9 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.bold,
     fontSize: 14,
   },
-  heroCard: {
+  heroSummaryCard: {
     marginHorizontal: 16,
-    backgroundColor: '#1d7c43',
-    borderRadius: 16,
-    paddingVertical: 24,
-    alignItems: 'center',
     marginTop: 20,
-  },
-  heroAmount: {
-    fontSize: 42,
-    fontFamily: Fonts.bold,
-    color: WHITE,
-    marginBottom: 12,
-  },
-  categoryRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  categoryBadge: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 10,
-  },
-  categoryNameText: {
-    color: WHITE,
-    fontSize: 18,
-    fontFamily: Fonts.medium,
-  },
-  timeBadge: {
-    backgroundColor: 'rgba(0,0,0,0.1)',
-    paddingVertical: 6,
-    paddingHorizontal: 20,
-    borderRadius: 20,
-  },
-  timeBadgeText: {
-    color: WHITE,
-    fontSize: 13,
-    fontFamily: Fonts.medium,
   },
   contentZone: {
     flex: 1,

@@ -13,10 +13,10 @@ import { WHITE, Fonts, SPACING } from "../constants";
 import { ProgressBar } from "./ProgressBar";
 
 interface DarkCardProps {
-  type: 'balance' | 'expenses';
+  type: 'balance' | 'expenses' | 'transaction';
   amount: number;
-  income: number;
-  expenses: number;
+  income?: number;
+  expenses?: number;
   // Type: 'balance' specific props
   isBalanceVisible?: boolean;
   onToggleVisibility?: () => void;
@@ -24,22 +24,30 @@ interface DarkCardProps {
   periodLabel?: string;
   progress?: number;
   statusCaption?: string;
+  // Type: 'transaction' specific props
+  isIncome?: boolean;
+  categoryName?: string;
+  categoryIcon?: string;
   style?: StyleProp<ViewStyle>;
 }
 
 export const DarkCard = ({
   type,
   amount,
-  income,
-  expenses,
+  income = 0,
+  expenses = 0,
   isBalanceVisible = true,
   onToggleVisibility,
   periodLabel = "This Month",
   progress,
   statusCaption,
+  isIncome = false,
+  categoryName,
+  categoryIcon,
   style,
 }: DarkCardProps) => {
   const isBalanceType = type === 'balance';
+  const isTransactionType = type === 'transaction';
 
   return (
     <View style={[styles.outerContainer, style]}>
@@ -50,11 +58,11 @@ export const DarkCard = ({
         style={styles.gradient}
       >
         <View style={styles.content}>
-          <View style={isBalanceType ? styles.topRow : styles.topRowCenter}>
+          <View style={(isBalanceType || isTransactionType) ? styles.topRow : styles.topRowCenter}>
             <View style={isBalanceType ? null : styles.centerAlign}>
               {isBalanceType ? (
                 <Text style={styles.label}>Current Balance</Text>
-              ) : (
+              ) : isTransactionType ? null : (
                 <View style={styles.periodBadge}>
                   <Text style={styles.periodLabel}>{periodLabel}</Text>
                   <Ionicons name="calendar-outline" size={12} color="rgba(255, 255, 255, 0.6)" />
@@ -65,12 +73,36 @@ export const DarkCard = ({
                 <Text style={styles.amountText}>
                   {isBalanceType 
                     ? (isBalanceVisible ? `₦${Math.max(0, amount).toLocaleString()}` : "₦ ••••••")
-                    : `₦${amount.toLocaleString()}`
+                    : isTransactionType
+                      ? `${isIncome ? '+' : '−'}₦${amount.toLocaleString()}`
+                      : `₦${amount.toLocaleString()}`
                   }
                   {isBalanceType && isBalanceVisible && <Text style={styles.decimals}>.00</Text>}
-                  {!isBalanceType && <Text style={styles.spentLabel}> spent</Text>}
+                  {type === 'expenses' && <Text style={styles.spentLabel}> spent</Text>}
                 </Text>
               </View>
+
+              {isTransactionType && (
+                <View style={styles.transactionMeta}>
+                  <View style={styles.categoryRow}>
+                    <View style={[
+                      styles.categoryBadgeDetail, 
+                      { backgroundColor: isIncome ? '#2DBB6D' : '#FFE6E6' }
+                    ]}>
+                      <Ionicons 
+                        name={categoryIcon as any} 
+                        size={20} 
+                        color={isIncome ? WHITE : '#E03A3A'} 
+                      />
+                    </View>
+                    <Text style={styles.categoryNameText}>{categoryName}</Text>
+                  </View>
+
+                  <View style={styles.monthTag}>
+                    <Text style={styles.monthTagText}>This Month</Text>
+                  </View>
+                </View>
+              )}
             </View>
 
             {isBalanceType && onToggleVisibility && (
@@ -87,39 +119,41 @@ export const DarkCard = ({
             )}
           </View>
 
-          <View style={styles.divider} />
+          {!isTransactionType && <View style={styles.divider} />}
 
-          <View style={styles.bottomRow}>
-            <View style={styles.statCol}>
-              <View style={styles.statHeader}>
-                <Ionicons
-                  name="arrow-up"
-                  size={14}
-                  color="rgba(255, 255, 255, 0.8)"
-                />
-                <Text style={styles.statLabel}>Income</Text>
+          {!isTransactionType && (
+            <View style={styles.bottomRow}>
+              <View style={styles.statCol}>
+                <View style={styles.statHeader}>
+                  <Ionicons
+                    name="arrow-up"
+                    size={14}
+                    color="rgba(255, 255, 255, 0.8)"
+                  />
+                  <Text style={styles.statLabel}>Income</Text>
+                </View>
+                <Text style={styles.statValue}>+₦{income.toLocaleString()}</Text>
               </View>
-              <Text style={styles.statValue}>+₦{income.toLocaleString()}</Text>
-            </View>
 
-            <View style={styles.verticalDivider} />
+              <View style={styles.verticalDivider} />
 
-            <View style={styles.statCol}>
-              <View style={styles.statHeader}>
-                <Ionicons
-                  name="arrow-down"
-                  size={14}
-                  color="rgba(255, 255, 255, 0.8)"
-                />
-                <Text style={styles.statLabel}>Expenses</Text>
+              <View style={styles.statCol}>
+                <View style={styles.statHeader}>
+                  <Ionicons
+                    name="arrow-down"
+                    size={14}
+                    color="rgba(255, 255, 255, 0.8)"
+                  />
+                  <Text style={styles.statLabel}>Expenses</Text>
+                </View>
+                <Text style={styles.statValue}>
+                  -₦{expenses.toLocaleString()}
+                </Text>
               </View>
-              <Text style={styles.statValue}>
-                -₦{expenses.toLocaleString()}
-              </Text>
             </View>
-          </View>
+          )}
 
-          {!isBalanceType && progress !== undefined && (
+          {type === 'expenses' && progress !== undefined && (
             <>
               <View style={styles.progressSection}>
                 <View style={{ flex: 1 }}>
@@ -261,5 +295,39 @@ const styles = StyleSheet.create({
     color: "rgba(255, 255, 255, 0.6)",
     textAlign: 'center',
     marginTop: 10,
+  },
+  transactionMeta: {
+    alignItems: 'center',
+    marginTop: 16,
+    width: '100%',
+  },
+  categoryRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  categoryBadgeDetail: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10,
+  },
+  categoryNameText: {
+    color: WHITE,
+    fontSize: 18,
+    fontFamily: Fonts.medium,
+  },
+  monthTag: {
+    backgroundColor: 'rgba(0,0,0,0.1)',
+    paddingVertical: 6,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+  },
+  monthTagText: {
+    color: WHITE,
+    fontSize: 13,
+    fontFamily: Fonts.medium,
   }
 });
