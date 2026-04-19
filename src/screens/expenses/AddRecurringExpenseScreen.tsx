@@ -26,6 +26,7 @@ import { InputField } from '../../components/InputField';
 import { Button } from '../../components/Button';
 import { CategoryBottomSheet } from '../../components/CategoryBottomSheet';
 import { SuccessScreen } from '../../components/SuccessScreen';
+import { DatePickerModal } from '../../components/DatePickerModal';
 import { useAppContext } from '../../context/AppContext';
 import { RecurringExpense } from '../../types';
 
@@ -43,6 +44,7 @@ export default function AddRecurringExpenseScreen() {
 
   // UI State
   const [isCategorySheetVisible, setIsCategorySheetVisible] = useState(false);
+  const [isDatePickerVisible, setIsDatePickerVisible] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [isValid, setIsValid] = useState(false);
 
@@ -84,11 +86,7 @@ export default function AddRecurringExpenseScreen() {
   };
 
   const handleDatePress = () => {
-    // For prototype, we'll just cycle through a few dates or show a message
-    // In a real app, use DateTimePicker
-    const tomorrow = new Date(startDate);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    setStartDate(tomorrow);
+    setIsDatePickerVisible(true);
   };
 
   if (showSuccess) {
@@ -263,6 +261,13 @@ export default function AddRecurringExpenseScreen() {
         type="expense"
         onClose={() => setIsCategorySheetVisible(false)}
         onSelect={setCategory}
+      />
+
+      <DatePickerModal
+        isVisible={isDatePickerVisible}
+        selectedDate={startDate}
+        onClose={() => setIsDatePickerVisible(false)}
+        onSelect={setStartDate}
       />
     </SafeAreaView>
   );
