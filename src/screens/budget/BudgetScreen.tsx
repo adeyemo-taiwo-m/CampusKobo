@@ -227,13 +227,6 @@ export const BudgetScreen = () => {
           )}
         </ScrollView>
       </View>
-      {/* FAB for Creating Budget */}
-      <TouchableOpacity 
-        style={styles.fab}
-        onPress={() => router.push("/budget/create")}
-      >
-        <Ionicons name="add" size={32} color={WHITE} />
-      </TouchableOpacity>
     </View>
   );
 };

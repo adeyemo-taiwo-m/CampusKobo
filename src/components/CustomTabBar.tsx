@@ -33,75 +33,73 @@ export const CustomTabBar = ({ state, descriptors, navigation }: BottomTabBarPro
       </Svg>
 
       <View style={styles.tabsContainer}>
-        {state.routes.map((route, index) => {
-          const { options } = descriptors[route.key];
-          
-          // Skip rendering if href is null (hidden tabs)
-          if (options.href === null) return null;
+        {state.routes
+          .filter(route => ['index', 'expenses', 'savings', 'budget'].includes(route.name))
+          .map((route, index) => {
+            const { options } = descriptors[route.key];
+            const isFocused = state.index === state.routes.findIndex(r => r.key === route.key);
 
-          const isFocused = state.index === index;
+            const onPress = () => {
+              const event = navigation.emit({
+                type: 'tabPress',
+                target: route.key,
+                canPreventDefault: true,
+              });
 
-          const onPress = () => {
-            const event = navigation.emit({
-              type: 'tabPress',
-              target: route.key,
-              canPreventDefault: true,
-            });
+              if (route.name !== state.routes[state.index].name && !event.defaultPrevented) {
+                navigation.navigate(route.name);
+              }
+            };
 
-            if (!isFocused && !event.defaultPrevented) {
-              navigation.navigate(route.name);
-            }
-          };
+            let iconName: any = 'home-outline';
+            if (route.name === 'index') iconName = isFocused ? 'home' : 'home-outline';
+            else if (route.name === 'expenses') iconName = isFocused ? 'list' : 'list-outline';
+            else if (route.name === 'savings') iconName = isFocused ? 'disc' : 'disc-outline';
+            else if (route.name === 'budget') iconName = isFocused ? 'bar-chart' : 'bar-chart-outline';
 
-          let iconName: any = 'home-outline';
-          if (route.name === 'index') iconName = isFocused ? 'home' : 'home-outline';
-          else if (route.name === 'expenses') iconName = isFocused ? 'list' : 'list-outline';
-          else if (route.name === 'savings') iconName = isFocused ? 'disc' : 'disc-outline';
-          else if (route.name === 'budget') iconName = isFocused ? 'bar-chart' : 'bar-chart-outline';
-
-          const tabItem = (
-            <TouchableOpacity
-              key={route.key}
-              onPress={onPress}
-              style={styles.tabItem}
-              activeOpacity={0.7}
-            >
-              {isFocused && <View style={styles.activeIndicator} />}
-              <Ionicons
-                name={iconName}
-                size={24}
-                color={isFocused ? PRIMARY_GREEN : '#9CA3AF'}
-              />
-              <Text style={[
-                styles.tabLabel,
-                { color: isFocused ? PRIMARY_GREEN : '#9CA3AF' }
-              ]}>
-                {options.title}
-              </Text>
-            </TouchableOpacity>
-          );
-
-          // Add FAB at the center (middle of 4 tabs)
-          if (index === 2) {
-            return (
-              <React.Fragment key="fab-container">
-                <TouchableOpacity
-                  key="fab-button"
-                  activeOpacity={0.8}
-                  onPress={() => router.push('/add-transaction')}
-                  style={styles.fabButton}
-                >
-                  <View style={styles.fabIconContainer}>
-                    <Ionicons name="add" size={32} color={WHITE} />
-                  </View>
-                </TouchableOpacity>
-                {tabItem}
-              </React.Fragment>
+            const tabItem = (
+              <TouchableOpacity
+                key={route.key}
+                onPress={onPress}
+                style={styles.tabItem}
+                activeOpacity={0.7}
+              >
+                {isFocused && <View style={styles.activeIndicator} />}
+                <Ionicons
+                  name={iconName}
+                  size={24}
+                  color={isFocused ? PRIMARY_GREEN : '#9CA3AF'}
+                />
+                <Text style={[
+                  styles.tabLabel,
+                  { color: isFocused ? PRIMARY_GREEN : '#9CA3AF' }
+                ]}>
+                  {options.title}
+                </Text>
+              </TouchableOpacity>
             );
-          }
 
-          return tabItem;
-        })}
+            // Add FAB at the center (middle of 4 tabs)
+            if (index === 2) {
+              return (
+                <React.Fragment key="fab-container">
+                  <TouchableOpacity
+                    key="fab-button"
+                    activeOpacity={0.8}
+                    onPress={() => router.push('/add-transaction')}
+                    style={styles.fabButton}
+                  >
+                    <View style={styles.fabIconContainer}>
+                      <Ionicons name="add" size={32} color={WHITE} />
+                    </View>
+                  </TouchableOpacity>
+                  {tabItem}
+                </React.Fragment>
+              );
+            }
+
+            return tabItem;
+          })}
       </View>
     </View>
   );

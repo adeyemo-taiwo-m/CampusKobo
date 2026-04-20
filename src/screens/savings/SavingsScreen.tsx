@@ -174,13 +174,6 @@ export const SavingsScreen = () => {
         )}
       </View>
 
-      {/* FAB */}
-      <TouchableOpacity 
-        style={styles.fab}
-        onPress={() => router.push("/savings/create")}
-      >
-        <Ionicons name="add" size={32} color={WHITE} />
-      </TouchableOpacity>
     </View>
   );
 };

@@ -1,5 +1,5 @@
 import { Stack } from 'expo-router';
-import { CreateBudgetScreen } from '../src/screens/budget/CreateBudgetScreen';
+import { CreateBudgetScreen } from '../../src/screens/budget/CreateBudgetScreen';
 
 export default function CreateBudget() {
   return (
