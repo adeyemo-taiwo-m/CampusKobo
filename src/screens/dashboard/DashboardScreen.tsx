@@ -144,82 +144,96 @@ export default function DashboardScreen() {
             <Text style={styles.dateText}>OCTOBER 2025</Text>
             <Ionicons name="calendar-outline" size={16} color={TEXT_SECONDARY} style={{ marginLeft: 8 }} />
           </TouchableOpacity>
+          <View style={styles.vDivider} />
           <View style={styles.growthBadge}>
-            <Ionicons name="trending-up" size={14} color="#10B981" />
+            <Ionicons name="arrow-up" size={14} color="#10B981" />
             <Text style={styles.growthText}>12% vs Last month</Text>
           </View>
         </View>
 
         {/* Section 2 — Budget Overview */}
-        <TouchableOpacity 
-          style={styles.sectionCard}
-          onPress={() => router.push("/budget")}
-        >
+        <View style={styles.sectionCard}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Budget</Text>
-            <Text style={styles.percentageText}>{Math.round(budgetProgress * 100)}%</Text>
+            {budgets.length > 0 && (
+              <Text style={styles.percentageText}>{Math.round(budgetProgress * 100)}%</Text>
+            )}
           </View>
-          <Text style={styles.budgetValue}>
-            ₦{budgetSpent.toLocaleString()}
-            <Text style={styles.budgetTotal}>/₦{budgetTotal.toLocaleString()}</Text>
-          </Text>
-          <ProgressBar progress={budgetProgress} />
-          <View style={styles.budgetFooter}>
-             <Text style={styles.budgetLeft}>₦{(budgetTotal - budgetSpent).toLocaleString()} left</Text>
-             <Text style={styles.budgetStatus}> • You are doing well</Text>
-          </View>
-        </TouchableOpacity>
+          
+          {budgets.length > 0 ? (
+            <TouchableOpacity onPress={() => router.push("/budget")}>
+              <View style={styles.amountRowBaseline}>
+                <Text style={styles.budgetValue}>₦{budgetSpent.toLocaleString()}</Text>
+                <Text style={styles.budgetTotal}>/₦{budgetTotal.toLocaleString()}</Text>
+              </View>
+              <ProgressBar progress={budgetProgress} />
+              <View style={styles.budgetFooter}>
+                <Text style={styles.budgetLeft}>₦{(budgetTotal - budgetSpent).toLocaleString()} left</Text>
+                <Text style={styles.budgetStatus}> • You are doing well</Text>
+              </View>
+            </TouchableOpacity>
+          ) : (
+            <View style={styles.emptyCardContent}>
+              <Text style={styles.emptyCardTitle}>No budget set yet</Text>
+              <Text style={styles.emptyCardSubtitle}>Set a budget to track your spending</Text>
+              <TouchableOpacity 
+                style={styles.primaryActionBtn}
+                onPress={() => router.push("/budget/create")}
+              >
+                <Text style={styles.primaryActionBtnText}>Create Budget</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
 
         {/* Section 3 — Savings Progress */}
-        <TouchableOpacity 
-          style={styles.sectionCard}
-          onPress={() => router.push(primaryGoal ? "/savings" : "/savings/add")}
-        >
+        <View style={styles.sectionCard}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Savings Progress</Text>
           </View>
           
           {primaryGoal ? (
-            <>
+            <TouchableOpacity onPress={() => router.push("/savings")}>
               <View style={styles.savingsRow}>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.goalName}>{primaryGoal.name}</Text>
-                  <Text style={styles.goalAmount}>
-                    ₦{primaryGoal.savedAmount.toLocaleString()}
+                  <View style={styles.amountRowBaseline}>
+                    <Text style={styles.goalAmount}>₦{primaryGoal.savedAmount.toLocaleString()}</Text>
                     <Text style={styles.goalTarget}>/₦{primaryGoal.targetAmount.toLocaleString()}</Text>
-                  </Text>
+                  </View>
                 </View>
-                <View style={[styles.circularProgress, { borderRightColor: PRIMARY_GREEN, borderTopColor: PRIMARY_GREEN }]}>
-                   <Text style={styles.circleText}>{Math.round((primaryGoal.savedAmount / primaryGoal.targetAmount) * 100)}%</Text>
+                <View style={styles.progressRingContainer}>
+                   <View style={[styles.circularProgress, { borderColor: '#E8F5E9' }]}>
+                      <View style={[styles.progressArc, { transform: [{ rotate: '45deg' }] }]} />
+                      <Text style={styles.circleText}>{Math.round((primaryGoal.savedAmount / primaryGoal.targetAmount) * 100)}%</Text>
+                   </View>
                 </View>
               </View>
               <TouchableOpacity 
-                style={styles.addFundsButton}
+                style={styles.primaryActionBtn}
                 onPress={() => router.push(`/savings/add-funds?id=${primaryGoal.id}`)}
               >
-                <Text style={styles.addFundsText}>Add funds</Text>
+                <Text style={styles.primaryActionBtnText}>Add funds</Text>
               </TouchableOpacity>
-            </>
+            </TouchableOpacity>
           ) : (
-            <View style={styles.emptySavingsContainer}>
-              <View style={styles.emptySavingsInfo}>
-                <Text style={styles.emptySavingsTitle}>No active goal</Text>
-                <Text style={styles.emptySavingsSubtitle}>Start saving for your dreams today</Text>
-              </View>
+            <View style={styles.emptyCardContent}>
+              <Text style={styles.emptyCardTitle}>No savings goal yet</Text>
+              <Text style={styles.emptyCardSubtitle}>Start saving towards something important</Text>
               <TouchableOpacity 
-                style={styles.setGoalButton}
-                onPress={() => router.push("/savings/add")}
+                style={styles.primaryActionBtn}
+                onPress={() => router.push("/savings/create")}
               >
-                <Text style={styles.setGoalText}>Set a goal</Text>
+                <Text style={styles.primaryActionBtnText}>Start Saving</Text>
               </TouchableOpacity>
             </View>
           )}
-        </TouchableOpacity>
+        </View>
 
         {/* Section 4 — Recent Transactions */}
         <View style={styles.transactionsSection}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Recent Transactions</Text>
+            <Text style={styles.sectionTitleLabel}>Recent Transactions</Text>
             <TouchableOpacity onPress={() => router.push("/expenses")}>
               <Text style={styles.viewAllText}>View all</Text>
             </TouchableOpacity>
@@ -234,17 +248,21 @@ export default function DashboardScreen() {
               />
             ))
           ) : (
-            <EmptyState 
-              icon="wallet-outline"
-              title="No transactions yet"
-              subtitle="Tap + to add your first expense or income"
-            />
+            <View style={styles.emptyTransactions}>
+              <Text style={styles.emptyTransactionsText}>No transactions yet</Text>
+            </View>
           )}
         </View>
         
-        {/* Padding for FAB */}
         <View style={{ height: 100 }} />
       </ScrollView>
+
+      {transactions.length === 0 && (
+        <View style={styles.fabTooltip}>
+           <Text style={styles.tooltipText}>Add your first expense</Text>
+           <View style={styles.tooltipArrow} />
+        </View>
+      )}
 
       <TouchableOpacity 
         style={styles.fab}
@@ -337,24 +355,26 @@ const styles = StyleSheet.create({
     color: TEXT_SECONDARY,
     fontSize: 13,
   },
+  vDivider: {
+    width: 1,
+    height: 20,
+    backgroundColor: '#E5E7EB',
+    marginHorizontal: 16,
+  },
   growthBadge: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#EFFDF5",
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
   },
   growthText: {
     fontFamily: Fonts.medium,
     color: "#10B981",
-    fontSize: 12,
+    fontSize: 13,
     marginLeft: 4,
   },
   sectionCard: {
     backgroundColor: WHITE,
     borderRadius: 24,
-    padding: SPACING.LG,
+    padding: 24,
     marginBottom: SPACING.LG,
     elevation: 2,
     shadowColor: "#000",
@@ -368,128 +388,173 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: SPACING.MD,
+    marginBottom: 20,
   },
   sectionTitle: {
     fontFamily: Fonts.semiBold,
     fontSize: 14,
     color: PRIMARY_GREEN,
   },
+  sectionTitleLabel: {
+    fontFamily: Fonts.bold,
+    fontSize: 16,
+    color: TEXT_PRIMARY,
+  },
   percentageText: {
-    fontFamily: Fonts.semiBold,
+    fontFamily: Fonts.medium,
     fontSize: 14,
     color: TEXT_SECONDARY,
+    opacity: 0.6,
+  },
+  amountRowBaseline: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    marginBottom: 8,
   },
   budgetValue: {
     fontFamily: Fonts.bold,
-    fontSize: 24,
+    fontSize: 28,
     color: TEXT_PRIMARY,
-    marginBottom: SPACING.SM,
   },
   budgetTotal: {
-    fontSize: 16,
+    fontSize: 18,
     color: TEXT_SECONDARY,
     fontFamily: Fonts.medium,
+    opacity: 0.7,
   },
   budgetFooter: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: SPACING.SM,
+    marginTop: 12,
   },
   budgetLeft: {
     fontFamily: Fonts.semiBold,
-    fontSize: 12,
+    fontSize: 13,
     color: TEXT_PRIMARY,
   },
   budgetStatus: {
     fontFamily: Fonts.regular,
-    fontSize: 11,
+    fontSize: 12,
     color: TEXT_SECONDARY,
+    opacity: 0.6,
   },
   savingsRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: SPACING.MD,
+    marginBottom: 24,
   },
   goalName: {
+    fontFamily: Fonts.semiBold,
+    fontSize: 22,
+    color: TEXT_PRIMARY,
+    marginBottom: 8,
+  },
+  goalAmount: {
     fontFamily: Fonts.bold,
     fontSize: 28,
     color: TEXT_PRIMARY,
-    marginBottom: 4,
-    letterSpacing: -0.5,
-  },
-  goalAmount: {
-    fontFamily: Fonts.medium,
-    fontSize: 32,
-    color: TEXT_PRIMARY,
   },
   goalTarget: {
-    fontSize: 20,
+    fontSize: 18,
     color: "#D1D5DB",
-    fontFamily: Fonts.regular,
+    fontFamily: Fonts.medium,
+  },
+  progressRingContainer: {
+     justifyContent: 'center',
+     alignItems: 'center',
   },
   circularProgress: {
-    width: 68,
-    height: 68,
-    borderRadius: 34,
-    borderWidth: 5,
-    borderColor: "#DCFCE7", // Light green background ring
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    borderWidth: 6,
     alignItems: "center",
     justifyContent: "center",
+  },
+  progressArc: {
+    position: 'absolute',
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    borderWidth: 6,
+    borderColor: PRIMARY_GREEN,
+    borderTopColor: 'transparent',
+    borderRightColor: 'transparent',
   },
   circleText: {
     fontFamily: Fonts.bold,
-    fontSize: 18,
+    fontSize: 20,
     color: PRIMARY_GREEN,
   },
-  addFundsButton: {
+  primaryActionBtn: {
     backgroundColor: PRIMARY_GREEN,
-    borderRadius: 16,
-    height: 56,
+    borderRadius: 12,
+    height: 52,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 24,
     width: "100%",
   },
-  addFundsText: {
+  primaryActionBtnText: {
     fontFamily: Fonts.semiBold,
     color: WHITE,
-    fontSize: 18,
+    fontSize: 16,
   },
-  emptySavingsContainer: {
-    flexDirection: "column",
-    alignItems: "flex-start",
+  emptyCardContent: {
+    alignItems: 'center',
+    paddingVertical: 8,
   },
-  emptySavingsInfo: {
-    flex: 1,
-  },
-  emptySavingsTitle: {
+  emptyCardTitle: {
     fontFamily: Fonts.bold,
-    fontSize: 18,
+    fontSize: 22,
     color: TEXT_PRIMARY,
-    marginBottom: 2,
+    marginBottom: 8,
+    textAlign: 'center',
   },
-  emptySavingsSubtitle: {
+  emptyCardSubtitle: {
     fontFamily: Fonts.regular,
-    fontSize: 13,
-    color: TEXT_SECONDARY,
-  },
-  setGoalButton: {
-    backgroundColor: "#EFFDF5",
-    width: "100%",
-    height: 52,
-    borderRadius: 16,
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: 20,
-  },
-  setGoalText: {
-    fontFamily: Fonts.semiBold,
-    color: PRIMARY_GREEN,
     fontSize: 14,
+    color: TEXT_SECONDARY,
+    textAlign: 'center',
+    marginBottom: 24,
+    opacity: 0.7,
   },
   transactionsSection: {
     marginBottom: SPACING.XL,
+    marginTop: 8,
+  },
+  emptyTransactions: {
+    paddingVertical: 20,
+  },
+  emptyTransactionsText: {
+    fontFamily: Fonts.bold,
+    fontSize: 24,
+    color: TEXT_SECONDARY,
+    opacity: 0.5,
+  },
+  fabTooltip: {
+    position: 'absolute',
+    bottom: 94,
+    alignSelf: 'center',
+    backgroundColor: PRIMARY_GREEN,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 4,
+    zIndex: 100,
+  },
+  tooltipText: {
+    color: WHITE,
+    fontFamily: Fonts.medium,
+    fontSize: 12,
+  },
+  tooltipArrow: {
+    position: 'absolute',
+    bottom: -6,
+    left: '50%',
+    marginLeft: -6,
+    width: 12,
+    height: 12,
+    backgroundColor: PRIMARY_GREEN,
+    transform: [{ rotate: '45deg' }],
   },
   viewAllText: {
     fontFamily: Fonts.medium,

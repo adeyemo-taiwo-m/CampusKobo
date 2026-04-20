@@ -69,7 +69,7 @@ export const DarkCard = ({
   return (
     <View style={[styles.outerContainer, style]}>
       <LinearGradient
-        colors={isBudgetType ? ["#27AE60", "#0A4A25"] : ["#3CB96A", "#1A6B3A"]}
+        colors={isBudgetType ? ["#27AE60", "#0A4A25"] : ["#2DD673", "#177E42"]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 0 }} // Horizontal gradient
         style={[styles.gradient, isBudgetType && styles.budgetGradient]}
@@ -88,25 +88,30 @@ export const DarkCard = ({
               {label && <Text style={isBudgetType ? styles.mutedLabel : styles.label}>{label}</Text>}
               
               <View style={styles.amountRow}>
-                <Text style={[styles.amountText, centered && { textAlign: 'center' }]}>
-                  {isBalanceType 
-                    ? (isBalanceVisible ? `₦${Math.max(0, amount).toLocaleString()}` : "₦ ••••••")
-                    : isTransactionType
-                      ? `${isIncome ? '+' : '−'}₦${amount.toLocaleString()}`
-                      : isBudgetType 
-                        ? (
-                            <View style={styles.budgetAmountRow}>
-                               <Text style={styles.budgetAmountPrimary}>{`₦${amount.toLocaleString()}`}</Text>
-                               {limitAmount && (
-                                 <Text style={styles.budgetAmountSuffix}>{`/₦${limitAmount.toLocaleString()}`}</Text>
-                               )}
-                            </View>
-                          )
-                        : `₦${amount.toLocaleString()}`
-                  }
-                  {isBalanceType && isBalanceVisible && <Text style={styles.decimals}>.00</Text>}
-                  {type === 'expenses' && <Text style={styles.spentLabel}> spent</Text>}
-                </Text>
+                {isBalanceType ? (
+                   <View style={styles.balanceAmountRow}>
+                      <Text style={styles.amountTextLarge}>
+                         {isBalanceVisible ? `₦${Math.max(0, amount).toLocaleString()}` : "₦ ••••••"}
+                      </Text>
+                      {isBalanceVisible && <Text style={styles.decimals}>.00</Text>}
+                   </View>
+                ) : isTransactionType ? (
+                  <Text style={[styles.amountText, centered && { textAlign: 'center' }]}>
+                    {`${isIncome ? '+' : '−'}₦${amount.toLocaleString()}`}
+                  </Text>
+                ) : isBudgetType ? (
+                  <View style={styles.budgetAmountRow}>
+                     <Text style={styles.budgetAmountPrimary}>{`₦${amount.toLocaleString()}`}</Text>
+                     {limitAmount && (
+                       <Text style={styles.budgetAmountSuffix}>{`/₦${limitAmount.toLocaleString()}`}</Text>
+                     )}
+                  </View>
+                ) : (
+                  <Text style={[styles.amountText, centered && { textAlign: 'center' }]}>
+                    {`₦${amount.toLocaleString()}`}
+                    {type === 'expenses' && <Text style={styles.spentLabel}> spent</Text>}
+                  </Text>
+                )}
               </View>
 
               {isTransactionType && (
@@ -151,8 +156,8 @@ export const DarkCard = ({
               >
                 <Ionicons
                   name={isBalanceVisible ? "eye-outline" : "eye-off-outline"}
-                  size={22}
-                  color="rgba(255, 255, 255, 0.65)"
+                  size={24}
+                  color="rgba(255, 255, 255, 0.7)"
                 />
               </TouchableOpacity>
             )}
@@ -167,7 +172,32 @@ export const DarkCard = ({
             )}
           </View>
 
-          {!(isTransactionType || isBudgetType) && <View style={styles.divider} />}
+          {isBalanceType && !hideIncomeExpenses && (
+            <>
+              <View style={styles.divider} />
+              <View style={styles.bottomRow}>
+                <View style={styles.statCol}>
+                  <View style={styles.statHeader}>
+                    <Ionicons name="arrow-up" size={14} color="#A5D6A7" />
+                    <Text style={styles.statLabel}>Income</Text>
+                  </View>
+                  <Text style={styles.statValue}>+₦{income.toLocaleString()}</Text>
+                </View>
+                
+                <View style={styles.verticalDivider} />
+                
+                <View style={styles.statCol}>
+                  <View style={styles.statHeader}>
+                    <Ionicons name="arrow-down" size={14} color="#A5D6A7" />
+                    <Text style={styles.statLabel}>Expenses</Text>
+                  </View>
+                  <Text style={styles.statValue}>−₦{expenses.toLocaleString()}</Text>
+                </View>
+              </View>
+            </>
+          )}
+
+          {!(isTransactionType || isBudgetType || isBalanceType) && <View style={styles.divider} />}
 
           {isBudgetType && progress !== undefined && (
             <View style={styles.budgetProgressSection}>
@@ -317,6 +347,10 @@ const styles = StyleSheet.create({
     fontSize: 20,
     color: 'rgba(255, 255, 255, 0.75)',
     marginLeft: 2,
+  },
+  balanceAmountRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
   },
   decimals: {
     fontSize: 24,
