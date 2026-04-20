@@ -1,25 +1,7 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { BACKGROUND, PRIMARY_GREEN, TEXT_PRIMARY, Fonts } from '../../src/constants';
+import { SavingsScreen } from '../../src/screens/savings/SavingsScreen';
 
-export default function SavingsScreen() {
-  return (
-    <View style={styles.container}>
-      <Text style={styles.text}>Savings Screen</Text>
-    </View>
-  );
+export default function SavingsTab() {
+  return <SavingsScreen />;
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: BACKGROUND,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  text: {
-    fontFamily: Fonts.semiBold,
-    fontSize: 20,
-    color: PRIMARY_GREEN,
-  },
-});
+

@@ -11,7 +11,7 @@ import {
   Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useRouter } from 'expo-router';
 import * as Progress from 'react-native-progress';
 import {
   WHITE,
@@ -25,6 +25,7 @@ import {
   DARK_GREEN,
   ACCENT_GREEN,
   FOREST_GREEN,
+  BORDER_GRAY,
 } from '../../constants';
 import { ProgressBar } from '../../components/ProgressBar';
 import { DarkCard } from '../../components/DarkCard';
@@ -80,32 +81,32 @@ const BudgetCard = ({ budget, onPress }: { budget: Budget; onPress: () => void }
       <View style={styles.budgetCardContent}>
         <View style={styles.budgetCategoryInfo}>
           <View style={[styles.iconCircle, { backgroundColor: '#E8F5E9' }]}>
-            <Ionicons name={budget.icon} size={20} color="#388E3C" />
+            <Ionicons name={budget.icon} size={22} color="#1B5E20" />
           </View>
-          <View style={styles.budgetTextContainer}>
+          <View style={styles.budgetTextStack}>
             <Text style={styles.categoryNameText}>{budget.category}</Text>
-            <View style={styles.amountRow}>
-               <Text style={styles.spentBold}>₦{budget.spentAmount.toLocaleString()}</Text>
-               <Text style={styles.limitText}>/₦{budget.limitAmount.toLocaleString()}</Text>
+            <View style={styles.amountTextRow}>
+               <Text style={styles.spentAmountText}>₦{budget.spentAmount.toLocaleString()}</Text>
+               <Text style={styles.limitAmountSuffix}>/₦{budget.limitAmount.toLocaleString()}</Text>
             </View>
-            <Text style={styles.cardSubtext}>₦{remaining.toLocaleString()} left • {budget.daysLeft} days remaining</Text>
           </View>
         </View>
         
-        <View style={styles.circularProgressContainer}>
-          <Progress.Circle
-            size={48}
-            progress={0.75} // Following prompt: "circular arc progress ring ... showing 30% in green" 
-            // Wait, prompt says ring showing 30% in green, but the arc is ~75% coverage?
-            // Actually: "thin circle, ~75% arc in green, remaining in light gray, percentage text centered in ring"
-            unfilledColor="#E0E0E0"
-            color={SUCCESS}
-            thickness={3}
-            borderWidth={0}
-            showsText
-            formatText={() => "30%"}
-            textStyle={styles.circlePercentageText}
-          />
+        <View style={styles.rightCircleContainer}>
+          <View style={styles.progressRingWrapper}>
+            <Progress.Circle
+              size={50}
+              progress={0.75}
+              unfilledColor="#F3F4F6"
+              color={ACCENT_GREEN}
+              thickness={4}
+              borderWidth={0}
+              showsText
+              formatText={() => "30%"}
+              textStyle={styles.progressRingText}
+            />
+          </View>
+          <Text style={styles.remainingSubtext}>₦{remaining.toLocaleString()} left • {budget.daysLeft}d</Text>
         </View>
       </View>
     </TouchableOpacity>
@@ -113,15 +114,13 @@ const BudgetCard = ({ budget, onPress }: { budget: Budget; onPress: () => void }
 };
 
 export const BudgetScreen = () => {
-  const navigation = useNavigation<any>();
-  // Toggle budgets here to see both states
+  const router = useRouter();
   const [budgets] = useState<Budget[]>(SAMPLE_BUDGETS);
   const hasBudgets = budgets.length > 0;
   
   const totalBudget = 50000;
   const totalSpent = 30000;
   const totalRemaining = totalBudget - totalSpent;
-  const totalProgress = totalSpent / totalBudget;
 
   const currentMonth = "OCTOBER 2025";
 
@@ -129,63 +128,80 @@ export const BudgetScreen = () => {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
       
-      {/* Green Header Section */}
-      <View style={styles.headerSection}>
+      {/* Seamless Header Hero Region */}
+      <View style={styles.headerHeroRegion}>
         <SafeAreaView>
-          <View style={styles.topHeaderRow}>
-            <View style={styles.profileArea}>
-              <View style={styles.avatarCircle}>
+          <View style={styles.topNavRow}>
+            <View style={styles.profileGreeting}>
+              <View style={styles.avatarWrap}>
                 <Image 
                    source={require("../../../assets/images/avatar.jpeg")} 
-                   style={styles.avatarImage} 
+                   style={styles.avatarImg} 
                 />
               </View>
-              <Text style={styles.greetingText}>Hi, Taiwo</Text>
+              <Text style={styles.greetingTitle}>Hi, Taiwo</Text>
             </View>
             
-            <View style={styles.headerTitleContainer}>
-              <Text style={styles.headerTitle}>Budget</Text>
+            <View style={styles.centerTitleWrap}>
+              <Text style={styles.mainTitle}>Budget</Text>
             </View>
 
-            <View style={styles.headerIcons}>
-              <TouchableOpacity style={styles.headerIconButton}>
-                <Ionicons name="school-outline" size={20} color={WHITE} />
+            <View style={styles.headerActionBtns}>
+              <TouchableOpacity style={styles.headerActionBtn}>
+                <Ionicons name="school-outline" size={22} color={WHITE} />
               </TouchableOpacity>
-              <TouchableOpacity style={[styles.headerIconButton, styles.bellButton]}>
-                <Ionicons name="notifications" size={20} color={WHITE} />
+              <TouchableOpacity style={[styles.headerActionBtn, styles.bellBtn]}>
+                <Ionicons name="notifications" size={22} color={WHITE} />
               </TouchableOpacity>
             </View>
           </View>
 
-          {/* Budget Summary Content */}
-          <DarkCard
-            type="budget"
-            label={hasBudgets ? "Total budget" : undefined}
-            amount={hasBudgets ? totalSpent : 0}
-            limitAmount={hasBudgets ? totalBudget : undefined}
-            progress={hasBudgets ? 0.64 : 0}
-            progressLabel={hasBudgets ? `₦${totalRemaining.toLocaleString()} left • You are doing well` : undefined}
-            statusCaption={!hasBudgets ? "No budget set yet" : undefined}
-            periodLabel={currentMonth}
-            comparisonLabel="12% vs Last month"
-            showMeta={hasBudgets}
-            style={styles.summaryCard}
-          />
+          {/* Budget Summary Unified Card */}
+          <View style={styles.summaryCardWrapper}>
+            <DarkCard
+              type="budget"
+              label={hasBudgets ? "Total budget" : undefined}
+              amount={hasBudgets ? totalSpent : 0}
+              limitAmount={hasBudgets ? totalBudget : undefined}
+              progress={hasBudgets ? 0.64 : 0}
+              progressLabel={hasBudgets ? `₦${totalRemaining.toLocaleString()} left • You are doing well` : undefined}
+              statusCaption={!hasBudgets ? "No budget set yet" : undefined}
+              periodLabel={currentMonth}
+              comparisonLabel="12% vs Last month"
+              showToggle={hasBudgets}
+              style={styles.darkSummaryCard}
+            />
+
+            {/* External Meta Row below card */}
+            {hasBudgets && (
+              <View style={styles.externalMetaRow}>
+                <View style={styles.monthCol}>
+                  <Text style={styles.monthLabelText}>{currentMonth}</Text>
+                  <Ionicons name="calendar-outline" size={18} color="#A5D6A7" style={{ marginLeft: 8 }} />
+                </View>
+                <View style={styles.verticalDividerLine} />
+                <View style={styles.growthCol}>
+                  <Ionicons name="arrow-up" size={16} color="#A5D6A7" />
+                  <Text style={styles.growthLabelText}>12% vs Last month</Text>
+                </View>
+              </View>
+            )}
+          </View>
         </SafeAreaView>
       </View>
 
-      {/* White Content Panel (Bottom Sheet style) */}
-      <View style={styles.contentPanel}>
-        <View style={styles.panelHeader}>
-          <Text style={styles.panelTitle}>Active Budgets</Text>
+      {/* Main Budget List Area */}
+      <View style={styles.mainContentPanel}>
+        <View style={styles.panelHeaderRow}>
+          <Text style={styles.panelHeaderText}>Active Budgets</Text>
           <TouchableOpacity>
-            <Text style={styles.viewAllText}>View all</Text>
+            <Text style={styles.viewAllBtnText}>View all</Text>
           </TouchableOpacity>
         </View>
 
         <ScrollView 
-          style={styles.scrollArea}
-          contentContainerStyle={styles.scrollContent}
+          style={styles.scrollContainer}
+          contentContainerStyle={styles.scrollAreaContent}
           showsVerticalScrollIndicator={false}
         >
           {hasBudgets ? (
@@ -193,27 +209,31 @@ export const BudgetScreen = () => {
               <BudgetCard 
                 key={budget.id} 
                 budget={budget} 
-                onPress={() => {}} 
+                onPress={() => router.push({ pathname: '/budget/detail', params: { id: budget.id } })} 
               />
             ))
           ) : (
-            <View style={styles.emptyStateCenter}>
-               <View style={styles.illustrationPlaceholder}>
-                 {/* Simplified Illustration using View & Icons */}
-                 <View style={styles.illustrationCircle}>
-                    <Ionicons name="sync-outline" size={120} color="rgba(60, 185, 106, 0.2)" />
-                    <View style={styles.illustrationIconsOverlay}>
-                       <Ionicons name="wallet-outline" size={32} color="#3CB96A" />
-                       <Ionicons name="receipt-outline" size={24} color="#3CB96A" style={{ marginLeft: 16 }} />
-                    </View>
-                 </View>
+            <View style={styles.emptyContainer}>
+               <View style={styles.emptyImgCircle}>
+                  <Ionicons name="sync-outline" size={100} color="rgba(60, 185, 106, 0.15)" />
+                  <View style={styles.emptyIconsLayer}>
+                     <Ionicons name="wallet-outline" size={32} color={ACCENT_GREEN} />
+                     <Ionicons name="receipt-outline" size={24} color={ACCENT_GREEN} style={{ marginLeft: 16 }} />
+                  </View>
                </View>
-               <Text style={styles.emptyStateTitle}>No budget set yet</Text>
-               <Text style={styles.emptyStateSubtitle}>Set a budget to track and control your spending</Text>
+               <Text style={styles.emptyStateMainText}>No budget set yet</Text>
+               <Text style={styles.emptyStateSubText}>Set a budget to track and control your spending</Text>
             </View>
           )}
         </ScrollView>
       </View>
+      {/* FAB for Creating Budget */}
+      <TouchableOpacity 
+        style={styles.fab}
+        onPress={() => router.push("/budget/create")}
+      >
+        <Ionicons name="add" size={32} color={WHITE} />
+      </TouchableOpacity>
     </View>
   );
 };
@@ -221,210 +241,127 @@ export const BudgetScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: FOREST_GREEN, 
+    backgroundColor: BACKGROUND,
   },
-  headerSection: {
-    backgroundColor: FOREST_GREEN,
-    paddingBottom: 40,
+  headerHeroRegion: {
+    backgroundColor: '#0B5E2F', // Deep forest green
+    borderBottomLeftRadius: 32,
+    borderBottomRightRadius: 32,
+    paddingBottom: 48,
   },
-  topHeaderRow: {
+  topNavRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: SPACING.LG,
     paddingTop: SPACING.MD,
     height: 60,
+    marginBottom: 16,
   },
-  profileArea: {
+  profileGreeting: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
   },
-  avatarCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+  avatarWrap: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     backgroundColor: 'rgba(255,255,255,0.2)',
     overflow: 'hidden',
     marginRight: 10,
   },
-  avatarImage: {
+  avatarImg: {
     width: '100%',
     height: '100%',
   },
-  greetingText: {
+  greetingTitle: {
     fontFamily: Fonts.bold,
-    fontSize: 16,
+    fontSize: 18,
     color: WHITE,
   },
-  headerTitleContainer: {
+  centerTitleWrap: {
     position: 'absolute',
     left: 0,
     right: 0,
     alignItems: 'center',
     zIndex: -1,
   },
-  headerTitle: {
+  mainTitle: {
     fontFamily: Fonts.medium,
-    fontSize: 18,
+    fontSize: 16,
     color: WHITE,
   },
-  headerIcons: {
+  headerActionBtns: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 8,
     flex: 1,
     justifyContent: 'flex-end',
   },
-  headerIconButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+  headerActionBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     backgroundColor: 'rgba(255,255,255,0.15)',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  bellButton: {
+  bellBtn: {
     backgroundColor: 'rgba(0,0,0,0.15)',
   },
-  summaryContent: {
+  summaryCardWrapper: {
     paddingHorizontal: SPACING.LG,
-    marginTop: 24,
   },
-  summaryLabel: {
-    fontFamily: Fonts.regular,
-    fontSize: 13,
-    color: '#A5D6A7', // Light green muted
-    marginBottom: 4,
+  darkSummaryCard: {
+    elevation: 0,
+    shadowOpacity: 0,
   },
-  totalAmountRow: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    marginBottom: 16,
-  },
-  totalAmountMain: {
-    fontFamily: Fonts.bold,
-    fontSize: 32,
-    color: WHITE,
-  },
-  totalAmountSecondary: {
-    fontFamily: Fonts.medium,
-    fontSize: 18,
-    color: 'rgba(255,255,255,0.7)',
-    marginLeft: 2,
-  },
-  mainProgressContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  progressBarWrapper: {
-    flex: 1,
-    marginRight: 12,
-  },
-  progressPercentLabel: {
-    fontFamily: Fonts.semiBold,
-    fontSize: 14,
-    color: WHITE,
-  },
-  statusRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  remainingText: {
-    fontFamily: Fonts.semiBold,
-    fontSize: 14,
-    color: WHITE,
-  },
-  statusDot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: ACCENT_GREEN,
-    marginHorizontal: 8,
-  },
-  motivationText: {
-    fontFamily: Fonts.medium,
-    fontSize: 14,
-    color: ACCENT_GREEN, // Bright accent green
-  },
-  metaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  monthBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  monthText: {
-    fontFamily: Fonts.bold,
-    fontSize: 12,
-    color: WHITE,
-  },
-  verticalSeparator: {
-    width: 1,
-    height: 12,
-    backgroundColor: 'rgba(255,255,255,0.3)',
-    marginHorizontal: 12,
-  },
-  comparisonBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  comparisonText: {
-    fontFamily: Fonts.regular,
-    fontSize: 12,
-    color: 'rgba(255,255,255,0.8)',
-    marginLeft: 4,
-  },
-  emptyHeaderContent: {
-    marginVertical: 10,
-  },
-  emptyHeaderText: {
-    fontFamily: Fonts.bold,
-    fontSize: 28,
-    color: WHITE,
-  },
-  contentPanel: {
+  mainContentPanel: {
     flex: 1,
     backgroundColor: BACKGROUND,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    marginTop: -20, // Overlap the header
-    paddingTop: 24,
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    marginTop: -32,
+    paddingTop: 32,
   },
-  panelHeader: {
+  panelHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: SPACING.LG,
-    marginBottom: 16,
+    marginBottom: 20,
   },
-  panelTitle: {
+  panelHeaderText: {
     fontFamily: Fonts.bold,
     fontSize: 18,
-    color: '#000000',
+    color: TEXT_PRIMARY,
   },
-  viewAllText: {
+  viewAllBtnText: {
     fontFamily: Fonts.medium,
     fontSize: 14,
-    color: PRIMARY_GREEN,
+    color: '#1B5E20',
   },
-  scrollArea: {
+  scrollContainer: {
     flex: 1,
   },
-  scrollContent: {
+  scrollAreaContent: {
     paddingHorizontal: SPACING.LG,
     paddingBottom: 100,
   },
   budgetCard: {
     backgroundColor: WHITE,
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 18,
+    marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#F0F0F0',
+    borderColor: '#F1F5F9',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
   },
   budgetCardContent: {
     flexDirection: 'row',
@@ -437,84 +374,139 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   iconCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
+    marginRight: 14,
   },
-  budgetTextContainer: {
+  budgetTextStack: {
     flex: 1,
+    justifyContent: 'center',
   },
   categoryNameText: {
+    fontFamily: Fonts.bold,
+    fontSize: 15,
+    color: TEXT_PRIMARY,
+    marginBottom: 2,
+  },
+  amountTextRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+  },
+  spentAmountText: {
     fontFamily: Fonts.bold,
     fontSize: 16,
     color: TEXT_PRIMARY,
   },
-  amountRow: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    marginTop: 2,
-  },
-  spentBold: {
-    fontFamily: Fonts.bold,
-    fontSize: 14,
-    color: TEXT_PRIMARY,
-  },
-  limitText: {
+  limitAmountSuffix: {
     fontFamily: Fonts.regular,
     fontSize: 12,
     color: TEXT_SECONDARY,
-    marginLeft: 1,
+    marginLeft: 2,
   },
-  cardSubtext: {
-    fontFamily: Fonts.regular,
-    fontSize: 12,
-    color: TEXT_SECONDARY,
-    marginTop: 4,
+  rightCircleContainer: {
+    alignItems: 'flex-end',
+    justifyContent: 'center',
   },
-  circularProgressContainer: {
-    marginLeft: 8,
+  progressRingWrapper: {
+    marginBottom: 4,
   },
-  circlePercentageText: {
+  progressRingText: {
     fontFamily: Fonts.semiBold,
     fontSize: 11,
     color: TEXT_PRIMARY,
   },
-  emptyStateCenter: {
+  remainingSubtext: {
+    fontFamily: Fonts.regular,
+    fontSize: 11,
+    color: TEXT_SECONDARY,
+  },
+  emptyContainer: {
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 60,
   },
-  illustrationPlaceholder: {
-    marginBottom: 24,
-  },
-  illustrationCircle: {
-    width: 160,
-    height: 160,
-    borderRadius: 80,
+  emptyImgCircle: {
+    width: 140,
+    height: 140,
+    borderRadius: 70,
     backgroundColor: 'rgba(60, 185, 106, 0.05)',
     alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: 24,
   },
-  illustrationIconsOverlay: {
+  emptyIconsLayer: {
     position: 'absolute',
     flexDirection: 'row',
     alignItems: 'center',
   },
-  emptyStateTitle: {
-    fontFamily: Fonts.medium,
+  emptyStateMainText: {
+    fontFamily: Fonts.bold,
     fontSize: 18,
     color: TEXT_PRIMARY,
     marginBottom: 8,
   },
-  emptyStateSubtitle: {
+  emptyStateSubText: {
     fontFamily: Fonts.regular,
     fontSize: 14,
     color: TEXT_SECONDARY,
     textAlign: 'center',
     paddingHorizontal: 40,
+    lineHeight: 20,
+  },
+  externalMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 20,
+    paddingHorizontal: 20,
+  },
+  monthCol: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    flex: 1,
+  },
+  monthLabelText: {
+    fontFamily: Fonts.medium,
+    fontSize: 15,
+    color: '#A5D6A7', 
+    letterSpacing: 0.5,
+  },
+  verticalDividerLine: {
+    width: 1,
+    height: 24,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    marginHorizontal: 16,
+  },
+  growthCol: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  growthLabelText: {
+    fontFamily: Fonts.regular,
+    fontSize: 14,
+    color: '#A5D6A7',
+    marginLeft: 4,
+  },
+  fab: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: PRIMARY_GREEN,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
   },
 });
 

@@ -29,7 +29,6 @@ interface DarkCardProps {
   label?: string;
   limitAmount?: number;
   comparisonLabel?: string;
-  showMeta?: boolean;
   showToggle?: boolean;
   onToggle?: () => void;
   // Type: 'transaction' specific props
@@ -60,7 +59,6 @@ export const DarkCard = ({
   label,
   limitAmount,
   comparisonLabel,
-  showMeta = false,
   showToggle = false,
   onToggle,
 }: DarkCardProps) => {
@@ -71,10 +69,10 @@ export const DarkCard = ({
   return (
     <View style={[styles.outerContainer, style]}>
       <LinearGradient
-        colors={["#3CB96A", "#1A6B3A"]}
+        colors={isBudgetType ? ["#27AE60", "#0A4A25"] : ["#3CB96A", "#1A6B3A"]}
         start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.gradient}
+        end={{ x: 1, y: 0 }} // Horizontal gradient
+        style={[styles.gradient, isBudgetType && styles.budgetGradient]}
       >
         <View style={styles.content}>
           <View style={(isBalanceType || isTransactionType) && !centered ? styles.topRow : styles.topRowCenter}>
@@ -97,10 +95,12 @@ export const DarkCard = ({
                       ? `${isIncome ? '+' : '−'}₦${amount.toLocaleString()}`
                       : isBudgetType 
                         ? (
-                            <Text>
-                              <Text style={styles.amountTextLarge}>{`₦${amount.toLocaleString()}`}</Text>
-                              {limitAmount && <Text style={styles.limitSuffix}>{` / ₦${limitAmount.toLocaleString()}`}</Text>}
-                            </Text>
+                            <View style={styles.budgetAmountRow}>
+                               <Text style={styles.budgetAmountPrimary}>{`₦${amount.toLocaleString()}`}</Text>
+                               {limitAmount && (
+                                 <Text style={styles.budgetAmountSuffix}>{`/₦${limitAmount.toLocaleString()}`}</Text>
+                               )}
+                            </View>
                           )
                         : `₦${amount.toLocaleString()}`
                   }
@@ -169,47 +169,24 @@ export const DarkCard = ({
 
           {!(isTransactionType || isBudgetType) && <View style={styles.divider} />}
 
+          {isBudgetType && progress !== undefined && (
+            <View style={styles.budgetProgressSection}>
+              <View style={styles.budgetProgressBarTrack}>
+                 <View style={[styles.budgetProgressBarFill, { width: `${Math.round(progress * 100)}%` }]} />
+              </View>
+              <Text style={styles.budgetProgressPercent}>{Math.round(progress * 100)}%</Text>
+            </View>
+          )}
+
           {isBudgetType && progressLabel && (
-            <View style={styles.statusRow}>
-              <Text style={styles.remainingText}>{progressLabel.split(' • ')[0]}</Text>
-              <View style={styles.statusDot} />
-              <Text style={styles.motivationText}>{progressLabel.split(' • ')[1]}</Text>
-            </View>
+             <View style={styles.budgetStatusLine}>
+                <Text style={styles.budgetStatusLeft}>{progressLabel.split(' • ')[0]}</Text>
+                <Text style={styles.budgetStatusDot}>•</Text>
+                <Text style={styles.budgetStatusMotivation}>{progressLabel.split(' • ')[1]}</Text>
+             </View>
           )}
 
-          {!(isTransactionType || isBudgetType) && (
-            <View style={styles.bottomRow}>
-              <View style={styles.statCol}>
-                <View style={styles.statHeader}>
-                  <Ionicons
-                    name="arrow-up"
-                    size={14}
-                    color="rgba(255, 255, 255, 0.8)"
-                  />
-                  <Text style={styles.statLabel}>Income</Text>
-                </View>
-                <Text style={styles.statValue}>+₦{income.toLocaleString()}</Text>
-              </View>
-
-              <View style={styles.verticalDivider} />
-
-              <View style={styles.statCol}>
-                <View style={styles.statHeader}>
-                  <Ionicons
-                    name="arrow-down"
-                    size={14}
-                    color="rgba(255, 255, 255, 0.8)"
-                  />
-                  <Text style={styles.statLabel}>Expenses</Text>
-                </View>
-                <Text style={styles.statValue}>
-                  -₦{expenses.toLocaleString()}
-                </Text>
-              </View>
-            </View>
-          )}
-
-          {(type === 'expenses' || type === 'budget') && progress !== undefined && (
+          {(type === 'expenses') && progress !== undefined && (
             <>
               {statusCaption && (
                 <Text style={styles.statusCaptionTop}>{statusCaption}</Text>
@@ -220,23 +197,6 @@ export const DarkCard = ({
                 </View>
                 <Text style={styles.progressPercent}>{Math.round(progress * 100)}%</Text>
               </View>
-              {showMeta && (
-                <View style={styles.metaRow}>
-                   <View style={styles.monthBadge}>
-                    <Text style={styles.monthText}>{periodLabel}</Text>
-                    <Ionicons name="calendar-outline" size={14} color={WHITE} style={{ marginLeft: 4 }} />
-                  </View>
-                  <View style={styles.verticalSeparatorSmall} />
-                  <View style={styles.comparisonBadge}>
-                    {comparisonLabel && (
-                      <>
-                        <Ionicons name="arrow-up" size={14} color={WHITE} />
-                        <Text style={styles.comparisonText}>{comparisonLabel}</Text>
-                      </>
-                    )}
-                  </View>
-                </View>
-              )}
             </>
           )}
         </View>
@@ -261,6 +221,14 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: "rgba(255, 255, 255, 0.15)",
     borderRadius: 20,
+  },
+  budgetGradient: {
+    paddingVertical: 20,
+    paddingHorizontal: 24,
+    borderRadius: 16,
+    borderWidth: 0,
+    elevation: 0,
+    shadowOpacity: 0,
   },
   content: {
     flex: 1,
@@ -333,6 +301,22 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.medium,
     fontSize: 16,
     color: 'rgba(255, 255, 255, 0.6)',
+  },
+  budgetAmountRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    marginBottom: 8,
+  },
+  budgetAmountPrimary: {
+    fontFamily: Fonts.bold,
+    fontSize: 42,
+    color: WHITE,
+  },
+  budgetAmountSuffix: {
+    fontFamily: Fonts.regular,
+    fontSize: 20,
+    color: 'rgba(255, 255, 255, 0.75)',
+    marginLeft: 2,
   },
   decimals: {
     fontSize: 24,
@@ -482,36 +466,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#2ECC71',
   },
-  metaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 12,
-  },
-  monthBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  monthText: {
-    fontFamily: Fonts.bold,
-    fontSize: 12,
-    color: WHITE,
-  },
-  verticalSeparatorSmall: {
-    width: 1,
-    height: 12,
-    backgroundColor: 'rgba(255,255,255,0.3)',
-    marginHorizontal: 12,
-  },
-  comparisonBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  comparisonText: {
-    fontFamily: Fonts.regular,
-    fontSize: 12,
-    color: 'rgba(255,255,255,0.8)',
-    marginLeft: 4,
-  },
   tealToggle: {
     position: 'absolute',
     right: -24,
@@ -531,5 +485,47 @@ const styles = StyleSheet.create({
     height: 6,
     borderRadius: 3,
     backgroundColor: WHITE,
+  },
+  budgetProgressSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  budgetProgressBarTrack: {
+    flex: 1,
+    height: 10,
+    backgroundColor: 'rgba(255,255,255,0.25)',
+    borderRadius: 5,
+    overflow: 'hidden',
+  },
+  budgetProgressBarFill: {
+    height: '100%',
+    backgroundColor: WHITE,
+    borderRadius: 5,
+  },
+  budgetProgressPercent: {
+    fontFamily: Fonts.medium,
+    fontSize: 13,
+    color: WHITE,
+    marginLeft: 10,
+  },
+  budgetStatusLine: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  budgetStatusLeft: {
+    fontFamily: Fonts.semiBold,
+    fontSize: 13,
+    color: WHITE,
+  },
+  budgetStatusDot: {
+    color: '#4ADE80',
+    marginHorizontal: 2,
+    fontSize: 13,
+  },
+  budgetStatusMotivation: {
+    fontFamily: Fonts.regular,
+    fontSize: 13,
+    color: '#4ADE80',
   }
 });
