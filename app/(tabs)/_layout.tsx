@@ -25,6 +25,28 @@ export default function TabLayout() {
         name="budget"
         options={{ title: 'Budget' }}
       />
+      {/* Primary Sub-screens with persistent nav bar */}
+      <Tabs.Screen
+        name="recurring"
+        options={{ 
+          href: null,
+          title: 'Recurring Expenses' 
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{ 
+          href: null,
+          title: 'Profile' 
+        }}
+      />
+      <Tabs.Screen
+        name="learning"
+        options={{ 
+          href: null,
+          title: 'Learning' 
+        }}
+      />
     </Tabs>
   );
 }

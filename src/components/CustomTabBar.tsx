@@ -35,6 +35,10 @@ export const CustomTabBar = ({ state, descriptors, navigation }: BottomTabBarPro
       <View style={styles.tabsContainer}>
         {state.routes.map((route, index) => {
           const { options } = descriptors[route.key];
+          
+          // Skip rendering if href is null (hidden tabs)
+          if (options.href === null) return null;
+
           const isFocused = state.index === index;
 
           const onPress = () => {

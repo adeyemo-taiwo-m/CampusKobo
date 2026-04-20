@@ -22,10 +22,12 @@ import { DarkCard } from '../../components/DarkCard';
 import { Header } from '../../components/Header';
 import { Button } from '../../components/Button';
 import { ProgressBar } from '../../components/ProgressBar';
+import { DeleteConfirmModal } from '../../components/DeleteConfirmModal';
 
 export const SavingsGoalDetailScreen = () => {
   const router = useRouter();
   const { id } = useLocalSearchParams();
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   
   // Mock data for the specific goal
   const goal = {
@@ -59,6 +61,17 @@ export const SavingsGoalDetailScreen = () => {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
+
+      <DeleteConfirmModal 
+        isVisible={showDeleteModal}
+        title="Delete Savings Goal?"
+        message="This will remove your goal and all recorded contributions. This action cannot be undone."
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={() => {
+          setShowDeleteModal(false);
+          // router.back();
+        }}
+      />
       
       {/* Hero Header */}
       <View style={styles.headerHeroRegion}>
@@ -68,7 +81,7 @@ export const SavingsGoalDetailScreen = () => {
             showBack={true} 
             onBack={() => router.back()}
             showEdit={true}
-            onEdit={() => router.push({ pathname: '/savings/create', params: { id: goal.id } })}
+            onEdit={() => router.push({ pathname: '/create-savings', params: { id: goal.id } })}
             whiteTheme={true}
           />
 
@@ -146,7 +159,10 @@ export const SavingsGoalDetailScreen = () => {
           </View>
 
           <View style={styles.dangerZone}>
-            <TouchableOpacity style={styles.deleteBtn}>
+            <TouchableOpacity 
+              style={styles.deleteBtn}
+              onPress={() => setShowDeleteModal(true)}
+            >
                 <Ionicons name="trash-outline" size={20} color="#EF4444" />
                 <Text style={styles.deleteBtnText}>Delete Goal</Text>
             </TouchableOpacity>

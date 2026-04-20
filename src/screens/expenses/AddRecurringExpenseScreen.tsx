@@ -31,8 +31,11 @@ import { useAppContext } from '../../context/AppContext';
 import { RecurringExpense } from '../../types';
 
 export default function AddRecurringExpenseScreen() {
-  const router = useRouter();
-  const { addRecurringExpense } = useAppContext();
+  const params = useLocalSearchParams();
+  const { addRecurringExpense, updateRecurringExpense } = useAppContext();
+  
+  const editExpense = params.recurringExpense ? JSON.parse(params.recurringExpense as string) : null;
+  const isEditMode = !!editExpense;
   
   // Form State
   const [amount, setAmount] = useState('');
@@ -53,6 +56,22 @@ export default function AddRecurringExpenseScreen() {
     setIsValid(!!amount && parseFloat(amount) > 0 && !!name && !!category);
   }, [amount, name, category]);
 
+  // Handle Edit Mode Initialization
+  useEffect(() => {
+    if (isEditMode && editExpense) {
+      setAmount(editExpense.amount.toString());
+      setName(editExpense.name);
+      setFrequency(editExpense.frequency);
+      setStartDate(new Date(editExpense.startDate));
+      // Construct category object back from stored strings
+      setCategory({
+        name: editExpense.category,
+        icon: editExpense.categoryIcon,
+        color: editExpense.categoryColor
+      });
+    }
+  }, [isEditMode]);
+
   // Calculate Next Due Date
   const calculateNextDue = () => {
     const next = new Date(startDate);
@@ -68,8 +87,8 @@ export default function AddRecurringExpenseScreen() {
   const handleSave = async () => {
     if (!isValid) return;
 
-    const newExpense: RecurringExpense = {
-      id: Math.random().toString(36).substring(7),
+    const expenseData: RecurringExpense = {
+      id: isEditMode ? editExpense.id : Math.random().toString(36).substring(7),
       name: name,
       amount: parseFloat(amount),
       category: category!.name,
@@ -78,10 +97,14 @@ export default function AddRecurringExpenseScreen() {
       frequency: frequency,
       startDate: startDate.toISOString(),
       nextDueDate: nextDueDate.toISOString(),
-      isPaused: false,
+      isPaused: isEditMode ? editExpense.isPaused : false,
     };
 
-    await addRecurringExpense(newExpense);
+    if (isEditMode) {
+      await updateRecurringExpense(editExpense.id, expenseData);
+    } else {
+      await addRecurringExpense(expenseData);
+    }
     setShowSuccess(true);
   };
 
@@ -97,8 +120,8 @@ export default function AddRecurringExpenseScreen() {
       {/* Success Modal */}
       <SuccessModal 
         isVisible={showSuccess}
-        title="Recurring Expense Added!"
-        subtitle="Your recurring payment has been scheduled successfully."
+        title={isEditMode ? "Changes Saved!" : "Recurring Expense Added!"}
+        subtitle={isEditMode ? "Your recurring payment details have been updated." : "Your recurring payment has been scheduled successfully."}
         onDone={() => {
           setShowSuccess(false);
           router.back();
@@ -113,7 +136,7 @@ export default function AddRecurringExpenseScreen() {
         >
           <Ionicons name="chevron-back" size={20} color={TEXT_PRIMARY} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Add Recurring Expense</Text>
+        <Text style={styles.headerTitle}>{isEditMode ? 'Edit Recurring Expense' : 'Add Recurring Expense'}</Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -249,7 +272,7 @@ export default function AddRecurringExpenseScreen() {
       {/* Save Button */}
       <View style={styles.footer}>
         <Button 
-          title="Add Recurring Expense"
+          title={isEditMode ? "Save Changes" : "Add Recurring Expense"}
           onPress={handleSave}
           variant="primary"
           disabled={!isValid}

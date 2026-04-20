@@ -54,7 +54,10 @@ export default function RecurringExpensesScreen() {
           text: item.isPaused ? 'Resume' : 'Pause', 
           onPress: () => updateRecurringExpense(item.id, { isPaused: !item.isPaused }) 
         },
-        { text: 'Edit', onPress: () => Alert.alert('Coming Soon', 'Editing recurring expenses is coming soon.') },
+        { text: 'Edit', onPress: () => router.push({
+          pathname: '/expenses/add-recurring',
+          params: { recurringExpense: JSON.stringify(item) }
+        }) },
         { text: 'Delete', onPress: () => deleteRecurringExpense(item.id), style: 'destructive' },
       ]
     );
@@ -73,11 +76,11 @@ export default function RecurringExpensesScreen() {
         <View style={styles.centerText}>
           <Text style={styles.itemCategoryName}>{item.name}</Text>
           <Text style={styles.itemFrequencyText}>
-            {item.frequency === 'monthly' ? 'Every month on the 10th' : 
+            {item.frequency === 'monthly' ? `Every month on the ${new Date(item.startDate).getDate()}th` : 
              item.frequency === 'weekly' ? 'Every week' : 'Every day'}
           </Text>
           <Text style={styles.itemNextDueText}>
-            Next due : <Text style={styles.boldDate}>{new Date(item.nextDueDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</Text>
+            Next due : <Text style={styles.boldDate}>{new Date(item.nextDueDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</Text>
           </Text>
         </View>
       </View>
