@@ -160,10 +160,60 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         }
       ];
 
-      // If existing transactions are just the old samples, replace them
+      const sampleBudgets: Budget[] = [
+        {
+          id: 'b1',
+          category: 'Food',
+          limitAmount: 15000,
+          spentAmount: 12000,
+        },
+        {
+          id: 'b2',
+          category: 'Data & Airtime',
+          limitAmount: 8000,
+          spentAmount: 2400,
+        },
+        {
+          id: 'b3',
+          category: 'Transport',
+          limitAmount: 10000,
+          spentAmount: 11000,
+        },
+      ];
+
+      const sampleSavings: SavingsGoal[] = [
+        {
+          id: 's1',
+          name: 'New Laptop',
+          targetAmount: 250000,
+          savedAmount: 150000,
+          deadline: '2025-12-20',
+          emoji: '💻',
+          contributions: [],
+        },
+        {
+          id: 's2',
+          name: 'Phone Upgrade',
+          targetAmount: 120000,
+          savedAmount: 30000,
+          deadline: '2025-10-15',
+          emoji: '📱',
+          contributions: [],
+        }
+      ];
+
+      // If existing data is empty, replace with samples
       if (t.length === 0 || t.some(tr => tr.id.startsWith('sample'))) {
         await StorageService.saveTransactions(sampleTransactions);
         t = sampleTransactions;
+      }
+      if (b.length === 0) {
+        await StorageService.saveBudgets(sampleBudgets);
+        b = sampleBudgets;
+      }
+      if (s.length === 0) {
+        await StorageService.saveSavingsGoals(sampleSavings);
+        s = sampleSavings;
       }
 
       setUserState(u);

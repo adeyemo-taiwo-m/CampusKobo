@@ -1,121 +1,162 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   SafeAreaView,
-  TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
+  TouchableOpacity,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import {
   WHITE,
   PRIMARY_GREEN,
   TEXT_PRIMARY,
   TEXT_SECONDARY,
   Fonts,
+  SPACING,
   BORDER_GRAY,
 } from '../../constants';
 import { Header } from '../../components/Header';
 import { Button } from '../../components/Button';
 import { InputField } from '../../components/InputField';
-import { SuccessModal } from '../../components/SuccessScreen';
+import { SelectField } from '../../components/SelectField';
+import { CategoryBottomSheet } from '../../components/CategoryBottomSheet';
+import { useAppContext } from '../../context/AppContext';
+import { Budget } from '../../types';
 
 export const CreateBudgetScreen = () => {
   const router = useRouter();
+  const { budget: budgetParam } = useLocalSearchParams();
+  const { addBudget, updateBudget } = useAppContext();
   
-  const [category, setCategory] = useState('Select category');
-  const [amount, setAmount] = useState('');
-  const [period, setPeriod] = useState<'Monthly' | 'Termly'>('Monthly');
-  const [showSuccess, setShowSuccess] = useState(false);
+  const editingBudget = budgetParam ? JSON.parse(budgetParam as string) as Budget : null;
+  const isEditing = !!editingBudget;
 
-  const isFormValid = category !== 'Select category' && amount.length > 0;
+  const [category, setCategory] = useState(editingBudget?.category || '');
+  const [categoryIcon, setCategoryIcon] = useState(editingBudget?.categoryIcon || '');
+  const [amount, setAmount] = useState(editingBudget?.limitAmount?.toString() || '');
+  const [period, setPeriod] = useState<'monthly' | 'termly'>(editingBudget?.period || 'monthly');
+  const [note, setNote] = useState(''); // Note field present in screenshots but not in type yet
+  const [showCategorySheet, setShowCategorySheet] = useState(false);
 
-  const handleCreate = () => {
-    setShowSuccess(true);
+  const isFormValid = category.length > 0 && amount.length > 0;
+
+  const handleSave = async () => {
+    if (!isFormValid) return;
+
+    const budgetData: Budget = {
+      id: editingBudget?.id || Math.random().toString(36).substr(2, 9),
+      category,
+      categoryIcon: categoryIcon || 'wallet-outline',
+      limitAmount: parseFloat(amount),
+      spentAmount: editingBudget?.spentAmount || 0,
+      period,
+      startDate: editingBudget?.startDate || new Date().toISOString(),
+      color: editingBudget?.color || PRIMARY_GREEN,
+    };
+
+    if (isEditing) {
+      await updateBudget(budgetData.id, budgetData);
+      router.back();
+    } else {
+      await addBudget(budgetData);
+      router.push('/budget/success');
+    }
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <Header 
-        title="Create Budget" 
+        title={isEditing ? "Edit Budget" : "Create Budget"} 
         showBack={true} 
         onBack={() => router.back()}
       />
 
-      <SuccessModal 
-        isVisible={showSuccess}
-        title="Budget Created!"
-        subtitle="Your budget is now active. We will alert you when you are nearing your limit."
-        onDone={() => {
-          setShowSuccess(false);
-          router.push('/(tabs)/budget');
-        }}
-      />
-      
       <KeyboardAvoidingView 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={{ flex: 1 }}
       >
-        <ScrollView contentContainerStyle={styles.scrollContent}>
+        <ScrollView 
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
           <View style={styles.formSection}>
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Category</Text>
-              <TouchableOpacity style={styles.selectorBtn}>
-                <Text style={styles.selectorText}>{category}</Text>
-                <Ionicons name="chevron-down" size={20} color={TEXT_SECONDARY} />
-              </TouchableOpacity>
-            </View>
+            <SelectField
+              label="Category"
+              placeholder="Choose a category"
+              value={category}
+              onPress={() => setShowCategorySheet(true)}
+            />
 
             <InputField
-              label="Budget Amount"
-              placeholder="₦0"
+              label="Amount"
+              placeholder="0"
               value={amount}
               onChangeText={setAmount}
               keyboardType="numeric"
+              prefix="₦"
             />
 
-            <View style={styles.inputGroup}>
+            <View style={styles.periodSection}>
               <Text style={styles.label}>Period</Text>
               <View style={styles.chipRow}>
                 <TouchableOpacity 
-                  style={[styles.chip, period === 'Monthly' && styles.activeChip]}
-                  onPress={() => setPeriod('Monthly')}
+                  style={[styles.chip, period === 'monthly' && styles.activeChip]}
+                  onPress={() => setPeriod('monthly')}
                 >
-                  <Text style={[styles.chipText, period === 'Monthly' && styles.activeChipText]}>Monthly</Text>
+                  <Text style={[styles.chipText, period === 'monthly' && styles.activeChipText]}>Monthly</Text>
                 </TouchableOpacity>
                 <TouchableOpacity 
-                  style={[styles.chip, period === 'Termly' && styles.activeChip]}
-                  onPress={() => setPeriod('Termly')}
+                  style={[styles.chip, period === 'termly' && styles.activeChip]}
+                  onPress={() => setPeriod('termly')}
                 >
-                  <Text style={[styles.chipText, period === 'Termly' && styles.activeChipText]}>Termly</Text>
+                  <Text style={[styles.chipText, period === 'termly' && styles.activeChipText]}>Termly</Text>
                 </TouchableOpacity>
               </View>
             </View>
 
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Starts On</Text>
-              <View style={styles.staticField}>
-                <Text style={styles.staticText}>October 2025</Text>
-                <Ionicons name="calendar-outline" size={18} color={TEXT_SECONDARY} />
-              </View>
-            </View>
+            <InputField
+              label="Starts on"
+              value="October 2025"
+              editable={false}
+              rightIcon={<Ionicons name="calendar-outline" size={20} color="#9CA3AF" />}
+            />
+
+            <InputField
+              label="Note (optional)"
+              placeholder="Add a description..."
+              value={note}
+              onChangeText={setNote}
+              multiline={true}
+              numberOfLines={3}
+            />
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
 
       <View style={styles.footer}>
         <Button
-          title="Create Budget"
-          onPress={handleCreate}
+          title={isEditing ? "Save Changes" : "Create Budget"}
+          onPress={handleSave}
           disabled={!isFormValid}
           variant="primary"
           fullWidth={true}
         />
       </View>
+
+      <CategoryBottomSheet
+        isVisible={showCategorySheet}
+        onClose={() => setShowCategorySheet(false)}
+        onSelect={(cat) => {
+          setCategory(cat.name);
+          setCategoryIcon(cat.icon);
+        }}
+        type="expense"
+      />
     </SafeAreaView>
   );
 };
@@ -130,32 +171,17 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   formSection: {
-    gap: 24,
+    gap: 16,
   },
-  inputGroup: {
-    marginBottom: 0,
+  periodSection: {
+    marginBottom: 8,
   },
   label: {
     fontFamily: Fonts.medium,
-    fontSize: 14,
-    color: '#4B5563',
+    fontSize: 13,
+    color: "#6B7280",
     marginBottom: 8,
-  },
-  selectorBtn: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    height: 56,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: BORDER_GRAY,
-    paddingHorizontal: 16,
-    backgroundColor: '#F9FAFB',
-  },
-  selectorText: {
-    fontFamily: Fonts.regular,
-    fontSize: 15,
-    color: TEXT_PRIMARY,
+    marginLeft: 2,
   },
   chipRow: {
     flexDirection: 'row',
@@ -165,8 +191,8 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 48,
     borderRadius: 12,
-    borderWidth: 1,
-    borderColor: BORDER_GRAY,
+    borderWidth: 1.5,
+    borderColor: '#F3F4F6',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: WHITE,
@@ -183,26 +209,10 @@ const styles = StyleSheet.create({
   activeChipText: {
     color: WHITE,
   },
-  staticField: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    height: 56,
-    borderRadius: 12,
-    backgroundColor: '#F3F4F6',
-    borderWidth: 1,
-    borderColor: BORDER_GRAY,
-    paddingHorizontal: 16,
-  },
-  staticText: {
-    fontFamily: Fonts.medium,
-    fontSize: 15,
-    color: TEXT_SECONDARY,
-  },
   footer: {
     padding: 20,
     borderTopWidth: 1,
-    borderTopColor: BORDER_GRAY,
+    borderTopColor: '#F3F4F6',
     backgroundColor: WHITE,
   },
 });

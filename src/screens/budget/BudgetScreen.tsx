@@ -25,48 +25,19 @@ import {
 } from '../../constants';
 import { ProgressBar } from '../../components/ProgressBar';
 import { DarkCard } from '../../components/DarkCard';
+import { useAppContext } from '../../context/AppContext';
 
 const { width } = Dimensions.get('window');
 
 interface Budget {
   id: string;
   category: string;
-  icon: keyof typeof Ionicons.glyphMap;
-  iconColor: string;
-  spentAmount: number;
   limitAmount: number;
-  daysLeft: number;
+  spentAmount: number;
+  icon?: keyof typeof Ionicons.glyphMap;
+  iconColor?: string;
+  daysLeft?: number;
 }
-
-const SAMPLE_BUDGETS: Budget[] = [
-  {
-    id: '1',
-    category: 'Food',
-    icon: 'restaurant-outline',
-    iconColor: '#3CB96A',
-    spentAmount: 12000,
-    limitAmount: 15000,
-    daysLeft: 6,
-  },
-  {
-    id: '2',
-    category: 'Data & Airtime',
-    icon: 'wifi-outline',
-    iconColor: '#3CB96A',
-    spentAmount: 2400,
-    limitAmount: 8000,
-    daysLeft: 6,
-  },
-  {
-    id: '3',
-    category: 'Transport',
-    icon: 'car-outline',
-    iconColor: '#3CB96A',
-    spentAmount: 11000,
-    limitAmount: 10000,
-    daysLeft: 6,
-  },
-];
 
 const BudgetCard = ({ budget, onPress }: { budget: Budget; onPress: () => void }) => {
   const currentProgress = budget.spentAmount / budget.limitAmount;
@@ -116,13 +87,28 @@ const BudgetCard = ({ budget, onPress }: { budget: Budget; onPress: () => void }
 
 export const BudgetScreen = () => {
   const router = useRouter();
-  const [budgets] = useState<Budget[]>(SAMPLE_BUDGETS);
+  const { budgets } = useAppContext();
   const hasBudgets = budgets.length > 0;
   
-  const totalBudget = 50000;
-  const totalSpent = 32000;
+  // Icon Mapping function
+  const getIconForCategory = (category: string): keyof typeof Ionicons.glyphMap => {
+    switch (category.toLowerCase()) {
+      case 'food': return 'restaurant-outline';
+      case 'data & airtime':
+      case 'airtime':
+      case 'data': return 'wifi-outline';
+      case 'transport': return 'car-outline';
+      case 'shopping': return 'cart-outline';
+      case 'medical':
+      case 'health': return 'heart-outline';
+      default: return 'wallet-outline';
+    }
+  };
+
+  const totalBudget = budgets.reduce((sum, b) => sum + b.limitAmount, 0);
+  const totalSpent = budgets.reduce((sum, b) => sum + b.spentAmount, 0);
   const totalRemaining = totalBudget - totalSpent;
-  const totalProgress = totalSpent / totalBudget;
+  const totalProgress = totalBudget > 0 ? totalSpent / totalBudget : 0;
   const currentMonth = "OCTOBER 2025";
 
   // Motivational logic
@@ -214,7 +200,12 @@ export const BudgetScreen = () => {
               {budgets.map((budget) => (
                 <BudgetCard 
                   key={budget.id} 
-                  budget={budget} 
+                  budget={{
+                    ...budget,
+                    icon: getIconForCategory(budget.category),
+                    daysLeft: 6, // Mocking days left as it's not in the type yet
+                    iconColor: '#3CB96A'
+                  }} 
                   onPress={() => router.push({ pathname: '/budget/detail', params: { id: budget.id } })} 
                 />
               ))}

@@ -124,3 +124,80 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
 });
+
+interface SuccessScreenProps {
+  title: string;
+  subtitle: string;
+  buttonTitle?: string;
+  onDone: () => void;
+}
+
+export const SuccessScreen = ({ title, subtitle, buttonTitle = "Done", onDone }: SuccessScreenProps) => {
+  return (
+    <View style={screenStyles.container}>
+      <View style={screenStyles.content}>
+        <View style={screenStyles.iconCircle}>
+          <Ionicons name="checkmark" size={48} color={WHITE} />
+        </View>
+        <Text style={screenStyles.title}>{title}</Text>
+        <Text style={screenStyles.subtitle}>{subtitle}</Text>
+      </View>
+      <View style={screenStyles.footer}>
+        <TouchableOpacity style={screenStyles.button} onPress={onDone}>
+          <Text style={screenStyles.buttonText}>{buttonTitle}</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+};
+
+const screenStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: WHITE,
+    padding: SPACING.LG,
+  },
+  content: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  iconCircle: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    backgroundColor: PRIMARY_GREEN,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 32,
+  },
+  title: {
+    fontFamily: Fonts.bold,
+    fontSize: 24,
+    color: TEXT_PRIMARY,
+    textAlign: 'center',
+    marginBottom: 12,
+  },
+  subtitle: {
+    fontFamily: Fonts.regular,
+    fontSize: 16,
+    color: TEXT_SECONDARY,
+    textAlign: 'center',
+    lineHeight: 24,
+  },
+  footer: {
+    marginBottom: 20,
+  },
+  button: {
+    backgroundColor: PRIMARY_GREEN,
+    height: 56,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  buttonText: {
+    color: WHITE,
+    fontFamily: Fonts.bold,
+    fontSize: 16,
+  },
+});

@@ -23,6 +23,7 @@ import {
 } from '../../constants';
 import { DarkCard } from '../../components/DarkCard';
 import { EmptyState } from '../../components/EmptyState';
+import { useAppContext } from '../../context/AppContext';
 import { Header } from '../../components/Header';
 import { ProgressBar } from '../../components/ProgressBar';
 
@@ -56,10 +57,10 @@ const SAMPLE_GOALS: SavingsGoal[] = [
 
 export const SavingsScreen = () => {
   const router = useRouter();
-  const [goals] = useState<SavingsGoal[]>(SAMPLE_GOALS);
-  const hasGoals = goals.length > 0;
+  const { savingsGoals } = useAppContext();
+  const hasGoals = savingsGoals.length > 0;
   
-  const totalSaved = goals.reduce((sum, g) => sum + g.savedAmount, 0);
+  const totalSaved = savingsGoals.reduce((sum, g) => sum + g.savedAmount, 0);
 
   const renderGoalCard = ({ item }: { item: SavingsGoal }) => {
     const progress = item.savedAmount / item.targetAmount;
@@ -88,7 +89,7 @@ export const SavingsScreen = () => {
               ₦{item.savedAmount.toLocaleString()} <Text style={styles.targetText}>/ ₦{item.targetAmount.toLocaleString()}</Text>
             </Text>
             {item.deadline && (
-              <Text style={styles.deadlineText}>Due: {item.deadline}</Text>
+              <Text style={styles.deadlineText}>Due: {new Date(item.deadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</Text>
             )}
           </View>
         </View>
@@ -119,7 +120,7 @@ export const SavingsScreen = () => {
       <StatusBar barStyle="light-content" />
       
       <FlatList
-        data={goals}
+        data={savingsGoals}
         renderItem={renderGoalCard}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}
@@ -157,7 +158,7 @@ export const SavingsScreen = () => {
                     type="balance" // Using balance type for general summary look
                     amount={totalSaved}
                     label="Total Savings"
-                    periodLabel={`Across ${goals.length} active goals`}
+                    periodLabel={`Across ${savingsGoals.length} active goals`}
                     hideIncomeExpenses={true}
                     style={styles.summaryCard}
                   />
