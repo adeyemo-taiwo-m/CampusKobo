@@ -129,29 +129,27 @@ export const BudgetScreen = () => {
       <StatusBar barStyle="light-content" />
       
       {/* Seamless Header Hero Region */}
-      <View style={styles.headerHeroRegion}>
+      <View style={styles.headerBackground}>
         <SafeAreaView>
-          <View style={styles.topNavRow}>
-            <View style={styles.profileGreeting}>
-              <View style={styles.avatarWrap}>
-                <Image 
-                   source={require("../../../assets/images/avatar.jpeg")} 
-                   style={styles.avatarImg} 
-                />
+          <View style={styles.headerContent}>
+            <TouchableOpacity 
+              style={styles.profileSection}
+              onPress={() => router.push("/profile")}
+            >
+              <View style={styles.avatar}>
+                <Image source={require("../../../assets/images/avatar.jpeg")} style={styles.avatarImage} />
               </View>
-              <Text style={styles.greetingTitle}>Hi, Taiwo</Text>
-            </View>
+              <Text style={styles.welcomeText}>Hi, Taiwo</Text>
+            </TouchableOpacity>
             
-            <View style={styles.centerTitleWrap}>
-              <Text style={styles.mainTitle}>Budget</Text>
-            </View>
+            <Text style={styles.headerTitle}>Budget</Text>
 
-            <View style={styles.headerActionBtns}>
-              <TouchableOpacity style={styles.headerActionBtn}>
-                <Ionicons name="school-outline" size={22} color={WHITE} />
+            <View style={styles.headerActions}>
+              <TouchableOpacity style={styles.iconButton} onPress={() => router.push("/learning")}>
+                <Ionicons name="school-outline" size={24} color={WHITE} />
               </TouchableOpacity>
-              <TouchableOpacity style={[styles.headerActionBtn, styles.bellBtn]}>
-                <Ionicons name="notifications" size={22} color={WHITE} />
+              <TouchableOpacity style={styles.iconButton} onPress={() => router.push("/notifications")}>
+                <Ionicons name="notifications-outline" size={24} color={WHITE} />
               </TouchableOpacity>
             </View>
           </View>
@@ -236,72 +234,57 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: BACKGROUND,
   },
-  headerHeroRegion: {
-    backgroundColor: '#0B5E2F', // Deep forest green
+  headerBackground: {
+    backgroundColor: PRIMARY_GREEN,
     borderBottomLeftRadius: 32,
     borderBottomRightRadius: 32,
-    paddingBottom: 48,
+    paddingBottom: SPACING.LG,
   },
-  topNavRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+  headerContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: SPACING.LG,
     paddingTop: SPACING.MD,
-    height: 60,
-    marginBottom: 16,
+    marginBottom: SPACING.LG,
   },
-  profileGreeting: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
+  profileSection: {
+    flexDirection: "row",
+    alignItems: "center",
   },
-  avatarWrap: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    overflow: 'hidden',
-    marginRight: 10,
-  },
-  avatarImg: {
-    width: '100%',
-    height: '100%',
-  },
-  greetingTitle: {
-    fontFamily: Fonts.bold,
+  welcomeText: {
+    fontFamily: Fonts.semiBold,
+    color: WHITE,
     fontSize: 18,
-    color: WHITE,
+    marginLeft: SPACING.SM,
   },
-  centerTitleWrap: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-    zIndex: -1,
-  },
-  mainTitle: {
-    fontFamily: Fonts.medium,
-    fontSize: 16,
-    color: WHITE,
-  },
-  headerActionBtns: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    flex: 1,
-    justifyContent: 'flex-end',
-  },
-  headerActionBtn: {
+  avatar: {
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    overflow: 'hidden',
+    backgroundColor: "rgba(255,255,255,0.2)",
   },
-  bellBtn: {
-    backgroundColor: 'rgba(0,0,0,0.15)',
+  avatarImage: {
+    width: 38,
+    height: 38,
+  },
+  headerTitle: {
+    fontFamily: Fonts.semiBold,
+    color: WHITE,
+    fontSize: 16,
+  },
+  headerActions: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  iconButton: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: "rgba(255,255,255,0.15)",
+    alignItems: "center",
+    justifyContent: "center",
   },
   summaryCardWrapper: {
     paddingHorizontal: SPACING.LG,

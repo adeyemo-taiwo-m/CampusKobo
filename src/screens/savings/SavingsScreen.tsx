@@ -8,6 +8,7 @@ import {
   SafeAreaView,
   StatusBar,
   FlatList,
+  Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRouter } from 'expo-router';
@@ -118,34 +119,39 @@ export const SavingsScreen = () => {
       <StatusBar barStyle="light-content" />
       
       {/* Hero Region */}
-      <View style={styles.headerHeroRegion}>
+      <View style={styles.headerBackground}>
         <SafeAreaView>
-          <View style={styles.topNavRow}>
-            <View style={styles.profileGreeting}>
-              <View style={styles.avatarWrap}>
-                <Text style={styles.avatarText}>TA</Text>
+          <View style={styles.headerContent}>
+            <TouchableOpacity 
+              style={styles.profileSection}
+              onPress={() => router.push("/profile")}
+            >
+              <View style={styles.avatar}>
+                <Image source={require("../../../assets/images/avatar.jpeg")} style={styles.avatarImage} />
               </View>
-              <Text style={styles.greetingText}>Hi, Taiwo</Text>
-            </View>
-            <View style={styles.navIcons}>
-              <TouchableOpacity style={styles.iconBtn} onPress={() => router.push("/learning")}>
-                <Ionicons name="school-outline" size={22} color={WHITE} />
+              <Text style={styles.welcomeText}>Hi, Taiwo</Text>
+            </TouchableOpacity>
+            
+            <Text style={styles.headerTitle}>Savings</Text>
+
+            <View style={styles.headerActions}>
+              <TouchableOpacity style={styles.iconButton} onPress={() => router.push("/learning")}>
+                <Ionicons name="school-outline" size={24} color={WHITE} />
               </TouchableOpacity>
-              <TouchableOpacity style={styles.iconBtn}>
-                <Ionicons name="notifications-outline" size={22} color={WHITE} />
+              <TouchableOpacity style={styles.iconButton} onPress={() => router.push("/notifications")}>
+                <Ionicons name="notifications-outline" size={24} color={WHITE} />
               </TouchableOpacity>
             </View>
           </View>
 
-          <Text style={styles.screenTitle}>Savings</Text>
-
           <View style={styles.summaryCardWrapper}>
             <DarkCard
-              type="balance" // Using balance type for general summary look (gradient etc)
+              type="balance" // Using balance type for general summary look
               amount={totalSaved}
               label="Total Savings"
               periodLabel={`Across ${goals.length} active goals`}
               hideIncomeExpenses={true}
+              style={styles.summaryCard}
             />
           </View>
         </SafeAreaView>
@@ -183,61 +189,63 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: BACKGROUND,
   },
-  headerHeroRegion: {
-    backgroundColor: '#0B5E2F', 
-    paddingBottom: 48,
+  headerBackground: {
+    backgroundColor: PRIMARY_GREEN,
+    borderBottomLeftRadius: 32,
+    borderBottomRightRadius: 32,
+    paddingBottom: SPACING.LG,
   },
-  topNavRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 10,
+  headerContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: SPACING.LG,
+    paddingTop: SPACING.MD,
+    marginBottom: SPACING.LG,
   },
-  profileGreeting: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  profileSection: {
+    flexDirection: "row",
+    alignItems: "center",
   },
-  avatarWrap: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 10,
-  },
-  avatarText: {
-    fontFamily: Fonts.bold,
-    fontSize: 14,
-    color: WHITE,
-  },
-  greetingText: {
-    fontFamily: Fonts.bold,
-    fontSize: 16,
-    color: WHITE,
-  },
-  navIcons: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  iconBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  screenTitle: {
+  welcomeText: {
     fontFamily: Fonts.semiBold,
-    fontSize: 20,
     color: WHITE,
-    textAlign: 'center',
-    marginTop: 10,
-    marginBottom: 20,
+    fontSize: 18,
+    marginLeft: SPACING.SM,
+  },
+  avatar: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    overflow: 'hidden',
+    backgroundColor: "rgba(255,255,255,0.2)",
+  },
+  avatarImage: {
+    width: 38,
+    height: 38,
+  },
+  headerTitle: {
+    fontFamily: Fonts.semiBold,
+    color: WHITE,
+    fontSize: 16,
+  },
+  headerActions: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  iconButton: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: "rgba(255,255,255,0.15)",
+    alignItems: "center",
+    justifyContent: "center",
   },
   summaryCardWrapper: {
     paddingHorizontal: 20,
+  },
+  summaryCard: {
+    // Add any summary card specific styles here if needed
   },
   mainContentPanel: {
     flex: 1,
