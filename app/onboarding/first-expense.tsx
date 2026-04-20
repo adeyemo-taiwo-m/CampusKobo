@@ -21,6 +21,7 @@ import { InputField } from "../../src/components/InputField";
 import { SelectField } from "../../src/components/SelectField";
 import { OnboardingHeader } from "../../src/components/OnboardingHeader";
 import { CategoryBottomSheet } from "../../src/components/CategoryBottomSheet";
+import { SuccessModal } from "../../src/components/SuccessScreen";
 import { useAppContext } from "../../src/context/AppContext";
 
 export default function FirstExpenseScreen() {
@@ -31,6 +32,7 @@ export default function FirstExpenseScreen() {
   const [selectedCategory, setSelectedCategory] = useState<any>(null);
   const [note, setNote] = useState("");
   const [isSheetVisible, setIsSheetVisible] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const handleSave = () => {
     if (!amount || !selectedCategory) return;
@@ -47,7 +49,7 @@ export default function FirstExpenseScreen() {
     };
 
     addTransaction(transaction);
-    router.replace("/onboarding/success");
+    setShowSuccess(true);
   };
 
   const handleAmountChange = (text: string) => {
@@ -68,7 +70,17 @@ export default function FirstExpenseScreen() {
         <OnboardingHeader
           currentStep={3}
           totalSteps={4}
-          onSkip={() => router.replace("/onboarding/success")}
+          onSkip={() => router.replace("/(tabs)")}
+        />
+
+        <SuccessModal 
+          isVisible={showSuccess}
+          title="You're All Set! 🎉"
+          subtitle="Welcome to CampusKobo. Your financial journey starts today."
+          onDone={() => {
+            setShowSuccess(false);
+            router.replace("/(tabs)");
+          }}
         />
 
         <ScrollView showsVerticalScrollIndicator={false}>

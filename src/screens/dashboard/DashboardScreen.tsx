@@ -30,6 +30,7 @@ export default function DashboardScreen() {
   const router = useRouter();
   const { user, transactions, budgets, savingsGoals } = useAppContext();
   const [isBalanceVisible, setIsBalanceVisible] = useState(true);
+  console.log(transactions);
 
   // Helper Functions
   const currentMonth = new Date().getMonth();
@@ -68,7 +69,11 @@ export default function DashboardScreen() {
 
   const getDaysLeftInMonth = () => {
     const now = new Date();
-    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    const lastDay = new Date(
+      now.getFullYear(),
+      now.getMonth() + 1,
+      0,
+    ).getDate();
     return lastDay - now.getDate();
   };
 
@@ -87,36 +92,40 @@ export default function DashboardScreen() {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
-      
+
       {/* Custom Header Area */}
       <View style={styles.headerBackground}>
         <SafeAreaView>
           <View style={styles.headerContent}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.profileSection}
               onPress={() => router.push("/profile")}
             >
               <View style={styles.avatar}>
-                <Image 
-                  source={require("../../../assets/images/avatar.jpeg")} 
-                  style={styles.avatarImage} 
+                <Image
+                  source={require("../../../assets/images/avatar.jpeg")}
+                  style={styles.avatarImage}
                 />
               </View>
               <Text style={styles.welcomeText}>Hi, Taiwo</Text>
             </TouchableOpacity>
 
             <View style={styles.headerActions}>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.iconButton}
                 onPress={() => router.push("/learning")}
               >
                 <Ionicons name="school-outline" size={24} color={WHITE} />
               </TouchableOpacity>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.iconButton}
                 onPress={() => router.push("/notifications")}
               >
-                <Ionicons name="notifications-outline" size={24} color={WHITE} />
+                <Ionicons
+                  name="notifications-outline"
+                  size={24}
+                  color={WHITE}
+                />
               </TouchableOpacity>
             </View>
           </View>
@@ -134,7 +143,7 @@ export default function DashboardScreen() {
         </SafeAreaView>
       </View>
 
-      <ScrollView 
+      <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
@@ -142,7 +151,12 @@ export default function DashboardScreen() {
         <View style={styles.dateFilter}>
           <TouchableOpacity style={styles.dateSelector}>
             <Text style={styles.dateText}>OCTOBER 2025</Text>
-            <Ionicons name="calendar-outline" size={16} color={TEXT_SECONDARY} style={{ marginLeft: 8 }} />
+            <Ionicons
+              name="calendar-outline"
+              size={16}
+              color={TEXT_SECONDARY}
+              style={{ marginLeft: 8 }}
+            />
           </TouchableOpacity>
           <View style={styles.vDivider} />
           <View style={styles.growthBadge}>
@@ -156,27 +170,37 @@ export default function DashboardScreen() {
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Budget</Text>
             {budgets.length > 0 && (
-              <Text style={styles.percentageText}>{Math.round(budgetProgress * 100)}%</Text>
+              <Text style={styles.percentageText}>
+                {Math.round(budgetProgress * 100)}%
+              </Text>
             )}
           </View>
-          
+
           {budgets.length > 0 ? (
             <TouchableOpacity onPress={() => router.push("/budget")}>
               <View style={styles.amountRowBaseline}>
-                <Text style={styles.budgetValue}>₦{budgetSpent.toLocaleString()}</Text>
-                <Text style={styles.budgetTotal}>/₦{budgetTotal.toLocaleString()}</Text>
+                <Text style={styles.budgetValue}>
+                  ₦{budgetSpent.toLocaleString()}
+                </Text>
+                <Text style={styles.budgetTotal}>
+                  /₦{budgetTotal.toLocaleString()}
+                </Text>
               </View>
               <ProgressBar progress={budgetProgress} />
               <View style={styles.budgetFooter}>
-                <Text style={styles.budgetLeft}>₦{(budgetTotal - budgetSpent).toLocaleString()} left</Text>
+                <Text style={styles.budgetLeft}>
+                  ₦{(budgetTotal - budgetSpent).toLocaleString()} left
+                </Text>
                 <Text style={styles.budgetStatus}> • You are doing well</Text>
               </View>
             </TouchableOpacity>
           ) : (
             <View style={styles.emptyCardContent}>
               <Text style={styles.emptyCardTitle}>No budget set yet</Text>
-              <Text style={styles.emptyCardSubtitle}>Set a budget to track your spending</Text>
-              <TouchableOpacity 
+              <Text style={styles.emptyCardSubtitle}>
+                Set a budget to track your spending
+              </Text>
+              <TouchableOpacity
                 style={styles.primaryActionBtn}
                 onPress={() => router.push("/budget/create")}
               >
@@ -191,27 +215,49 @@ export default function DashboardScreen() {
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Savings Progress</Text>
           </View>
-          
+
           {primaryGoal ? (
             <TouchableOpacity onPress={() => router.push("/savings")}>
               <View style={styles.savingsRow}>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.goalName}>{primaryGoal.name}</Text>
                   <View style={styles.amountRowBaseline}>
-                    <Text style={styles.goalAmount}>₦{primaryGoal.savedAmount.toLocaleString()}</Text>
-                    <Text style={styles.goalTarget}>/₦{primaryGoal.targetAmount.toLocaleString()}</Text>
+                    <Text style={styles.goalAmount}>
+                      ₦{primaryGoal.savedAmount.toLocaleString()}
+                    </Text>
+                    <Text style={styles.goalTarget}>
+                      /₦{primaryGoal.targetAmount.toLocaleString()}
+                    </Text>
                   </View>
                 </View>
                 <View style={styles.progressRingContainer}>
-                   <View style={[styles.circularProgress, { borderColor: '#E8F5E9' }]}>
-                      <View style={[styles.progressArc, { transform: [{ rotate: '45deg' }] }]} />
-                      <Text style={styles.circleText}>{Math.round((primaryGoal.savedAmount / primaryGoal.targetAmount) * 100)}%</Text>
-                   </View>
+                  <View
+                    style={[
+                      styles.circularProgress,
+                      { borderColor: "#E8F5E9" },
+                    ]}
+                  >
+                    <View
+                      style={[
+                        styles.progressArc,
+                        { transform: [{ rotate: "45deg" }] },
+                      ]}
+                    />
+                    <Text style={styles.circleText}>
+                      {Math.round(
+                        (primaryGoal.savedAmount / primaryGoal.targetAmount) *
+                          100,
+                      )}
+                      %
+                    </Text>
+                  </View>
                 </View>
               </View>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.primaryActionBtn}
-                onPress={() => router.push(`/savings/add-funds?id=${primaryGoal.id}`)}
+                onPress={() =>
+                  router.push(`/savings/add-funds?id=${primaryGoal.id}`)
+                }
               >
                 <Text style={styles.primaryActionBtnText}>Add funds</Text>
               </TouchableOpacity>
@@ -219,8 +265,10 @@ export default function DashboardScreen() {
           ) : (
             <View style={styles.emptyCardContent}>
               <Text style={styles.emptyCardTitle}>No savings goal yet</Text>
-              <Text style={styles.emptyCardSubtitle}>Start saving towards something important</Text>
-              <TouchableOpacity 
+              <Text style={styles.emptyCardSubtitle}>
+                Start saving towards something important
+              </Text>
+              <TouchableOpacity
                 style={styles.primaryActionBtn}
                 onPress={() => router.push("/savings/create")}
               >
@@ -240,36 +288,33 @@ export default function DashboardScreen() {
           </View>
 
           {transactions.length > 0 ? (
-            transactions.slice(0, 5).map((t) => (
-              <TransactionCard 
-                key={t.id} 
-                transaction={t} 
-                onPress={() => router.push(`/transaction/${t.id}`)}
-              />
-            ))
+            transactions
+              .slice(0, 5)
+              .map((t) => (
+                <TransactionCard
+                  key={t.id}
+                  transaction={t}
+                  onPress={() => router.push(`/transaction/${t.id}`)}
+                />
+              ))
           ) : (
             <View style={styles.emptyTransactions}>
-              <Text style={styles.emptyTransactionsText}>No transactions yet</Text>
+              <Text style={styles.emptyTransactionsText}>
+                No transactions yet
+              </Text>
             </View>
           )}
         </View>
-        
+
         <View style={{ height: 100 }} />
       </ScrollView>
 
       {transactions.length === 0 && (
         <View style={styles.fabTooltip}>
-           <Text style={styles.tooltipText}>Add your first expense</Text>
-           <View style={styles.tooltipArrow} />
+          <Text style={styles.tooltipText}>Add your first expense</Text>
+          <View style={styles.tooltipArrow} />
         </View>
       )}
-
-      <TouchableOpacity 
-        style={styles.fab}
-        onPress={() => router.push("/add-transaction")}
-      >
-        <Ionicons name="add" size={32} color={WHITE} />
-      </TouchableOpacity>
     </View>
   );
 }
@@ -358,7 +403,7 @@ const styles = StyleSheet.create({
   vDivider: {
     width: 1,
     height: 20,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: "#E5E7EB",
     marginHorizontal: 16,
   },
   growthBadge: {
@@ -407,12 +452,12 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   amountRowBaseline: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
+    flexDirection: "row",
+    alignItems: "baseline",
     marginBottom: 8,
   },
   budgetValue: {
-    fontFamily: Fonts.bold,
+    fontFamily: Fonts.semiBold,
     fontSize: 28,
     color: TEXT_PRIMARY,
   },
@@ -450,7 +495,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   goalAmount: {
-    fontFamily: Fonts.bold,
+    fontFamily: Fonts.semiBold,
     fontSize: 28,
     color: TEXT_PRIMARY,
   },
@@ -460,8 +505,8 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.medium,
   },
   progressRingContainer: {
-     justifyContent: 'center',
-     alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   circularProgress: {
     width: 80,
@@ -472,14 +517,14 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   progressArc: {
-    position: 'absolute',
+    position: "absolute",
     width: 80,
     height: 80,
     borderRadius: 40,
     borderWidth: 6,
     borderColor: PRIMARY_GREEN,
-    borderTopColor: 'transparent',
-    borderRightColor: 'transparent',
+    borderTopColor: "transparent",
+    borderRightColor: "transparent",
   },
   circleText: {
     fontFamily: Fonts.bold,
@@ -500,21 +545,21 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   emptyCardContent: {
-    alignItems: 'center',
+    alignItems: "flex-start",
     paddingVertical: 8,
   },
   emptyCardTitle: {
-    fontFamily: Fonts.bold,
+    fontFamily: Fonts.semiBold,
     fontSize: 22,
     color: TEXT_PRIMARY,
     marginBottom: 8,
-    textAlign: 'center',
+    textAlign: "left",
   },
   emptyCardSubtitle: {
     fontFamily: Fonts.regular,
     fontSize: 14,
     color: TEXT_SECONDARY,
-    textAlign: 'center',
+    textAlign: "left",
     marginBottom: 24,
     opacity: 0.7,
   },
@@ -532,9 +577,9 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   fabTooltip: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 94,
-    alignSelf: 'center',
+    alignSelf: "center",
     backgroundColor: PRIMARY_GREEN,
     paddingHorizontal: 16,
     paddingVertical: 8,
@@ -547,14 +592,14 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   tooltipArrow: {
-    position: 'absolute',
+    position: "absolute",
     bottom: -6,
-    left: '50%',
+    left: "50%",
     marginLeft: -6,
     width: 12,
     height: 12,
     backgroundColor: PRIMARY_GREEN,
-    transform: [{ rotate: '45deg' }],
+    transform: [{ rotate: "45deg" }],
   },
   viewAllText: {
     fontFamily: Fonts.medium,
@@ -562,15 +607,15 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   fab: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 20,
     right: 20,
     width: 64,
     height: 64,
     borderRadius: 32,
     backgroundColor: PRIMARY_GREEN,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     elevation: 8,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },

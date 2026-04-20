@@ -67,7 +67,7 @@ export const TransactionCard = ({
           <View style={styles.detailsRow}>
              <Ionicons name="document-text-outline" size={12} color={TEXT_SECONDARY} style={{ marginRight: 4 }} />
              <Text style={styles.description} numberOfLines={1}>
-               {transaction.description}
+               {transaction.note || transaction.description}
              </Text>
           </View>
           <View style={styles.detailsRow}>

@@ -313,12 +313,12 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   amountText: {
-    fontFamily: Fonts.bold,
+    fontFamily: Fonts.semiBold,
     fontSize: 32,
     color: WHITE,
   },
   amountTextLarge: {
-    fontFamily: Fonts.bold,
+    fontFamily: Fonts.semiBold,
     fontSize: 38,
     color: WHITE,
   },
@@ -338,7 +338,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   budgetAmountPrimary: {
-    fontFamily: Fonts.bold,
+    fontFamily: Fonts.semiBold,
     fontSize: 42,
     color: WHITE,
   },

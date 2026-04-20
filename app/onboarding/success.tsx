@@ -15,10 +15,10 @@ export default function OnboardingSuccessScreen() {
     // Update user status
     updateUser({ hasCompletedOnboarding: true });
 
-    // Auto-navigate after 5 seconds
+    // Auto-navigate after 1 seconds
     const timer = setTimeout(() => {
       router.replace('/(tabs)');
-    }, 5000);
+    }, 1000);
 
     return () => clearTimeout(timer);
   }, []);

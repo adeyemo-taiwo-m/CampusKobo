@@ -25,7 +25,7 @@ import {
 import { InputField } from '../../components/InputField';
 import { Button } from '../../components/Button';
 import { CategoryBottomSheet } from '../../components/CategoryBottomSheet';
-import { SuccessScreen } from '../../components/SuccessScreen';
+import { SuccessModal } from '../../components/SuccessScreen';
 import { DatePickerModal } from '../../components/DatePickerModal';
 import { useAppContext } from '../../context/AppContext';
 import { RecurringExpense } from '../../types';
@@ -89,20 +89,21 @@ export default function AddRecurringExpenseScreen() {
     setIsDatePickerVisible(true);
   };
 
-  if (showSuccess) {
-    return (
-      <SuccessScreen 
-        title="Recurring Expense Added!"
-        subtitle="Your recurring payment has been scheduled successfully."
-        onDone={() => router.back()}
-      />
-    );
-  }
-
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
       <Stack.Screen options={{ headerShown: false }} />
+      
+      {/* Success Modal */}
+      <SuccessModal 
+        isVisible={showSuccess}
+        title="Recurring Expense Added!"
+        subtitle="Your recurring payment has been scheduled successfully."
+        onDone={() => {
+          setShowSuccess(false);
+          router.back();
+        }}
+      />
       
       {/* Header */}
       <View style={styles.header}>

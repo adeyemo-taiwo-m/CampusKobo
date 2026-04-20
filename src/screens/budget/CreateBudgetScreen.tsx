@@ -22,6 +22,7 @@ import {
 import { Header } from '../../components/Header';
 import { Button } from '../../components/Button';
 import { InputField } from '../../components/InputField';
+import { SuccessModal } from '../../components/SuccessScreen';
 
 export const CreateBudgetScreen = () => {
   const router = useRouter();
@@ -29,17 +30,12 @@ export const CreateBudgetScreen = () => {
   const [category, setCategory] = useState('Select category');
   const [amount, setAmount] = useState('');
   const [period, setPeriod] = useState<'Monthly' | 'Termly'>('Monthly');
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const isFormValid = category !== 'Select category' && amount.length > 0;
 
   const handleCreate = () => {
-    router.push({
-      pathname: '/onboarding/success',
-      params: { 
-        title: 'Budget Created!', 
-        subtitle: 'Your budget is now active. We will alert you when you are nearing your limit.' 
-      }
-    });
+    setShowSuccess(true);
   };
 
   return (
@@ -48,6 +44,16 @@ export const CreateBudgetScreen = () => {
         title="Create Budget" 
         showBack={true} 
         onBack={() => router.back()}
+      />
+
+      <SuccessModal 
+        isVisible={showSuccess}
+        title="Budget Created!"
+        subtitle="Your budget is now active. We will alert you when you are nearing your limit."
+        onDone={() => {
+          setShowSuccess(false);
+          router.push('/(tabs)/budget');
+        }}
       />
       
       <KeyboardAvoidingView 

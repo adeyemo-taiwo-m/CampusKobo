@@ -25,7 +25,7 @@ import {
 import { InputField } from '../../components/InputField';
 import { Button } from '../../components/Button';
 import { CategoryBottomSheet } from '../../components/CategoryBottomSheet';
-import { SuccessScreen } from '../../components/SuccessScreen';
+import { SuccessModal } from '../../components/SuccessScreen';
 import { useAppContext } from '../../context/AppContext';
 import { Transaction } from '../../types';
 
@@ -48,9 +48,7 @@ export default function AddTransactionScreen() {
       color: editTransaction.categoryColor 
     } : null
   );
-  const [description, setDescription] = useState(editTransaction?.description || '');
-  const [note, setNote] = useState(editTransaction?.description || ''); 
-  const [customCategoryName, setCustomCategoryName] = useState('');
+  const [description, setDescription] = useState(editTransaction?.description || '');  const [customCategoryName, setCustomCategoryName] = useState('');
   
   // UI & Validation State
   const [isCategorySheetVisible, setIsCategorySheetVisible] = useState(false);
@@ -77,6 +75,7 @@ export default function AddTransactionScreen() {
       categoryIcon: category!.icon,
       categoryColor: category!.color,
       description: description || (category?.name === 'Others' ? customCategoryName : category!.name),
+      note: description,
       date: isEditMode ? editTransaction.date : new Date().toISOString(),
       isRecurring: isEditMode ? editTransaction.isRecurring : false,
     };
@@ -90,19 +89,20 @@ export default function AddTransactionScreen() {
     }
   };
 
-  if (showSuccess) {
-    return (
-      <SuccessScreen 
-        title={isEditMode ? 'Changes Saved!' : `${type === 'expense' ? 'Expense' : 'Income'} Added!`}
-        subtitle={isEditMode ? 'Your transaction details have been updated.' : 'Your transaction has been recorded successfully.'}
-        onDone={() => isEditMode ? router.back() : router.push('/(tabs)')}
-      />
-    );
-  }
-
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
+      
+      {/* Success Modal */}
+      <SuccessModal 
+        isVisible={showSuccess}
+        title={isEditMode ? 'Changes Saved!' : `${type === 'expense' ? 'Expense' : 'Income'} Added!`}
+        subtitle={isEditMode ? 'Your transaction details have been updated.' : 'Your transaction has been recorded successfully.'}
+        onDone={() => {
+          setShowSuccess(false);
+          isEditMode ? router.back() : router.push('/(tabs)');
+        }}
+      />
       
       {/* Header */}
       <View style={styles.header}>
@@ -223,12 +223,11 @@ export default function AddTransactionScreen() {
             )}
 
             <InputField
-              label="Note (optional)"
+              label="Description (e.g. Lunch with friends)"
               placeholder=""
-              value={note}
-              onChangeText={setNote}
-              multiline
-              containerStyle={[styles.inputField, styles.textArea]}
+              value={description}
+              onChangeText={setDescription}
+              containerStyle={styles.inputField}
               labelStyle={styles.fieldLabel}
               outerContainerStyle={styles.fieldGroup}
             />

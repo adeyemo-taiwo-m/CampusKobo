@@ -25,6 +25,7 @@ import {
 import { Header } from '../../components/Header';
 import { Button } from '../../components/Button';
 import { InputField } from '../../components/InputField';
+import { SuccessModal } from '../../components/SuccessScreen';
 
 export const CreateSavingsGoalScreen = () => {
   const router = useRouter();
@@ -34,18 +35,13 @@ export const CreateSavingsGoalScreen = () => {
   const [targetDate, setTargetDate] = useState('Select a date');
   const [initialDeposit, setInitialDeposit] = useState('');
   const [notes, setNotes] = useState('');
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const isFormValid = name.length > 0 && targetAmount.length > 0;
 
   const handleCreate = () => {
     // Logic to save goal
-    router.push({
-      pathname: '/onboarding/success', // Or a local success modal
-      params: { 
-        title: 'Goal Created!', 
-        subtitle: 'Your savings goal is set. Start adding funds and watch your progress grow.' 
-      }
-    });
+    setShowSuccess(true);
   };
 
   return (
@@ -54,6 +50,16 @@ export const CreateSavingsGoalScreen = () => {
         title="Create Savings Goal" 
         showBack={true} 
         onBack={() => router.back()}
+      />
+
+      <SuccessModal 
+        isVisible={showSuccess}
+        title="Goal Created!"
+        subtitle="Your savings goal is set. Start adding funds and watch your progress grow."
+        onDone={() => {
+          setShowSuccess(false);
+          router.push('/(tabs)/savings');
+        }}
       />
       
       <KeyboardAvoidingView 
