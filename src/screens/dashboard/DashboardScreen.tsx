@@ -183,7 +183,7 @@ export default function DashboardScreen() {
             <>
               <View style={styles.savingsRow}>
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.goalName}>{primaryGoal.title}</Text>
+                  <Text style={styles.goalName}>{primaryGoal.name}</Text>
                   <Text style={styles.goalAmount}>
                     ₦{primaryGoal.savedAmount.toLocaleString()}
                     <Text style={styles.goalTarget}>/₦{primaryGoal.targetAmount.toLocaleString()}</Text>
@@ -246,6 +246,12 @@ export default function DashboardScreen() {
         <View style={{ height: 100 }} />
       </ScrollView>
 
+      <TouchableOpacity 
+        style={styles.fab}
+        onPress={() => router.push("/add-transaction")}
+      >
+        <Ionicons name="add" size={32} color={WHITE} />
+      </TouchableOpacity>
     </View>
   );
 }
@@ -489,5 +495,21 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.medium,
     color: TEXT_SECONDARY,
     fontSize: 14,
+  },
+  fab: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: PRIMARY_GREEN,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
   },
 });

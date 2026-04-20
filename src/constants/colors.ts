@@ -49,6 +49,8 @@ export const RED = Colors.error.R500;
 export const ORANGE = Colors.warning.O500;
 export const SUCCESS = Colors.primary.P600;
 export const BACKGROUND = Colors.neutral.whiteBg;
+export const ACCENT_GREEN = "#2ECC71";
+export const FOREST_GREEN = "#1A7A3C";
 
 // Legacy Aliases for Onboarding Screens
 export const LIGHT_GREEN = Colors.primary.P100;

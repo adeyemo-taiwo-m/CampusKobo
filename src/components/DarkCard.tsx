@@ -13,7 +13,7 @@ import { WHITE, Fonts, SPACING } from "../constants";
 import { ProgressBar } from "./ProgressBar";
 
 interface DarkCardProps {
-  type: 'balance' | 'expenses' | 'transaction';
+  type: 'balance' | 'expenses' | 'transaction' | 'budget';
   amount: number;
   income?: number;
   expenses?: number;
@@ -26,6 +26,12 @@ interface DarkCardProps {
   statusCaption?: string;
   progressLabel?: string;
   hideIncomeExpenses?: boolean;
+  label?: string;
+  limitAmount?: number;
+  comparisonLabel?: string;
+  showMeta?: boolean;
+  showToggle?: boolean;
+  onToggle?: () => void;
   // Type: 'transaction' specific props
   isIncome?: boolean;
   categoryName?: string;
@@ -51,9 +57,16 @@ export const DarkCard = ({
   categoryIcon,
   centered = false,
   style,
+  label,
+  limitAmount,
+  comparisonLabel,
+  showMeta = false,
+  showToggle = false,
+  onToggle,
 }: DarkCardProps) => {
   const isBalanceType = type === 'balance';
   const isTransactionType = type === 'transaction';
+  const isBudgetType = type === 'budget';
 
   return (
     <View style={[styles.outerContainer, style]}>
@@ -69,11 +82,12 @@ export const DarkCard = ({
               {isBalanceType ? (
                 <Text style={styles.label}>Current Balance</Text>
               ) : isTransactionType ? null : (
-                <View style={styles.periodBadge}>
-                  <Text style={styles.periodLabel}>{periodLabel}</Text>
-                  <Ionicons name="calendar-outline" size={12} color="rgba(255, 255, 255, 0.6)" />
+                <View style={styles.periodBadgeCentered}>
+                  <Text style={styles.periodLabel}>{periodLabel} 📅</Text>
                 </View>
               )}
+              
+              {label && <Text style={isBudgetType ? styles.mutedLabel : styles.label}>{label}</Text>}
               
               <View style={styles.amountRow}>
                 <Text style={[styles.amountText, centered && { textAlign: 'center' }]}>
@@ -81,7 +95,14 @@ export const DarkCard = ({
                     ? (isBalanceVisible ? `₦${Math.max(0, amount).toLocaleString()}` : "₦ ••••••")
                     : isTransactionType
                       ? `${isIncome ? '+' : '−'}₦${amount.toLocaleString()}`
-                      : `₦${amount.toLocaleString()}`
+                      : isBudgetType 
+                        ? (
+                            <Text>
+                              <Text style={styles.amountTextLarge}>{`₦${amount.toLocaleString()}`}</Text>
+                              {limitAmount && <Text style={styles.limitSuffix}>{` / ₦${limitAmount.toLocaleString()}`}</Text>}
+                            </Text>
+                          )
+                        : `₦${amount.toLocaleString()}`
                   }
                   {isBalanceType && isBalanceVisible && <Text style={styles.decimals}>.00</Text>}
                   {type === 'expenses' && <Text style={styles.spentLabel}> spent</Text>}
@@ -135,11 +156,28 @@ export const DarkCard = ({
                 />
               </TouchableOpacity>
             )}
+            
+            {showToggle && (
+              <TouchableOpacity 
+                style={styles.tealToggle}
+                onPress={onToggle}
+              >
+                <View style={styles.tealToggleInner} />
+              </TouchableOpacity>
+            )}
           </View>
 
-          {!isTransactionType && <View style={styles.divider} />}
+          {!(isTransactionType || isBudgetType) && <View style={styles.divider} />}
 
-          {!isTransactionType && (
+          {isBudgetType && progressLabel && (
+            <View style={styles.statusRow}>
+              <Text style={styles.remainingText}>{progressLabel.split(' • ')[0]}</Text>
+              <View style={styles.statusDot} />
+              <Text style={styles.motivationText}>{progressLabel.split(' • ')[1]}</Text>
+            </View>
+          )}
+
+          {!(isTransactionType || isBudgetType) && (
             <View style={styles.bottomRow}>
               <View style={styles.statCol}>
                 <View style={styles.statHeader}>
@@ -171,7 +209,7 @@ export const DarkCard = ({
             </View>
           )}
 
-          {type === 'expenses' && progress !== undefined && (
+          {(type === 'expenses' || type === 'budget') && progress !== undefined && (
             <>
               {statusCaption && (
                 <Text style={styles.statusCaptionTop}>{statusCaption}</Text>
@@ -182,8 +220,22 @@ export const DarkCard = ({
                 </View>
                 <Text style={styles.progressPercent}>{Math.round(progress * 100)}%</Text>
               </View>
-              {progressLabel && (
-                <Text style={styles.progressLabel}>{progressLabel}</Text>
+              {showMeta && (
+                <View style={styles.metaRow}>
+                   <View style={styles.monthBadge}>
+                    <Text style={styles.monthText}>{periodLabel}</Text>
+                    <Ionicons name="calendar-outline" size={14} color={WHITE} style={{ marginLeft: 4 }} />
+                  </View>
+                  <View style={styles.verticalSeparatorSmall} />
+                  <View style={styles.comparisonBadge}>
+                    {comparisonLabel && (
+                      <>
+                        <Ionicons name="arrow-up" size={14} color={WHITE} />
+                        <Text style={styles.comparisonText}>{comparisonLabel}</Text>
+                      </>
+                    )}
+                  </View>
+                </View>
               )}
             </>
           )}
@@ -240,18 +292,47 @@ const styles = StyleSheet.create({
   },
   periodLabel: {
     fontFamily: Fonts.medium,
-    fontSize: 13,
+    fontSize: 12,
     color: "rgba(255, 255, 255, 0.7)",
+  },
+  periodBadgeCentered: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+    width: '100%',
+  },
+  mutedLabel: {
+    fontFamily: Fonts.regular,
+    fontSize: 12,
+    color: "rgba(255, 255, 255, 0.5)",
+    marginBottom: 4,
+    textAlign: 'center',
   },
   amountRow: {
     flexDirection: "row",
     alignItems: "baseline",
+    marginBottom: 8,
   },
   amountText: {
     fontFamily: Fonts.bold,
-    fontSize: 40,
+    fontSize: 32,
     color: WHITE,
-    textAlign: 'center',
+  },
+  amountTextLarge: {
+    fontFamily: Fonts.bold,
+    fontSize: 38,
+    color: WHITE,
+  },
+  limitSmall: {
+    fontFamily: Fonts.medium,
+    fontSize: 18,
+    color: 'rgba(255, 255, 255, 0.7)',
+  },
+  limitSuffix: {
+    fontFamily: Fonts.medium,
+    fontSize: 16,
+    color: 'rgba(255, 255, 255, 0.6)',
   },
   decimals: {
     fontSize: 24,
@@ -377,5 +458,78 @@ const styles = StyleSheet.create({
     color: WHITE,
     fontSize: 13,
     fontFamily: Fonts.medium,
+  },
+  statusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+    marginTop: 8,
+  },
+  remainingText: {
+    fontFamily: Fonts.semiBold,
+    fontSize: 14,
+    color: WHITE,
+  },
+  statusDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#2ECC71',
+    marginHorizontal: 8,
+  },
+  motivationText: {
+    fontFamily: Fonts.medium,
+    fontSize: 14,
+    color: '#2ECC71',
+  },
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 12,
+  },
+  monthBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  monthText: {
+    fontFamily: Fonts.bold,
+    fontSize: 12,
+    color: WHITE,
+  },
+  verticalSeparatorSmall: {
+    width: 1,
+    height: 12,
+    backgroundColor: 'rgba(255,255,255,0.3)',
+    marginHorizontal: 12,
+  },
+  comparisonBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  comparisonText: {
+    fontFamily: Fonts.regular,
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.8)',
+    marginLeft: 4,
+  },
+  tealToggle: {
+    position: 'absolute',
+    right: -24,
+    top: 40,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#00CFB5',
+    borderWidth: 3,
+    borderColor: 'rgba(255,255,255,0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 10,
+  },
+  tealToggleInner: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: WHITE,
   }
 });

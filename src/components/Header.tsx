@@ -15,6 +15,8 @@ interface HeaderProps {
   onBell?: () => void;
   onLearning?: () => void;
   onProfile?: () => void;
+  transparent?: boolean;
+  tintColor?: string;
 }
 
 export const Header = ({
@@ -29,14 +31,16 @@ export const Header = ({
   onBell,
   onLearning,
   onProfile,
+  transparent,
+  tintColor = TEXT_PRIMARY,
 }: HeaderProps) => {
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, transparent && styles.transparentHeader]}>
       <View style={styles.container}>
         <View style={styles.leftContainer}>
           {showBack && (
             <TouchableOpacity onPress={onBack} style={styles.iconButton}>
-              <Ionicons name="arrow-back" size={24} color={TEXT_PRIMARY} />
+              <Ionicons name="arrow-back" size={24} color={tintColor} />
             </TouchableOpacity>
           )}
           {showProfile && (
@@ -49,18 +53,18 @@ export const Header = ({
         </View>
 
         <View style={styles.titleContainer}>
-          <Text style={styles.title} numberOfLines={1}>{title}</Text>
+          <Text style={[styles.title, { color: tintColor }]} numberOfLines={1}>{title}</Text>
         </View>
 
         <View style={styles.rightContainer}>
           {showLearning && (
             <TouchableOpacity onPress={onLearning} style={styles.iconButton}>
-              <Ionicons name="school-outline" size={24} color={TEXT_PRIMARY} />
+              <Ionicons name="school-outline" size={24} color={tintColor} />
             </TouchableOpacity>
           )}
           {showBell && (
             <TouchableOpacity onPress={onBell} style={styles.iconButton}>
-              <Ionicons name="notifications-outline" size={24} color={TEXT_PRIMARY} />
+              <Ionicons name="notifications-outline" size={24} color={tintColor} />
             </TouchableOpacity>
           )}
           {showEdit && (
@@ -79,6 +83,10 @@ const styles = StyleSheet.create({
     backgroundColor: WHITE,
     borderBottomWidth: 1,
     borderBottomColor: BORDER_GRAY,
+  },
+  transparentHeader: {
+    backgroundColor: 'transparent',
+    borderBottomWidth: 0,
   },
   container: {
     height: 60,
