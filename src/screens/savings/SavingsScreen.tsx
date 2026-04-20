@@ -190,8 +190,6 @@ const styles = StyleSheet.create({
   },
   headerBackground: {
     backgroundColor: PRIMARY_GREEN,
-    borderBottomLeftRadius: 32,
-    borderBottomRightRadius: 32,
     paddingBottom: SPACING.LG,
   },
   headerContent: {
@@ -247,8 +245,13 @@ const styles = StyleSheet.create({
     // Add any summary card specific styles here if needed
   },
   listContent: {
+    backgroundColor: BACKGROUND,
+    borderTopLeftRadius: 40,
+    borderTopRightRadius: 40,
+    marginTop: -40,
     paddingHorizontal: 20,
     paddingBottom: 100,
+    paddingTop: 30,
   },
   sectionLabel: {
     fontFamily: Fonts.bold,

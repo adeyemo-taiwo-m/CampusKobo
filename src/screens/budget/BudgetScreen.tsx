@@ -21,11 +21,7 @@ import {
   SPACING,
   Fonts,
   BACKGROUND,
-  SUCCESS,
-  DARK_GREEN,
   ACCENT_GREEN,
-  FOREST_GREEN,
-  BORDER_GRAY,
 } from '../../constants';
 import { ProgressBar } from '../../components/ProgressBar';
 import { DarkCard } from '../../components/DarkCard';
@@ -57,7 +53,7 @@ const SAMPLE_BUDGETS: Budget[] = [
     category: 'Data & Airtime',
     icon: 'wifi-outline',
     iconColor: '#3CB96A',
-    spentAmount: 2000,
+    spentAmount: 2400,
     limitAmount: 8000,
     daysLeft: 6,
   },
@@ -66,15 +62,21 @@ const SAMPLE_BUDGETS: Budget[] = [
     category: 'Transport',
     icon: 'car-outline',
     iconColor: '#3CB96A',
-    spentAmount: 9000,
+    spentAmount: 11000,
     limitAmount: 10000,
     daysLeft: 6,
   },
 ];
 
 const BudgetCard = ({ budget, onPress }: { budget: Budget; onPress: () => void }) => {
-  const progress = budget.spentAmount / budget.limitAmount;
+  const currentProgress = budget.spentAmount / budget.limitAmount;
+  const percentage = Math.min(Math.round(currentProgress * 100), 100);
   const remaining = budget.limitAmount - budget.spentAmount;
+
+  // Color logic for budget status
+  let statusColor = ACCENT_GREEN; 
+  if (currentProgress >= 1.0) statusColor = '#EF4444'; 
+  else if (currentProgress >= 0.7) statusColor = '#F59E0B'; 
   
   return (
     <TouchableOpacity style={styles.budgetCard} onPress={onPress}>
@@ -86,27 +88,26 @@ const BudgetCard = ({ budget, onPress }: { budget: Budget; onPress: () => void }
           <View style={styles.budgetTextStack}>
             <Text style={styles.categoryNameText}>{budget.category}</Text>
             <View style={styles.amountTextRow}>
-               <Text style={styles.spentAmountText}>₦{budget.spentAmount.toLocaleString()}</Text>
-               <Text style={styles.limitAmountSuffix}>/₦{budget.limitAmount.toLocaleString()}</Text>
+               <Text style={styles.spentAmountText}>₦{budget.spentAmount.toLocaleString()}/₦{budget.limitAmount.toLocaleString()}</Text>
             </View>
+            <Text style={styles.remainingSubtextRow}>₦{remaining.toLocaleString()} left • {budget.daysLeft} days remaining</Text>
           </View>
         </View>
         
         <View style={styles.rightCircleContainer}>
           <View style={styles.progressRingWrapper}>
             <Progress.Circle
-              size={50}
-              progress={0.75}
+              size={48}
+              progress={currentProgress}
               unfilledColor="#F3F4F6"
-              color={ACCENT_GREEN}
+              color={statusColor}
               thickness={4}
               borderWidth={0}
               showsText
-              formatText={() => "30%"}
-              textStyle={styles.progressRingText}
+              formatText={() => `${percentage}%`}
+              textStyle={[styles.progressRingText, { color: statusColor }]}
             />
           </View>
-          <Text style={styles.remainingSubtext}>₦{remaining.toLocaleString()} left • {budget.daysLeft}d</Text>
         </View>
       </View>
     </TouchableOpacity>
@@ -119,10 +120,15 @@ export const BudgetScreen = () => {
   const hasBudgets = budgets.length > 0;
   
   const totalBudget = 50000;
-  const totalSpent = 30000;
+  const totalSpent = 32000;
   const totalRemaining = totalBudget - totalSpent;
-
+  const totalProgress = totalSpent / totalBudget;
   const currentMonth = "OCTOBER 2025";
+
+  // Motivational logic
+  let motivationalMessage = "You are doing well 👍";
+  if (totalProgress >= 0.9) motivationalMessage = "Budget exceeded! 🚨";
+  else if (totalProgress >= 0.7) motivationalMessage = "Getting close ⚠️";
 
   return (
     <View style={styles.container}>
@@ -147,34 +153,50 @@ export const BudgetScreen = () => {
                 <Text style={styles.welcomeText}>Hi, Taiwo</Text>
               </TouchableOpacity>
               
-              <Text style={styles.headerTitle}>Budget</Text>
+              <Text style={styles.headerTitleLabel}>Budget</Text>
 
               <View style={styles.headerActions}>
-                <TouchableOpacity style={styles.iconButton} onPress={() => router.push("/(tabs)/learning")}>
-                  <Ionicons name="school-outline" size={24} color={WHITE} />
-                </TouchableOpacity>
                 <TouchableOpacity style={styles.iconButton} onPress={() => router.push("/profile/notifications")}>
                   <Ionicons name="notifications-outline" size={24} color={WHITE} />
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.iconButton} onPress={() => router.push("/(tabs)/learning")}>
+                  <Ionicons name="school-outline" size={24} color={WHITE} />
                 </TouchableOpacity>
               </View>
             </View>
 
-            {/* Budget Summary Unified Card */}
-            <View style={styles.summaryCardWrapper}>
-              <DarkCard
-                type="budget"
-                label={hasBudgets ? "Total budget" : undefined}
-                amount={hasBudgets ? totalSpent : 0}
-                limitAmount={hasBudgets ? totalBudget : undefined}
-                progress={hasBudgets ? 0.64 : 0}
-                progressLabel={hasBudgets ? `₦${totalRemaining.toLocaleString()} left • You are doing well` : undefined}
-                statusCaption={!hasBudgets ? "No budget set yet" : undefined}
-                periodLabel={currentMonth}
-                comparisonLabel="12% vs Last month"
-                showToggle={hasBudgets}
-                style={styles.darkSummaryCard}
-              />
-            </View>
+            {hasBudgets ? (
+              <View style={styles.summaryCardWrapper}>
+                <DarkCard
+                  type="budget"
+                  label="Total budget"
+                  amount={totalSpent}
+                  limitAmount={totalBudget}
+                  progress={totalProgress}
+                  progressLabel={`₦${totalRemaining.toLocaleString()} left • ${motivationalMessage}`}
+                  periodLabel={currentMonth}
+                  comparisonLabel="↑ 12% vs Last month"
+                  style={styles.darkSummaryCard}
+                />
+
+                {/* External Meta Row below card */}
+                <View style={styles.externalMetaRow}>
+                  <View style={styles.monthCol}>
+                    <Text style={styles.monthLabelText}>{currentMonth}</Text>
+                    <Ionicons name="calendar-outline" size={16} color="#A5D6A7" style={{ marginLeft: 6 }} />
+                  </View>
+                  <View style={styles.verticalDividerLine} />
+                  <View style={styles.growthCol}>
+                    <Ionicons name="arrow-up" size={14} color="#A5D6A7" />
+                    <Text style={styles.growthLabelText}>12% vs Last month</Text>
+                  </View>
+                </View>
+              </View>
+            ) : (
+              <View style={styles.emptyHeaderContent}>
+                <Text style={styles.emptyHeaderTitle}>No budget set yet</Text>
+              </View>
+            )}
           </SafeAreaView>
         </View>
 
@@ -188,27 +210,29 @@ export const BudgetScreen = () => {
           </View>
 
           {hasBudgets ? (
-            budgets.map((budget) => (
-              <BudgetCard 
-                key={budget.id} 
-                budget={budget} 
-                onPress={() => router.push({ pathname: '/budget/detail', params: { id: budget.id } })} 
-              />
-            ))
+            <View style={styles.budgetListContainer}>
+              {budgets.map((budget) => (
+                <BudgetCard 
+                  key={budget.id} 
+                  budget={budget} 
+                  onPress={() => router.push({ pathname: '/budget/detail', params: { id: budget.id } })} 
+                />
+              ))}
+            </View>
           ) : (
             <View style={styles.emptyContainer}>
                <View style={styles.emptyImgCircle}>
-                  <Ionicons name="sync-outline" size={100} color="rgba(60, 185, 106, 0.15)" />
-                  <View style={styles.emptyIconsLayer}>
-                     <Ionicons name="wallet-outline" size={32} color={ACCENT_GREEN} />
-                     <Ionicons name="receipt-outline" size={24} color={ACCENT_GREEN} style={{ marginLeft: 16 }} />
-                  </View>
+                  <Image 
+                    source={require("../../../assets/images/no-recurring.svg")} 
+                    style={styles.illustrationImage}
+                    resizeMode="contain"
+                  />
                </View>
                <Text style={styles.emptyStateMainText}>No budget set yet</Text>
                <Text style={styles.emptyStateSubText}>Set a budget to track and control your spending</Text>
             </View>
           )}
-          <View style={{ height: 100 }} />
+          <View style={{ height: 120 }} />
         </View>
       </ScrollView>
     </View>
@@ -222,8 +246,6 @@ const styles = StyleSheet.create({
   },
   headerBackground: {
     backgroundColor: PRIMARY_GREEN,
-    borderBottomLeftRadius: 32,
-    borderBottomRightRadius: 32,
     paddingBottom: SPACING.LG,
   },
   headerContent: {
@@ -232,14 +254,14 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: SPACING.LG,
     paddingTop: SPACING.MD,
-    marginBottom: SPACING.LG,
+    marginBottom: SPACING.MD,
   },
   profileSection: {
     flexDirection: "row",
     alignItems: "center",
   },
   welcomeText: {
-    fontFamily: Fonts.semiBold,
+    fontFamily: Fonts.bold,
     color: WHITE,
     fontSize: 18,
     marginLeft: SPACING.SM,
@@ -255,14 +277,15 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
   },
-  headerTitle: {
-    fontFamily: Fonts.semiBold,
+  headerTitleLabel: {
+    fontFamily: Fonts.medium,
     color: WHITE,
-    fontSize: 16,
+    fontSize: 12,
+    opacity: 0.9,
   },
   headerActions: {
     flexDirection: "row",
-    gap: 8,
+    gap: 12,
   },
   iconButton: {
     width: 38,
@@ -274,13 +297,30 @@ const styles = StyleSheet.create({
   },
   summaryCardWrapper: {
     paddingHorizontal: SPACING.LG,
+    marginTop: 8,
   },
   darkSummaryCard: {
     elevation: 0,
     shadowOpacity: 0,
   },
+  emptyHeaderContent: {
+    paddingHorizontal: SPACING.LG,
+    paddingVertical: 20,
+    alignItems: 'center',
+  },
+  emptyHeaderTitle: {
+    fontFamily: Fonts.bold,
+    color: WHITE,
+    fontSize: 24,
+    textAlign: 'center',
+  },
   listAreaContainer: {
-    paddingTop: 20,
+    marginTop: -40,
+    backgroundColor: BACKGROUND,
+    borderTopLeftRadius: 40,
+    borderTopRightRadius: 40,
+    paddingTop: 30,
+    minHeight: 500,
   },
   panelHeaderRow: {
     flexDirection: 'row',
@@ -297,14 +337,16 @@ const styles = StyleSheet.create({
   viewAllBtnText: {
     fontFamily: Fonts.medium,
     fontSize: 14,
-    color: '#1B5E20',
+    color: PRIMARY_GREEN,
   },
   scrollContainer: {
     flex: 1,
   },
   scrollAreaContent: {
+    paddingBottom: 0,
+  },
+  budgetListContainer: {
     paddingHorizontal: SPACING.LG,
-    paddingBottom: 100,
   },
   budgetCard: {
     backgroundColor: WHITE,
@@ -344,64 +386,60 @@ const styles = StyleSheet.create({
   },
   categoryNameText: {
     fontFamily: Fonts.bold,
-    fontSize: 15,
+    fontSize: 16,
     color: TEXT_PRIMARY,
     marginBottom: 2,
   },
   amountTextRow: {
     flexDirection: 'row',
     alignItems: 'baseline',
+    marginBottom: 4,
   },
   spentAmountText: {
-    fontFamily: Fonts.bold,
-    fontSize: 16,
+    fontFamily: Fonts.medium,
+    fontSize: 15,
     color: TEXT_PRIMARY,
   },
-  limitAmountSuffix: {
+  remainingSubtextRow: {
     fontFamily: Fonts.regular,
-    fontSize: 12,
+    fontSize: 11,
     color: TEXT_SECONDARY,
-    marginLeft: 2,
   },
   rightCircleContainer: {
     alignItems: 'flex-end',
     justifyContent: 'center',
+    marginLeft: 10,
   },
   progressRingWrapper: {
-    marginBottom: 4,
+    //
   },
   progressRingText: {
     fontFamily: Fonts.semiBold,
     fontSize: 11,
-    color: TEXT_PRIMARY,
-  },
-  remainingSubtext: {
-    fontFamily: Fonts.regular,
-    fontSize: 11,
-    color: TEXT_SECONDARY,
   },
   emptyContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 60,
+    marginTop: 40,
+    paddingHorizontal: SPACING.LG,
   },
   emptyImgCircle: {
-    width: 140,
-    height: 140,
-    borderRadius: 70,
-    backgroundColor: 'rgba(60, 185, 106, 0.05)',
+    width: 220,
+    height: 220,
+    borderRadius: 110,
+    backgroundColor: '#F3F4F6',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 24,
+    overflow: 'hidden',
   },
-  emptyIconsLayer: {
-    position: 'absolute',
-    flexDirection: 'row',
-    alignItems: 'center',
+  illustrationImage: {
+    width: '100%',
+    height: '100%',
   },
   emptyStateMainText: {
     fontFamily: Fonts.bold,
-    fontSize: 18,
+    fontSize: 20,
     color: TEXT_PRIMARY,
     marginBottom: 8,
   },
@@ -410,15 +448,14 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: TEXT_SECONDARY,
     textAlign: 'center',
-    paddingHorizontal: 40,
+    paddingHorizontal: 20,
     lineHeight: 20,
   },
   externalMetaRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 20,
-    paddingHorizontal: 20,
+    marginTop: 16,
   },
   monthCol: {
     flexDirection: 'row',
@@ -428,13 +465,13 @@ const styles = StyleSheet.create({
   },
   monthLabelText: {
     fontFamily: Fonts.medium,
-    fontSize: 15,
+    fontSize: 13,
     color: '#A5D6A7', 
     letterSpacing: 0.5,
   },
   verticalDividerLine: {
     width: 1,
-    height: 24,
+    height: 20,
     backgroundColor: 'rgba(255,255,255,0.2)',
     marginHorizontal: 16,
   },
@@ -445,25 +482,9 @@ const styles = StyleSheet.create({
   },
   growthLabelText: {
     fontFamily: Fonts.regular,
-    fontSize: 14,
+    fontSize: 13,
     color: '#A5D6A7',
     marginLeft: 4,
-  },
-  fab: {
-    position: 'absolute',
-    bottom: 20,
-    right: 20,
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: PRIMARY_GREEN,
-    alignItems: 'center',
-    justifyContent: 'center',
-    elevation: 8,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
   },
 });
 
