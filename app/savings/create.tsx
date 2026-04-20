@@ -1,5 +1,11 @@
-import { CreateSavingsGoalScreen } from '../../src/screens/savings/CreateSavingsGoalScreen';
+import { Stack } from 'expo-router';
+import { CreateSavingsGoalScreen } from '../src/screens/savings/CreateSavingsGoalScreen';
 
-export default function CreateSavingsRoute() {
-  return <CreateSavingsGoalScreen />;
+export default function CreateSavings() {
+  return (
+    <>
+      <Stack.Screen options={{ headerShown: false }} />
+      <CreateSavingsGoalScreen />
+    </>
+  );
 }
