@@ -99,7 +99,7 @@ export default function DashboardScreen() {
           <View style={styles.headerContent}>
             <TouchableOpacity
               style={styles.profileSection}
-              onPress={() => router.push("/profile")}
+              onPress={() => router.push("/(tabs)/profile")}
             >
               <View style={styles.avatar}>
                 <Image
@@ -113,13 +113,13 @@ export default function DashboardScreen() {
             <View style={styles.headerActions}>
               <TouchableOpacity
                 style={styles.iconButton}
-                onPress={() => router.push("/learning")}
+                onPress={() => router.push("/(tabs)/learning")}
               >
                 <Ionicons name="school-outline" size={24} color={WHITE} />
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.iconButton}
-                onPress={() => router.push("/notifications")}
+                onPress={() => router.push("/profile/notifications")}
               >
                 <Ionicons
                   name="notifications-outline"
@@ -177,7 +177,7 @@ export default function DashboardScreen() {
           </View>
 
           {budgets.length > 0 ? (
-            <TouchableOpacity onPress={() => router.push("/budget")}>
+            <TouchableOpacity onPress={() => router.push("/(tabs)/budget")}>
               <View style={styles.amountRowBaseline}>
                 <Text style={styles.budgetValue}>
                   ₦{budgetSpent.toLocaleString()}
@@ -217,7 +217,7 @@ export default function DashboardScreen() {
           </View>
 
           {primaryGoal ? (
-            <TouchableOpacity onPress={() => router.push("/savings")}>
+            <TouchableOpacity onPress={() => router.push("/(tabs)/savings")}>
               <View style={styles.savingsRow}>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.goalName}>{primaryGoal.name}</Text>
@@ -282,7 +282,7 @@ export default function DashboardScreen() {
         <View style={styles.transactionsSection}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitleLabel}>Recent Transactions</Text>
-            <TouchableOpacity onPress={() => router.push("/expenses")}>
+            <TouchableOpacity onPress={() => router.push("/(tabs)/expenses")}>
               <Text style={styles.viewAllText}>View all</Text>
             </TouchableOpacity>
           </View>

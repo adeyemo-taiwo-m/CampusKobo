@@ -114,7 +114,7 @@ export default function ExpensesListScreen() {
           <View style={styles.headerContent}>
             <TouchableOpacity 
               style={styles.profileSection}
-              onPress={() => router.push("/profile")}
+              onPress={() => router.push("/(tabs)/profile")}
             >
               <View style={styles.avatar}>
                 <Image source={require("../../../assets/images/avatar.jpeg")} style={styles.avatarImage} />
@@ -125,10 +125,10 @@ export default function ExpensesListScreen() {
             <Text style={styles.headerTitle}>Expenses</Text>
 
             <View style={styles.headerActions}>
-              <TouchableOpacity style={styles.iconButton} onPress={() => router.push("/learning")}>
+              <TouchableOpacity style={styles.iconButton} onPress={() => router.push("/(tabs)/learning")}>
                 <Ionicons name="school-outline" size={22} color={WHITE} />
               </TouchableOpacity>
-              <TouchableOpacity style={styles.iconButton} onPress={() => router.push("/notifications")}>
+              <TouchableOpacity style={styles.iconButton} onPress={() => router.push("/profile/notifications")}>
                 <Ionicons name="notifications-outline" size={22} color={WHITE} />
               </TouchableOpacity>
             </View>
@@ -177,7 +177,7 @@ export default function ExpensesListScreen() {
               leftIcon={<Ionicons name="search-outline" size={20} color={TEXT_SECONDARY} />}
             />
           </View>
-          <TouchableOpacity style={styles.actionButton} onPress={() => router.push("/recurring")}>
+          <TouchableOpacity style={styles.actionButton} onPress={() => router.push("/(tabs)/recurring")}>
             <Ionicons name="repeat" size={22} color={PRIMARY_GREEN} />
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionButton} onPress={() => setIsExportVisible(true)}>

@@ -118,56 +118,56 @@ export const SavingsScreen = () => {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
       
-      {/* Hero Region */}
-      <View style={styles.headerBackground}>
-        <SafeAreaView>
-          <View style={styles.headerContent}>
-            <TouchableOpacity 
-              style={styles.profileSection}
-              onPress={() => router.push("/profile")}
-            >
-              <View style={styles.avatar}>
-                <Image source={require("../../../assets/images/avatar.jpeg")} style={styles.avatarImage} />
-              </View>
-              <Text style={styles.welcomeText}>Hi, Taiwo</Text>
-            </TouchableOpacity>
-            
-            <Text style={styles.headerTitle}>Savings</Text>
+      <FlatList
+        data={goals}
+        renderItem={renderGoalCard}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={styles.listContent}
+        showsVerticalScrollIndicator={false}
+        ListHeaderComponent={
+          <>
+            {/* Hero Region */}
+            <View style={styles.headerBackground}>
+              <SafeAreaView>
+                <View style={styles.headerContent}>
+                  <TouchableOpacity 
+                    style={styles.profileSection}
+                    onPress={() => router.push("/(tabs)/profile")}
+                  >
+                    <View style={styles.avatar}>
+                      <Image source={require("../../../assets/images/avatar.jpeg")} style={styles.avatarImage} />
+                    </View>
+                    <Text style={styles.welcomeText}>Hi, Taiwo</Text>
+                  </TouchableOpacity>
+                  
+                  <Text style={styles.headerTitle}>Savings</Text>
 
-            <View style={styles.headerActions}>
-              <TouchableOpacity style={styles.iconButton} onPress={() => router.push("/learning")}>
-                <Ionicons name="school-outline" size={24} color={WHITE} />
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.iconButton} onPress={() => router.push("/notifications")}>
-                <Ionicons name="notifications-outline" size={24} color={WHITE} />
-              </TouchableOpacity>
+                  <View style={styles.headerActions}>
+                    <TouchableOpacity style={styles.iconButton} onPress={() => router.push("/(tabs)/learning")}>
+                      <Ionicons name="school-outline" size={24} color={WHITE} />
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.iconButton} onPress={() => router.push("/profile/notifications")}>
+                      <Ionicons name="notifications-outline" size={24} color={WHITE} />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
+                <View style={styles.summaryCardWrapper}>
+                  <DarkCard
+                    type="balance" // Using balance type for general summary look
+                    amount={totalSaved}
+                    label="Total Savings"
+                    periodLabel={`Across ${goals.length} active goals`}
+                    hideIncomeExpenses={true}
+                    style={styles.summaryCard}
+                  />
+                </View>
+              </SafeAreaView>
             </View>
-          </View>
-
-          <View style={styles.summaryCardWrapper}>
-            <DarkCard
-              type="balance" // Using balance type for general summary look
-              amount={totalSaved}
-              label="Total Savings"
-              periodLabel={`Across ${goals.length} active goals`}
-              hideIncomeExpenses={true}
-              style={styles.summaryCard}
-            />
-          </View>
-        </SafeAreaView>
-      </View>
-
-      <View style={styles.mainContentPanel}>
-        {hasGoals ? (
-          <FlatList
-            data={goals}
-            renderItem={renderGoalCard}
-            keyExtractor={(item) => item.id}
-            contentContainerStyle={styles.listContent}
-            ListHeaderComponent={<Text style={styles.sectionLabel}>My Goals</Text>}
-            showsVerticalScrollIndicator={false}
-          />
-        ) : (
+            {hasGoals && <Text style={styles.sectionLabel}>My Goals</Text>}
+          </>
+        }
+        ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <EmptyState
               icon="piggy-bank-outline"
@@ -177,9 +177,8 @@ export const SavingsScreen = () => {
               onButtonPress={() => router.push("/savings/create")}
             />
           </View>
-        )}
-      </View>
-
+        }
+      />
     </View>
   );
 };
@@ -246,14 +245,6 @@ const styles = StyleSheet.create({
   },
   summaryCard: {
     // Add any summary card specific styles here if needed
-  },
-  mainContentPanel: {
-    flex: 1,
-    backgroundColor: BACKGROUND,
-    borderTopLeftRadius: 32,
-    borderTopRightRadius: 32,
-    marginTop: -32,
-    paddingTop: 20,
   },
   listContent: {
     paddingHorizontal: 20,

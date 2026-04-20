@@ -128,80 +128,65 @@ export const BudgetScreen = () => {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
       
-      {/* Seamless Header Hero Region */}
-      <View style={styles.headerBackground}>
-        <SafeAreaView>
-          <View style={styles.headerContent}>
-            <TouchableOpacity 
-              style={styles.profileSection}
-              onPress={() => router.push("/profile")}
-            >
-              <View style={styles.avatar}>
-                <Image source={require("../../../assets/images/avatar.jpeg")} style={styles.avatarImage} />
-              </View>
-              <Text style={styles.welcomeText}>Hi, Taiwo</Text>
-            </TouchableOpacity>
-            
-            <Text style={styles.headerTitle}>Budget</Text>
+      <ScrollView 
+        style={styles.scrollContainer}
+        contentContainerStyle={styles.scrollAreaContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Seamless Header Hero Region */}
+        <View style={styles.headerBackground}>
+          <SafeAreaView>
+            <View style={styles.headerContent}>
+              <TouchableOpacity 
+                style={styles.profileSection}
+                onPress={() => router.push("/(tabs)/profile")}
+              >
+                <View style={styles.avatar}>
+                  <Image source={require("../../../assets/images/avatar.jpeg")} style={styles.avatarImage} />
+                </View>
+                <Text style={styles.welcomeText}>Hi, Taiwo</Text>
+              </TouchableOpacity>
+              
+              <Text style={styles.headerTitle}>Budget</Text>
 
-            <View style={styles.headerActions}>
-              <TouchableOpacity style={styles.iconButton} onPress={() => router.push("/learning")}>
-                <Ionicons name="school-outline" size={24} color={WHITE} />
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.iconButton} onPress={() => router.push("/notifications")}>
-                <Ionicons name="notifications-outline" size={24} color={WHITE} />
-              </TouchableOpacity>
+              <View style={styles.headerActions}>
+                <TouchableOpacity style={styles.iconButton} onPress={() => router.push("/(tabs)/learning")}>
+                  <Ionicons name="school-outline" size={24} color={WHITE} />
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.iconButton} onPress={() => router.push("/profile/notifications")}>
+                  <Ionicons name="notifications-outline" size={24} color={WHITE} />
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
 
-          {/* Budget Summary Unified Card */}
-          <View style={styles.summaryCardWrapper}>
-            <DarkCard
-              type="budget"
-              label={hasBudgets ? "Total budget" : undefined}
-              amount={hasBudgets ? totalSpent : 0}
-              limitAmount={hasBudgets ? totalBudget : undefined}
-              progress={hasBudgets ? 0.64 : 0}
-              progressLabel={hasBudgets ? `₦${totalRemaining.toLocaleString()} left • You are doing well` : undefined}
-              statusCaption={!hasBudgets ? "No budget set yet" : undefined}
-              periodLabel={currentMonth}
-              comparisonLabel="12% vs Last month"
-              showToggle={hasBudgets}
-              style={styles.darkSummaryCard}
-            />
-
-            {/* External Meta Row below card */}
-            {hasBudgets && (
-              <View style={styles.externalMetaRow}>
-                <View style={styles.monthCol}>
-                  <Text style={styles.monthLabelText}>{currentMonth}</Text>
-                  <Ionicons name="calendar-outline" size={18} color="#A5D6A7" style={{ marginLeft: 8 }} />
-                </View>
-                <View style={styles.verticalDividerLine} />
-                <View style={styles.growthCol}>
-                  <Ionicons name="arrow-up" size={16} color="#A5D6A7" />
-                  <Text style={styles.growthLabelText}>12% vs Last month</Text>
-                </View>
-              </View>
-            )}
-          </View>
-        </SafeAreaView>
-      </View>
-
-      {/* Main Budget List Area */}
-      <View style={styles.mainContentPanel}>
-        <View style={styles.panelHeaderRow}>
-          <Text style={styles.panelHeaderText}>Active Budgets</Text>
-          <TouchableOpacity>
-            <Text style={styles.viewAllBtnText}>View all</Text>
-          </TouchableOpacity>
+            {/* Budget Summary Unified Card */}
+            <View style={styles.summaryCardWrapper}>
+              <DarkCard
+                type="budget"
+                label={hasBudgets ? "Total budget" : undefined}
+                amount={hasBudgets ? totalSpent : 0}
+                limitAmount={hasBudgets ? totalBudget : undefined}
+                progress={hasBudgets ? 0.64 : 0}
+                progressLabel={hasBudgets ? `₦${totalRemaining.toLocaleString()} left • You are doing well` : undefined}
+                statusCaption={!hasBudgets ? "No budget set yet" : undefined}
+                periodLabel={currentMonth}
+                comparisonLabel="12% vs Last month"
+                showToggle={hasBudgets}
+                style={styles.darkSummaryCard}
+              />
+            </View>
+          </SafeAreaView>
         </View>
 
-        <ScrollView 
-          style={styles.scrollContainer}
-          contentContainerStyle={styles.scrollAreaContent}
-          showsVerticalScrollIndicator={false}
-        >
+        {/* Main Budget List Area */}
+        <View style={styles.listAreaContainer}>
+          <View style={styles.panelHeaderRow}>
+            <Text style={styles.panelHeaderText}>Active Budgets</Text>
+            <TouchableOpacity>
+              <Text style={styles.viewAllBtnText}>View all</Text>
+            </TouchableOpacity>
+          </View>
+
           {hasBudgets ? (
             budgets.map((budget) => (
               <BudgetCard 
@@ -223,8 +208,9 @@ export const BudgetScreen = () => {
                <Text style={styles.emptyStateSubText}>Set a budget to track and control your spending</Text>
             </View>
           )}
-        </ScrollView>
-      </View>
+          <View style={{ height: 100 }} />
+        </View>
+      </ScrollView>
     </View>
   );
 };
@@ -293,20 +279,15 @@ const styles = StyleSheet.create({
     elevation: 0,
     shadowOpacity: 0,
   },
-  mainContentPanel: {
-    flex: 1,
-    backgroundColor: BACKGROUND,
-    borderTopLeftRadius: 32,
-    borderTopRightRadius: 32,
-    marginTop: -32,
-    paddingTop: 32,
+  listAreaContainer: {
+    paddingTop: 20,
   },
   panelHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: SPACING.LG,
-    marginBottom: 20,
+    marginBottom: 16,
   },
   panelHeaderText: {
     fontFamily: Fonts.bold,
