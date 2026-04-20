@@ -12,6 +12,26 @@ const TAB_BAR_HEIGHT = 80;
 
 export const CustomTabBar = ({ state, descriptors, navigation }: BottomTabBarProps) => {
   const router = useRouter();
+  const handleFabPress = () => {
+    // Determine the current active tab name
+    const currentRoute = state.routes[state.index].name;
+
+    // Navigate to different screens based on the active tab
+    switch (currentRoute) {
+      case 'savings':
+        router.push('/savings/create');
+        break;
+      case 'budget':
+        router.push('/budget/create');
+        break;
+      case 'index': // Dashboard
+      case 'expenses':
+      default:
+        router.push('/add-transaction');
+        break;
+    }
+  };
+
   return (
     <View style={styles.container}>
       <Svg width={width} height={TAB_BAR_HEIGHT} style={styles.svg}>
@@ -86,7 +106,7 @@ export const CustomTabBar = ({ state, descriptors, navigation }: BottomTabBarPro
                   <TouchableOpacity
                     key="fab-button"
                     activeOpacity={0.8}
-                    onPress={() => router.push('/add-transaction')}
+                    onPress={handleFabPress}
                     style={styles.fabButton}
                   >
                     <View style={styles.fabIconContainer}>

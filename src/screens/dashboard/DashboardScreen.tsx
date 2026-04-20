@@ -326,8 +326,6 @@ const styles = StyleSheet.create({
   },
   headerBackground: {
     backgroundColor: PRIMARY_GREEN,
-    borderBottomLeftRadius: 32,
-    borderBottomRightRadius: 32,
     paddingBottom: SPACING.LG,
   },
   headerContent: {

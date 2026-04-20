@@ -190,7 +190,7 @@ const styles = StyleSheet.create({
   },
   headerBackground: {
     backgroundColor: PRIMARY_GREEN,
-    paddingBottom: SPACING.LG,
+    paddingBottom: 60,
   },
   headerContent: {
     flexDirection: "row",
