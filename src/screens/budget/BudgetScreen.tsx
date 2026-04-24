@@ -120,59 +120,71 @@ export const BudgetScreen = () => {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
       
-      <ScrollView 
-        style={styles.scrollContainer}
-        contentContainerStyle={styles.scrollAreaContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Seamless Header Hero Region */}
-        <View style={styles.headerBackground}>
-          <SafeAreaView>
-            <View style={styles.headerContent}>
-              <TouchableOpacity 
-                style={styles.profileSection}
-                onPress={() => router.push("/(tabs)/profile")}
-              >
-                <View style={styles.avatar}>
-                  <Image source={require("../../../assets/images/avatar.jpeg")} style={styles.avatarImage} />
-                </View>
-                <Text style={styles.welcomeText}>Hi, Taiwo</Text>
+      {/* Seamless Header Hero Region */}
+      <View style={styles.headerBackground}>
+        <SafeAreaView>
+          <View style={styles.headerContent}>
+            <TouchableOpacity 
+              style={styles.profileSection}
+              onPress={() => router.push("/(tabs)/profile")}
+            >
+              <View style={styles.avatar}>
+                <Image source={require("../../../assets/images/avatar.jpeg")} style={styles.avatarImage} />
+              </View>
+              <Text style={styles.welcomeText}>Hi, Taiwo</Text>
+            </TouchableOpacity>
+            <View style={styles.headerActions}>
+              <TouchableOpacity style={styles.iconButton} onPress={() => router.push("/(tabs)/learning")}>
+                <Ionicons name="school-outline" size={22} color={WHITE} />
               </TouchableOpacity>
-              
-              <Text style={styles.headerTitleLabel}>Budget</Text>
+              <TouchableOpacity style={styles.iconButton} onPress={() => router.push("/profile/notifications")}>
+                <Ionicons name="notifications-outline" size={22} color={WHITE} />
+              </TouchableOpacity>
+            </View>
+          </View>
+          
+          {hasBudgets ? (
+            <View style={styles.summaryCardWrapper}>
+              <Text style={styles.headerTitleLabelCentered}>Budget</Text>
+              <DarkCard
+                type="budget"
+                label="Total budget"
+                amount={totalSpent}
+                limitAmount={totalBudget}
+                progress={totalProgress}
+                progressLabel={`₦${totalRemaining.toLocaleString()} left • ${motivationalMessage}`}
+                periodLabel={currentMonth}
+              />
 
-              <View style={styles.headerActions}>
-                <TouchableOpacity style={styles.iconButton} onPress={() => router.push("/profile/notifications")}>
-                  <Ionicons name="notifications-outline" size={24} color={WHITE} />
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.iconButton} onPress={() => router.push("/(tabs)/learning")}>
-                  <Ionicons name="school-outline" size={24} color={WHITE} />
-                </TouchableOpacity>
+              {/* External Meta Row below card */}
+              <View style={styles.externalMetaRow}>
+                <View style={styles.monthCol}>
+                  <Text style={styles.monthLabelText}>{currentMonth}</Text>
+                  <Ionicons name="calendar-outline" size={16} color="#A5D6A7" style={{ marginLeft: 6 }} />
+                </View>
+                <View style={styles.verticalDividerLine} />
+                <View style={styles.growthCol}>
+                  <Ionicons name="arrow-up" size={14} color="#A5D6A7" />
+                  <Text style={styles.growthLabelText}>12% vs Last month</Text>
+                </View>
               </View>
             </View>
+          ) : (
+            <View style={styles.emptyHeaderContent}>
+              <Text style={styles.headerTitleLabelCentered}>Budget</Text>
+              <Text style={styles.emptyHeaderTitle}>No budget set yet</Text>
+            </View>
+          )}
+        </SafeAreaView>
+      </View>
 
-            {hasBudgets ? (
-              <View style={styles.summaryCardWrapper}>
-                <DarkCard
-                  type="expenses"
-                  amount={totalSpent}
-                  label="Total Budget"
-                  periodLabel={currentMonth}
-                  progress={totalProgress}
-                  statusCaption={`You've spent ${Math.round(totalProgress * 100)}% of your total budget`}
-                  style={styles.summaryCard}
-                />
-              </View>
-            ) : (
-              <View style={styles.emptyHeaderContent}>
-                <Text style={styles.emptyHeaderTitle}>No budget set yet</Text>
-              </View>
-            )}
-          </SafeAreaView>
-        </View>
-
-        {/* Main Budget List Area */}
-        <View style={styles.listAreaContainer}>
+      {/* Main Budget List Area wrapped in curved container */}
+      <View style={styles.mainContentWrapper}>
+        <ScrollView 
+          style={styles.scrollContainer}
+          contentContainerStyle={styles.listAreaContainer}
+          showsVerticalScrollIndicator={false}
+        >
           <View style={styles.panelHeaderRow}>
             <Text style={styles.panelHeaderText}>Active Budgets</Text>
             <TouchableOpacity>
@@ -188,7 +200,7 @@ export const BudgetScreen = () => {
                   budget={{
                     ...budget,
                     icon: getIconForCategory(budget.category),
-                    daysLeft: 6, // Mocking days left as it's not in the type yet
+                    daysLeft: 6, // Mocking days left
                     iconColor: '#3CB96A'
                   }} 
                   onPress={() => router.push({ pathname: '/budget/detail', params: { id: budget.id } })} 
@@ -209,15 +221,8 @@ export const BudgetScreen = () => {
             </View>
           )}
           <View style={{ height: 120 }} />
-        </View>
-      </ScrollView>
-      <TouchableOpacity 
-        style={styles.fab} 
-        onPress={() => router.push('/budget/create')}
-        activeOpacity={0.8}
-      >
-        <Ionicons name="add" size={32} color={WHITE} />
-      </TouchableOpacity>
+        </ScrollView>
+      </View>
     </View>
   );
 };
@@ -260,11 +265,12 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
   },
-  headerTitleLabel: {
+  headerTitleLabelCentered: {
     fontFamily: Fonts.medium,
     color: WHITE,
-    fontSize: 12,
-    opacity: 0.9,
+    fontSize: 16,
+    textAlign: "center",
+    marginBottom: 8,
   },
   headerActions: {
     flexDirection: "row",
@@ -282,28 +288,27 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.LG,
     marginTop: 8,
   },
-  summaryCard: {
-    elevation: 0,
-    shadowOpacity: 0,
+  mainContentWrapper: {
+    flex: 1,
+    backgroundColor: BACKGROUND,
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    overflow: "hidden",
   },
   emptyHeaderContent: {
-    paddingHorizontal: SPACING.LG,
-    paddingVertical: 20,
     alignItems: 'center',
+    paddingVertical: 10,
+    marginBottom: 20,
   },
   emptyHeaderTitle: {
-    fontFamily: Fonts.bold,
+    fontFamily: Fonts.medium,
     color: WHITE,
-    fontSize: 24,
-    textAlign: 'center',
+    fontSize: 28,
+    marginTop: 8,
   },
   listAreaContainer: {
-    marginTop: -40,
-    backgroundColor: BACKGROUND,
-    borderTopLeftRadius: 40,
-    borderTopRightRadius: 40,
     paddingTop: 30,
-    minHeight: 500,
+    paddingBottom: 100,
   },
   panelHeaderRow: {
     flexDirection: 'row',
@@ -434,21 +439,41 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     lineHeight: 20,
   },
-  fab: {
-    position: 'absolute',
-    right: 20,
-    bottom: 90,
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: PRIMARY_GREEN,
+  externalMetaRow: {
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
+    marginTop: 16,
+  },
+  monthCol: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    flex: 1,
+  },
+  monthLabelText: {
+    fontFamily: Fonts.medium,
+    fontSize: 13,
+    color: '#A5D6A7', 
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+  },
+  verticalDividerLine: {
+    width: 1,
+    height: 16,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    marginHorizontal: 16,
+  },
+  growthCol: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  growthLabelText: {
+    fontFamily: Fonts.regular,
+    fontSize: 13,
+    color: '#A5D6A7',
+    marginLeft: 4,
   },
 });
 

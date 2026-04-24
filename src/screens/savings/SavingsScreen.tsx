@@ -355,22 +355,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
   },
-  fab: {
-    position: "absolute",
-    right: 20,
-    bottom: 30,
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: PRIMARY_GREEN,
-    alignItems: "center",
-    justifyContent: "center",
-    elevation: 5,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-  },
 });
 
 export default SavingsScreen;
