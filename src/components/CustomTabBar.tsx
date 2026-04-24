@@ -54,7 +54,10 @@ export const CustomTabBar = ({ state, descriptors, navigation }: BottomTabBarPro
 
       <View style={styles.tabsContainer}>
         {state.routes
-          .filter(route => ['index', 'expenses', 'savings', 'budget'].includes(route.name))
+          .filter(route => {
+            const { options } = descriptors[route.key];
+            return ['Home', 'Expenses', 'Savings', 'Budget'].includes(options.title as string);
+          })
           .map((route, index) => {
             const { options } = descriptors[route.key];
             const isFocused = state.index === state.routes.findIndex(r => r.key === route.key);
@@ -72,10 +75,10 @@ export const CustomTabBar = ({ state, descriptors, navigation }: BottomTabBarPro
             };
 
             let iconName: any = 'home-outline';
-            if (route.name === 'index') iconName = isFocused ? 'home' : 'home-outline';
-            else if (route.name === 'expenses') iconName = isFocused ? 'list' : 'list-outline';
-            else if (route.name === 'savings') iconName = isFocused ? 'disc' : 'disc-outline';
-            else if (route.name === 'budget') iconName = isFocused ? 'bar-chart' : 'bar-chart-outline';
+            if (options.title === 'Home') iconName = isFocused ? 'home' : 'home-outline';
+            else if (options.title === 'Expenses') iconName = isFocused ? 'list' : 'list-outline';
+            else if (options.title === 'Savings') iconName = isFocused ? 'disc' : 'disc-outline';
+            else if (options.title === 'Budget') iconName = isFocused ? 'bar-chart' : 'bar-chart-outline';
 
             const tabItem = (
               <TouchableOpacity

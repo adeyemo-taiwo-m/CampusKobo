@@ -148,74 +148,76 @@ export default function ExpensesListScreen() {
         </SafeAreaView>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        {/* Filter Chips */}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filtersWrapper}>
-          {(['This Month', 'This Week', 'Last Month', 'All'] as FilterType[]).map(filter => (
-            <TouchableOpacity 
-              key={filter}
-              style={[styles.filterChip, activeFilter === filter && styles.activeFilterChip]}
-              onPress={() => setActiveFilter(filter)}
-            >
-              <Text style={[styles.filterText, activeFilter === filter && styles.activeFilterText]}>
-                {filter}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+      <View style={styles.mainContentWrapper}>
+        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+          {/* Filter Chips */}
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filtersWrapper}>
+            {(['This Month', 'This Week', 'Last Month', 'All'] as FilterType[]).map(filter => (
+              <TouchableOpacity 
+                key={filter}
+                style={[styles.filterChip, activeFilter === filter && styles.activeFilterChip]}
+                onPress={() => setActiveFilter(filter)}
+              >
+                <Text style={[styles.filterText, activeFilter === filter && styles.activeFilterText]}>
+                  {filter}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
 
-        {/* Search & Actions */}
-        <View style={styles.searchSection}>
-          <View style={styles.searchBarContainer}>
-            <InputField
-              placeholder="Search transactions or categories..."
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              prefix="" // No prefix needed here
-              style={styles.searchInputCustom}
-              outerContainerStyle={styles.searchFieldOuter}
-              leftIcon={<Ionicons name="search-outline" size={20} color={TEXT_SECONDARY} />}
-            />
-          </View>
-          <TouchableOpacity style={styles.actionButton} onPress={() => router.push("/(tabs)/recurring")}>
-            <Ionicons name="repeat" size={22} color={PRIMARY_GREEN} />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.actionButton} onPress={() => setIsExportVisible(true)}>
-            <Ionicons name="document-text-outline" size={22} color={PRIMARY_GREEN} />
-          </TouchableOpacity>
-        </View>
-
-        {/* Export Bottom Sheet */}
-        <ExportBottomSheet 
-          isVisible={isExportVisible}
-          onClose={() => setIsExportVisible(false)}
-          onExport={handleExport}
-        />
-
-        {/* Transactions List */}
-        {Object.keys(groupedTransactions).length > 0 ? (
-          Object.entries(groupedTransactions).map(([date, items]) => (
-            <View key={date} style={styles.dateGroup}>
-              <Text style={styles.dateHeader}>{date}</Text>
-              {items.map(item => (
-                <TransactionCard 
-                  key={item.id}
-                  transaction={item}
-                  onPress={() => router.push(`/transaction/${item.id}`)}
-                />
-              ))}
+          {/* Search & Actions */}
+          <View style={styles.searchSection}>
+            <View style={styles.searchBarContainer}>
+              <InputField
+                placeholder="Search transactions or categories..."
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                prefix="" // No prefix needed here
+                style={styles.searchInputCustom}
+                outerContainerStyle={styles.searchFieldOuter}
+                leftIcon={<Ionicons name="search-outline" size={20} color={TEXT_SECONDARY} />}
+              />
             </View>
-          ))
-        ) : (
-          <EmptyState 
-            icon="receipt-outline"
-            title="No transactions found"
-            subtitle="Try adjusting your filters or adding a new record"
-          />
-        )}
+            <TouchableOpacity style={styles.actionButton} onPress={() => router.push("/(tabs)/recurring")}>
+              <Ionicons name="repeat" size={22} color={PRIMARY_GREEN} />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.actionButton} onPress={() => setIsExportVisible(true)}>
+              <Ionicons name="document-text-outline" size={22} color={PRIMARY_GREEN} />
+            </TouchableOpacity>
+          </View>
 
-        <View style={{ height: 100 }} />
-      </ScrollView>
+          {/* Export Bottom Sheet */}
+          <ExportBottomSheet 
+            isVisible={isExportVisible}
+            onClose={() => setIsExportVisible(false)}
+            onExport={handleExport}
+          />
+
+          {/* Transactions List */}
+          {Object.keys(groupedTransactions).length > 0 ? (
+            Object.entries(groupedTransactions).map(([date, items]) => (
+              <View key={date} style={styles.dateGroup}>
+                <Text style={styles.dateHeader}>{date}</Text>
+                {items.map(item => (
+                  <TransactionCard 
+                    key={item.id}
+                    transaction={item}
+                    onPress={() => router.push(`/transaction/${item.id}`)}
+                  />
+                ))}
+              </View>
+            ))
+          ) : (
+            <EmptyState 
+              icon="receipt-outline"
+              title="No transactions found"
+              subtitle="Try adjusting your filters or adding a new record"
+            />
+          )}
+
+          <View style={{ height: 100 }} />
+        </ScrollView>
+      </View>
     </View>
   );
 }
@@ -223,11 +225,18 @@ export default function ExpensesListScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: BACKGROUND,
+    backgroundColor: PRIMARY_GREEN,
   },
   headerBackground: {
     backgroundColor: PRIMARY_GREEN,
     paddingBottom: SPACING.LG,
+  },
+  mainContentWrapper: {
+    flex: 1,
+    backgroundColor: BACKGROUND,
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    overflow: "hidden",
   },
   headerContent: {
     flexDirection: "row",

@@ -1232,7 +1232,7 @@ Paste this instruction into your agent:
 > - Circular progress ring showing percentage
 > - '₦{remaining} left • {daysLeft} days remaining'
 > - Ring color follows the same green/yellow/red logic
->
+>-
 > **Three summary mini-cards (side by side):**
 >
 > - 'Daily Average' — ₦{totalSpent / daysElapsed}

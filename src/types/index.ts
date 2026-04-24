@@ -1,7 +1,7 @@
 export interface Transaction {
   id: string;
   amount: number;
-  type: 'income' | 'expense';
+  type: "income" | "expense";
   category: string;
   categoryIcon: string;
   categoryColor: string;
@@ -18,7 +18,7 @@ export interface RecurringExpense {
   category: string;
   categoryIcon: string;
   categoryColor: string;
-  frequency: 'daily' | 'weekly' | 'monthly';
+  frequency: "daily" | "weekly" | "monthly";
   startDate: string;
   nextDueDate: string;
   isPaused: boolean;
@@ -30,7 +30,7 @@ export interface Budget {
   categoryIcon: string;
   limitAmount: number;
   spentAmount: number;
-  period: 'monthly' | 'termly';
+  period: "monthly" | "termly";
   startDate: string;
   color: string;
 }
@@ -41,6 +41,7 @@ export interface SavingsGoal {
   targetAmount: number;
   savedAmount: number;
   deadline?: string;
+  emoji?: string;
   createdAt: string;
   contributions: {
     amount: number;
@@ -53,7 +54,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  currency: 'NGN' | 'USD';
+  currency: "NGN" | "USD";
   monthlyBudget: number;
   selectedGoals: string[];
   selectedCategories: string[];
@@ -65,7 +66,7 @@ export interface User {
 export interface LearningContent {
   id: string;
   title: string;
-  type: 'article' | 'video' | 'podcast';
+  type: "article" | "video" | "podcast";
   category: string;
   duration: string;
   content: string;

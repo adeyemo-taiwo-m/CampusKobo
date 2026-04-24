@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -9,9 +9,9 @@ import {
   StatusBar,
   FlatList,
   Image,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useNavigation, useRouter } from 'expo-router';
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useNavigation, useRouter } from "expo-router";
 import {
   BACKGROUND,
   WHITE,
@@ -20,46 +20,20 @@ import {
   TEXT_SECONDARY,
   Fonts,
   SPACING,
-} from '../../constants';
-import { DarkCard } from '../../components/DarkCard';
-import { EmptyState } from '../../components/EmptyState';
-import { useAppContext } from '../../context/AppContext';
-import { Header } from '../../components/Header';
-import { ProgressBar } from '../../components/ProgressBar';
+} from "../../constants";
+import { DarkCard } from "../../components/DarkCard";
+import { EmptyState } from "../../components/EmptyState";
+import { useAppContext } from "../../context/AppContext";
+import { Header } from "../../components/Header";
+import { ProgressBar } from "../../components/ProgressBar";
 
-interface SavingsGoal {
-  id: string;
-  name: string;
-  emoji: string;
-  targetAmount: number;
-  savedAmount: number;
-  deadline?: string;
-}
-
-const SAMPLE_GOALS: SavingsGoal[] = [
-  {
-    id: '1',
-    name: 'New Laptop',
-    emoji: '💻',
-    targetAmount: 250000,
-    savedAmount: 150000,
-    deadline: 'Dec 20, 2025',
-  },
-  {
-    id: '2',
-    name: 'Phone Upgrade',
-    emoji: '📱',
-    targetAmount: 120000,
-    savedAmount: 30000,
-    deadline: 'Oct 15, 2025',
-  },
-];
+import { SavingsGoal } from "../../types";
 
 export const SavingsScreen = () => {
   const router = useRouter();
   const { savingsGoals } = useAppContext();
   const hasGoals = savingsGoals.length > 0;
-  
+
   const totalSaved = savingsGoals.reduce((sum, g) => sum + g.savedAmount, 0);
 
   const renderGoalCard = ({ item }: { item: SavingsGoal }) => {
@@ -67,12 +41,14 @@ export const SavingsScreen = () => {
     const percent = Math.round(progress * 100);
 
     return (
-      <TouchableOpacity 
+      <TouchableOpacity
         style={styles.goalCard}
-        onPress={() => router.push({
-          pathname: "/savings/detail",
-          params: { id: item.id }
-        })}
+        onPress={() =>
+          router.push({
+            pathname: "/savings/detail",
+            params: { id: item.id },
+          })
+        }
       >
         <View style={styles.goalHeader}>
           <View style={styles.goalIconName}>
@@ -86,27 +62,41 @@ export const SavingsScreen = () => {
           <ProgressBar progress={progress} height={8} />
           <View style={styles.amountRow}>
             <Text style={styles.amountText}>
-              ₦{item.savedAmount.toLocaleString()} <Text style={styles.targetText}>/ ₦{item.targetAmount.toLocaleString()}</Text>
+              ₦{item.savedAmount.toLocaleString()}{" "}
+              <Text style={styles.targetText}>
+                / ₦{item.targetAmount.toLocaleString()}
+              </Text>
             </Text>
             {item.deadline && (
-              <Text style={styles.deadlineText}>Due: {new Date(item.deadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</Text>
+              <Text style={styles.deadlineText}>
+                Due:{" "}
+                {new Date(item.deadline).toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                })}
+              </Text>
             )}
           </View>
         </View>
 
         <View style={styles.goalActions}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.addFundsBtn}
-            onPress={() => {/* Open Add Funds Bottom Sheet */}}
+            onPress={() => {
+              /* Open Add Funds Bottom Sheet */
+            }}
           >
             <Text style={styles.addFundsBtnText}>Add Funds</Text>
           </TouchableOpacity>
-          <TouchableOpacity 
-             style={styles.viewDetailsBtn}
-             onPress={() => router.push({
-               pathname: "/savings/detail",
-               params: { id: item.id }
-             })}
+          <TouchableOpacity
+            style={styles.viewDetailsBtn}
+            onPress={() =>
+              router.push({
+                pathname: "/savings/detail",
+                params: { id: item.id },
+              })
+            }
           >
             <Text style={styles.viewDetailsBtnText}>View Details</Text>
           </TouchableOpacity>
@@ -118,7 +108,7 @@ export const SavingsScreen = () => {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
-      
+
       <FlatList
         data={savingsGoals}
         renderItem={renderGoalCard}
@@ -131,24 +121,37 @@ export const SavingsScreen = () => {
             <View style={styles.headerBackground}>
               <SafeAreaView>
                 <View style={styles.headerContent}>
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     style={styles.profileSection}
                     onPress={() => router.push("/(tabs)/profile")}
                   >
                     <View style={styles.avatar}>
-                      <Image source={require("../../../assets/images/avatar.jpeg")} style={styles.avatarImage} />
+                      <Image
+                        source={require("../../../assets/images/avatar.jpeg")}
+                        style={styles.avatarImage}
+                      />
                     </View>
                     <Text style={styles.welcomeText}>Hi, Taiwo</Text>
                   </TouchableOpacity>
-                  
+
                   <Text style={styles.headerTitle}>Savings</Text>
 
                   <View style={styles.headerActions}>
-                    <TouchableOpacity style={styles.iconButton} onPress={() => router.push("/(tabs)/learning")}>
+                    <TouchableOpacity
+                      style={styles.iconButton}
+                      onPress={() => router.push("/(tabs)/learning")}
+                    >
                       <Ionicons name="school-outline" size={24} color={WHITE} />
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.iconButton} onPress={() => router.push("/profile/notifications")}>
-                      <Ionicons name="notifications-outline" size={24} color={WHITE} />
+                    <TouchableOpacity
+                      style={styles.iconButton}
+                      onPress={() => router.push("/profile/notifications")}
+                    >
+                      <Ionicons
+                        name="notifications-outline"
+                        size={24}
+                        color={WHITE}
+                      />
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -171,7 +174,7 @@ export const SavingsScreen = () => {
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <EmptyState
-              icon="piggy-bank-outline"
+              icon="wallet-outline"
               title="No savings goals yet"
               subtitle="Set a goal and start saving towards something you love"
               buttonTitle="Create a Goal"
@@ -215,7 +218,7 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 19,
-    overflow: 'hidden',
+    overflow: "hidden",
     backgroundColor: "rgba(255,255,255,0.2)",
   },
   avatarImage: {
@@ -267,20 +270,20 @@ const styles = StyleSheet.create({
     padding: 20,
     marginBottom: 16,
     elevation: 2,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 8,
   },
   goalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 16,
   },
   goalIconName: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   goalEmoji: {
     fontSize: 24,
@@ -300,9 +303,9 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   amountRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginTop: 8,
   },
   amountText: {
@@ -320,8 +323,8 @@ const styles = StyleSheet.create({
     color: TEXT_SECONDARY,
   },
   goalActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 16,
   },
   addFundsBtn: {
@@ -346,20 +349,20 @@ const styles = StyleSheet.create({
   },
   emptyContainer: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: "center",
   },
   fab: {
-    position: 'absolute',
+    position: "absolute",
     right: 20,
     bottom: 30,
     width: 60,
     height: 60,
     borderRadius: 30,
     backgroundColor: PRIMARY_GREEN,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     elevation: 5,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 10,

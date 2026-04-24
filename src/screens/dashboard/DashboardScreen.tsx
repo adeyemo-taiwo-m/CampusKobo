@@ -143,10 +143,11 @@ export default function DashboardScreen() {
         </SafeAreaView>
       </View>
 
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
+      <View style={styles.mainContentWrapper}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
         {/* Date Filter Bar */}
         <View style={styles.dateFilter}>
           <TouchableOpacity style={styles.dateSelector}>
@@ -158,11 +159,15 @@ export default function DashboardScreen() {
               style={{ marginLeft: 8 }}
             />
           </TouchableOpacity>
-          <View style={styles.vDivider} />
-          <View style={styles.growthBadge}>
-            <Ionicons name="arrow-up" size={14} color="#10B981" />
-            <Text style={styles.growthText}>12% vs Last month</Text>
-          </View>
+          {transactions.length > 0 && (
+            <>
+              <View style={styles.vDivider} />
+              <View style={styles.growthBadge}>
+                <Ionicons name="arrow-up" size={14} color="#10B981" />
+                <Text style={styles.growthText}>12% vs Last month</Text>
+              </View>
+            </>
+          )}
         </View>
 
         {/* Section 2 — Budget Overview */}
@@ -315,6 +320,7 @@ export default function DashboardScreen() {
           <View style={styles.tooltipArrow} />
         </View>
       )}
+      </View>
     </View>
   );
 }
@@ -322,11 +328,18 @@ export default function DashboardScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: BACKGROUND,
+    backgroundColor: PRIMARY_GREEN,
   },
   headerBackground: {
     backgroundColor: PRIMARY_GREEN,
     paddingBottom: SPACING.LG,
+  },
+  mainContentWrapper: {
+    flex: 1,
+    backgroundColor: BACKGROUND,
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    overflow: "hidden",
   },
   headerContent: {
     flexDirection: "row",

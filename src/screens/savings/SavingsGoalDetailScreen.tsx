@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -7,9 +7,9 @@ import {
   SafeAreaView,
   TouchableOpacity,
   StatusBar,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import {
   BACKGROUND,
   WHITE,
@@ -17,32 +17,42 @@ import {
   TEXT_PRIMARY,
   TEXT_SECONDARY,
   Fonts,
-} from '../../constants';
-import { DarkCard } from '../../components/DarkCard';
-import { Header } from '../../components/Header';
-import { Button } from '../../components/Button';
-import { ProgressBar } from '../../components/ProgressBar';
-import { DeleteConfirmModal } from '../../components/DeleteConfirmModal';
+} from "../../constants";
+import { DarkCard } from "../../components/DarkCard";
+import { Header } from "../../components/Header";
+import { Button } from "../../components/Button";
+import { ProgressBar } from "../../components/ProgressBar";
+import { DeleteConfirmModal } from "../../components/DeleteConfirmModal";
 
 export const SavingsGoalDetailScreen = () => {
   const router = useRouter();
   const { id } = useLocalSearchParams();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  
+
   // Mock data for the specific goal
   const goal = {
-    id: id || '1',
-    name: 'New Laptop',
-    emoji: '💻',
+    id: id || "1",
+    name: "New Laptop",
+    emoji: "💻",
     targetAmount: 250000,
     savedAmount: 150000,
-    deadline: 'Dec 20, 2025',
-    createdAt: '2025-04-10',
+    deadline: "Dec 20, 2025",
+    createdAt: "2025-04-10",
     contributions: [
-      { id: 'c1', amount: 50000, date: 'Apr 18, 2025', note: 'Monthly allowance' },
-      { id: 'c2', amount: 20000, date: 'Apr 12, 2025', note: 'Freelance work' },
-      { id: 'c3', amount: 80000, date: 'Apr 10, 2025', note: 'Initial deposit' },
-    ]
+      {
+        id: "c1",
+        amount: 50000,
+        date: "Apr 18, 2025",
+        note: "Monthly allowance",
+      },
+      { id: "c2", amount: 20000, date: "Apr 12, 2025", note: "Freelance work" },
+      {
+        id: "c3",
+        amount: 80000,
+        date: "Apr 10, 2025",
+        note: "Initial deposit",
+      },
+    ],
   };
 
   const progress = goal.savedAmount / goal.targetAmount;
@@ -50,10 +60,29 @@ export const SavingsGoalDetailScreen = () => {
   const remaining = goal.targetAmount - goal.savedAmount;
 
   const getMotivationCard = () => {
-    if (percent < 30) return { text: "You're just getting started! Every kobo counts 🚀", color: '#EFF6FF', textColor: '#3B82F6' };
-    if (percent < 70) return { text: `Great progress! You're ${percent}% closer to your ${goal.name}! 🔥`, color: '#F0FDF4', textColor: '#22C55E' };
-    if (percent < 100) return { text: "Almost there! Keep going — you're nearly at your goal 🏆", color: '#FFFBEB', textColor: '#D97706' };
-    return { text: "Goal Achieved! 🎉", color: '#F0FDF4', textColor: '#22C55E' };
+    if (percent < 30)
+      return {
+        text: "You're just getting started! Every kobo counts 🚀",
+        color: "#EFF6FF",
+        textColor: "#3B82F6",
+      };
+    if (percent < 70)
+      return {
+        text: `Great progress! You're ${percent}% closer to your ${goal.name}! 🔥`,
+        color: "#F0FDF4",
+        textColor: "#22C55E",
+      };
+    if (percent < 100)
+      return {
+        text: "Almost there! Keep going — you're nearly at your goal 🏆",
+        color: "#FFFBEB",
+        textColor: "#D97706",
+      };
+    return {
+      text: "Goal Achieved! 🎉",
+      color: "#F0FDF4",
+      textColor: "#22C55E",
+    };
   };
 
   const motivation = getMotivationCard();
@@ -62,7 +91,7 @@ export const SavingsGoalDetailScreen = () => {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
 
-      <DeleteConfirmModal 
+      <DeleteConfirmModal
         isVisible={showDeleteModal}
         title="Delete Savings Goal?"
         message="This will remove your goal and all recorded contributions. This action cannot be undone."
@@ -72,39 +101,52 @@ export const SavingsGoalDetailScreen = () => {
           // router.back();
         }}
       />
-      
+
       {/* Hero Header */}
       <View style={styles.headerHeroRegion}>
         <SafeAreaView>
-          <Header 
-            title="Goal Details" 
-            showBack={true} 
+          <Header
+            title="Goal Details"
+            showBack={true}
             onBack={() => router.back()}
             showEdit={true}
-            onEdit={() => router.push({ pathname: '/create-savings', params: { id: goal.id } })}
-            whiteTheme={true}
+            onEdit={() =>
+              router.push({
+                pathname: "/savings/create" as any,
+                params: { id: goal.id },
+              })
+            }
+            transparent={true}
+            tintColor={WHITE}
           />
 
           <View style={styles.summaryCardWrapper}>
             <DarkCard type="balance" amount={goal.savedAmount}>
-               <View style={styles.darkCardInner}>
-                  <Text style={styles.goalTitle}>{goal.name} {goal.emoji}</Text>
-                  <View style={styles.amountProgressGroup}>
-                    <Text style={styles.savedAmountHeader}>
-                        ₦{goal.savedAmount.toLocaleString()} <Text style={styles.targetTotal}>/ ₦{goal.targetAmount.toLocaleString()}</Text>
+              <View style={styles.darkCardInner}>
+                <Text style={styles.goalTitle}>
+                  {goal.name} {goal.emoji}
+                </Text>
+                <View style={styles.amountProgressGroup}>
+                  <Text style={styles.savedAmountHeader}>
+                    ₦{goal.savedAmount.toLocaleString()}{" "}
+                    <Text style={styles.targetTotal}>
+                      / ₦{goal.targetAmount.toLocaleString()}
                     </Text>
-                    
-                    <View style={styles.thickBarWrapper}>
-                        <ProgressBar progress={progress} height={12} />
-                    </View>
-                    
-                    <View style={styles.metaInfoRow}>
-                        <Text style={styles.percentText}>{percent}% achieved</Text>
-                        <Text style={styles.metaDivider}>•</Text>
-                        <Text style={styles.remainingShort}>₦{remaining.toLocaleString()} left</Text>
-                    </View>
+                  </Text>
+
+                  <View style={styles.thickBarWrapper}>
+                    <ProgressBar progress={progress} height={12} />
                   </View>
-               </View>
+
+                  <View style={styles.metaInfoRow}>
+                    <Text style={styles.percentText}>{percent}% achieved</Text>
+                    <Text style={styles.metaDivider}>•</Text>
+                    <Text style={styles.remainingShort}>
+                      ₦{remaining.toLocaleString()} left
+                    </Text>
+                  </View>
+                </View>
+              </View>
             </DarkCard>
           </View>
         </SafeAreaView>
@@ -114,23 +156,30 @@ export const SavingsGoalDetailScreen = () => {
         <View style={styles.contentPadding}>
           {/* Mini Stats Grid */}
           <View style={styles.miniStatsGrid}>
-             <View style={styles.miniStatCard}>
-                <Text style={styles.miniStatLabel}>Daily Target</Text>
-                <Text style={styles.miniStatValue}>₦1,200</Text>
-             </View>
-             <View style={styles.miniStatCard}>
-                <Text style={styles.miniStatLabel}>Monthly Target</Text>
-                <Text style={styles.miniStatValue}>₦35,000</Text>
-             </View>
-             <View style={styles.miniStatCard}>
-                <Text style={styles.miniStatLabel}>Days Left</Text>
-                <Text style={styles.miniStatValue}>245</Text>
-             </View>
+            <View style={styles.miniStatCard}>
+              <Text style={styles.miniStatLabel}>Daily Target</Text>
+              <Text style={styles.miniStatValue}>₦1,200</Text>
+            </View>
+            <View style={styles.miniStatCard}>
+              <Text style={styles.miniStatLabel}>Monthly Target</Text>
+              <Text style={styles.miniStatValue}>₦35,000</Text>
+            </View>
+            <View style={styles.miniStatCard}>
+              <Text style={styles.miniStatLabel}>Days Left</Text>
+              <Text style={styles.miniStatValue}>245</Text>
+            </View>
           </View>
 
           {/* Motivation Card */}
-          <View style={[styles.motivationCard, { backgroundColor: motivation.color }]}>
-            <Text style={[styles.motivationText, { color: motivation.textColor }]}>
+          <View
+            style={[
+              styles.motivationCard,
+              { backgroundColor: motivation.color },
+            ]}
+          >
+            <Text
+              style={[styles.motivationText, { color: motivation.textColor }]}
+            >
               {motivation.text}
             </Text>
           </View>
@@ -138,33 +187,37 @@ export const SavingsGoalDetailScreen = () => {
           {/* Recent Contributions */}
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Recent Contributions</Text>
-            <TouchableOpacity><Text style={styles.viewAllBtn}>View all →</Text></TouchableOpacity>
+            <TouchableOpacity>
+              <Text style={styles.viewAllBtn}>View all →</Text>
+            </TouchableOpacity>
           </View>
 
           <View style={styles.contributionList}>
             {goal.contributions.map((c) => (
               <View key={c.id} style={styles.contributionItem}>
-                 <View style={styles.cLeft}>
-                    <View style={styles.cIconCircle}>
-                        <Ionicons name="add" size={16} color={PRIMARY_GREEN} />
-                    </View>
-                    <View>
-                        <Text style={styles.cAmount}>+₦{c.amount.toLocaleString()}</Text>
-                        <Text style={styles.cNote}>{c.note}</Text>
-                    </View>
-                 </View>
-                 <Text style={styles.cDate}>{c.date}</Text>
+                <View style={styles.cLeft}>
+                  <View style={styles.cIconCircle}>
+                    <Ionicons name="add" size={16} color={PRIMARY_GREEN} />
+                  </View>
+                  <View>
+                    <Text style={styles.cAmount}>
+                      +₦{c.amount.toLocaleString()}
+                    </Text>
+                    <Text style={styles.cNote}>{c.note}</Text>
+                  </View>
+                </View>
+                <Text style={styles.cDate}>{c.date}</Text>
               </View>
             ))}
           </View>
 
           <View style={styles.dangerZone}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.deleteBtn}
               onPress={() => setShowDeleteModal(true)}
             >
-                <Ionicons name="trash-outline" size={20} color="#EF4444" />
-                <Text style={styles.deleteBtnText}>Delete Goal</Text>
+              <Ionicons name="trash-outline" size={20} color="#EF4444" />
+              <Text style={styles.deleteBtnText}>Delete Goal</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -172,9 +225,11 @@ export const SavingsGoalDetailScreen = () => {
 
       {/* Floating Add Funds */}
       <View style={styles.bottomCta}>
-        <Button 
-          title="Add Funds" 
-          onPress={() => {/* Show Bottom Sheet */}}
+        <Button
+          title="Add Funds"
+          onPress={() => {
+            /* Show Bottom Sheet */
+          }}
           variant="primary"
           fullWidth={true}
         />
@@ -189,7 +244,7 @@ const styles = StyleSheet.create({
     backgroundColor: BACKGROUND,
   },
   headerHeroRegion: {
-    backgroundColor: '#0B5E2F',
+    backgroundColor: "#0B5E2F",
     paddingBottom: 40,
   },
   summaryCardWrapper: {
@@ -216,28 +271,28 @@ const styles = StyleSheet.create({
   targetTotal: {
     fontFamily: Fonts.regular,
     fontSize: 14,
-    color: 'rgba(255,255,255,0.7)',
+    color: "rgba(255,255,255,0.7)",
   },
   thickBarWrapper: {
     marginVertical: 4,
   },
   metaInfoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 8,
   },
   percentText: {
     fontFamily: Fonts.bold,
     fontSize: 14,
-    color: '#00CFB5', // Teal accent
+    color: "#00CFB5", // Teal accent
   },
   metaDivider: {
-    color: 'rgba(255,255,255,0.3)',
+    color: "rgba(255,255,255,0.3)",
   },
   remainingShort: {
     fontFamily: Fonts.medium,
     fontSize: 14,
-    color: 'rgba(255,255,255,0.8)',
+    color: "rgba(255,255,255,0.8)",
   },
   mainContent: {
     flex: 1,
@@ -251,8 +306,8 @@ const styles = StyleSheet.create({
     paddingBottom: 100,
   },
   miniStatsGrid: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginBottom: 20,
     marginTop: 10,
   },
@@ -262,7 +317,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     flex: 1,
     marginHorizontal: 4,
-    alignItems: 'center',
+    alignItems: "center",
     elevation: 1,
   },
   miniStatLabel: {
@@ -284,13 +339,13 @@ const styles = StyleSheet.create({
   motivationText: {
     fontFamily: Fonts.medium,
     fontSize: 14,
-    textAlign: 'center',
+    textAlign: "center",
     lineHeight: 20,
   },
   sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'baseline',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "baseline",
     marginBottom: 16,
   },
   sectionTitle: {
@@ -310,25 +365,25 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   contributionItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     padding: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: "#F3F4F6",
   },
   cLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 12,
   },
   cIconCircle: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#F0FDF4',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "#F0FDF4",
+    alignItems: "center",
+    justifyContent: "center",
   },
   cAmount: {
     fontFamily: Fonts.semiBold,
@@ -346,29 +401,29 @@ const styles = StyleSheet.create({
     color: TEXT_SECONDARY,
   },
   dangerZone: {
-    alignItems: 'center',
+    alignItems: "center",
   },
   deleteBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 8,
     padding: 12,
   },
   deleteBtnText: {
     fontFamily: Fonts.medium,
     fontSize: 14,
-    color: '#EF4444',
+    color: "#EF4444",
   },
   bottomCta: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
     padding: 20,
     backgroundColor: WHITE,
     borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
-  }
+    borderTopColor: "#F3F4F6",
+  },
 });
 
 export default SavingsGoalDetailScreen;

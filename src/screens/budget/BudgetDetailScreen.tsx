@@ -23,31 +23,61 @@ import {
 import { DarkCard } from '../../components/DarkCard';
 import { Header } from '../../components/Header';
 import { TransactionCard } from '../../components/TransactionCard';
+import { DeleteConfirmModal } from '../../components/DeleteConfirmModal';
+import { useAppContext } from '../../context/AppContext';
 
 export const BudgetDetailScreen = () => {
   const router = useRouter();
   const { id } = useLocalSearchParams();
+  const { budgets, transactions: allTransactions, deleteBudget } = useAppContext();
+  const [showDeleteModal, setShowDeleteModal] = React.useState(false);
   
-  // Mock data
+  const handleDelete = async () => {
+    if (id) {
+      await deleteBudget(id as string);
+      setShowDeleteModal(false);
+      router.back();
+    }
+  };
+  
+  // Find budget from context
+  const foundBudget = budgets.find(b => b.id === id);
+  
+  // Icon Mapping function
+  const getIconForCategory = (category: string): keyof typeof Ionicons.glyphMap => {
+    switch (category.toLowerCase()) {
+      case 'food': return 'restaurant-outline';
+      case 'data & airtime':
+      case 'airtime':
+      case 'data': return 'wifi-outline';
+      case 'transport': return 'car-outline';
+      case 'shopping': return 'cart-outline';
+      case 'medical':
+      case 'health': return 'heart-outline';
+      default: return 'wallet-outline';
+    }
+  };
+
+  if (!foundBudget) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <Text>Budget not found</Text>
+      </View>
+    );
+  }
+
   const budget = {
-    id: id || '1',
-    category: 'Food',
-    icon: 'restaurant-outline',
-    color: '#FF6B6B',
-    limitAmount: 50000,
-    spentAmount: 32000,
-    daysLeft: 12,
+    ...foundBudget,
+    icon: getIconForCategory(foundBudget.category),
+    daysLeft: 6, // Mock for now
   };
 
   const progress = budget.spentAmount / budget.limitAmount;
   const percent = Math.round(progress * 100);
   const remaining = budget.limitAmount - budget.spentAmount;
 
-  const transactions = [
-    { id: 't1', title: 'Lunch at Optop', amount: 2500, type: 'expense', date: 'Today, 2:15 PM', category: 'Food', icon: 'restaurant-outline' },
-    { id: 't2', title: 'Dinner', amount: 3000, type: 'expense', date: 'Yesterday, 8:45 PM', category: 'Food', icon: 'restaurant-outline' },
-    { id: 't3', title: 'Groceries', amount: 15000, type: 'expense', date: 'Apr 15, 10:20 AM', category: 'Food', icon: 'restaurant-outline' },
-  ];
+  // Filter transactions for this budget's category
+  const transactions = allTransactions.filter(t => t.category.toLowerCase() === budget.category.toLowerCase());
 
   return (
     <View style={styles.container}>
@@ -60,7 +90,7 @@ export const BudgetDetailScreen = () => {
             showBack={true} 
             onBack={() => router.back()}
             showEdit={true}
-            onEdit={() => {/* Navigate to Edit */}}
+            onEdit={() => router.push({ pathname: '/budget/create', params: { budget: JSON.stringify(budget) } })}
             whiteTheme={true}
           />
 
@@ -144,20 +174,34 @@ export const BudgetDetailScreen = () => {
             ))}
           </View>
 
-          <TouchableOpacity style={styles.viewAllFooter}>
+          <TouchableOpacity 
+            style={styles.viewAllFooter}
+            onPress={() => router.push('/(tabs)/expenses')}
+          >
             <Text style={styles.viewAllFooterText}>View all transactions →</Text>
           </TouchableOpacity>
 
           <View style={styles.actionButtons}>
-            <TouchableOpacity style={styles.editBtn}>
+            <TouchableOpacity 
+              style={styles.editBtn}
+              onPress={() => router.push({ pathname: '/budget/create', params: { budget: JSON.stringify(budget) } })}
+            >
                 <Text style={styles.editBtnText}>Edit Budget</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.deleteBtn}>
+            <TouchableOpacity style={styles.deleteBtn} onPress={() => setShowDeleteModal(true)}>
                 <Text style={styles.deleteBtnText}>Delete Budget</Text>
             </TouchableOpacity>
           </View>
         </View>
       </ScrollView>
+
+      <DeleteConfirmModal
+        isVisible={showDeleteModal}
+        title="Delete Budget?"
+        message={`Are you sure you want to delete your ${budget.category} budget? This action cannot be undone.`}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleDelete}
+      />
     </View>
   );
 };
