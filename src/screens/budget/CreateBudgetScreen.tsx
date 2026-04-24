@@ -110,8 +110,8 @@ export const CreateBudgetScreen = () => {
       {/* Success Modal — overlays the form */}
       <SuccessModal 
         isVisible={showSuccess}
-        title="Budget Created!"
-        subtitle="Your budget is now active. We will alert you when you are nearing your limit."
+        title={isEditing ? "Budget edited successfully" : "Budget created successfully"}
+        subtitle=""
         onDone={() => {
           setShowSuccess(false);
           router.push('/(tabs)/budget');
