@@ -154,29 +154,14 @@ export const BudgetScreen = () => {
             {hasBudgets ? (
               <View style={styles.summaryCardWrapper}>
                 <DarkCard
-                  type="budget"
-                  label="Total budget"
+                  type="expenses"
                   amount={totalSpent}
-                  limitAmount={totalBudget}
-                  progress={totalProgress}
-                  progressLabel={`₦${totalRemaining.toLocaleString()} left • ${motivationalMessage}`}
+                  label="Total Budget"
                   periodLabel={currentMonth}
-                  comparisonLabel="↑ 12% vs Last month"
-                  style={styles.darkSummaryCard}
+                  progress={totalProgress}
+                  statusCaption={`You've spent ${Math.round(totalProgress * 100)}% of your total budget`}
+                  style={styles.summaryCard}
                 />
-
-                {/* External Meta Row below card */}
-                <View style={styles.externalMetaRow}>
-                  <View style={styles.monthCol}>
-                    <Text style={styles.monthLabelText}>{currentMonth}</Text>
-                    <Ionicons name="calendar-outline" size={16} color="#A5D6A7" style={{ marginLeft: 6 }} />
-                  </View>
-                  <View style={styles.verticalDividerLine} />
-                  <View style={styles.growthCol}>
-                    <Ionicons name="arrow-up" size={14} color="#A5D6A7" />
-                    <Text style={styles.growthLabelText}>12% vs Last month</Text>
-                  </View>
-                </View>
               </View>
             ) : (
               <View style={styles.emptyHeaderContent}>
@@ -297,7 +282,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.LG,
     marginTop: 8,
   },
-  darkSummaryCard: {
+  summaryCard: {
     elevation: 0,
     shadowOpacity: 0,
   },
@@ -448,41 +433,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     paddingHorizontal: 20,
     lineHeight: 20,
-  },
-  externalMetaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 16,
-  },
-  monthCol: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-    flex: 1,
-  },
-  monthLabelText: {
-    fontFamily: Fonts.medium,
-    fontSize: 13,
-    color: '#A5D6A7', 
-    letterSpacing: 0.5,
-  },
-  verticalDividerLine: {
-    width: 1,
-    height: 20,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    marginHorizontal: 16,
-  },
-  growthCol: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  growthLabelText: {
-    fontFamily: Fonts.regular,
-    fontSize: 13,
-    color: '#A5D6A7',
-    marginLeft: 4,
   },
   fab: {
     position: 'absolute',

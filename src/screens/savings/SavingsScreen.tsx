@@ -109,80 +109,81 @@ export const SavingsScreen = () => {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
 
-      <FlatList
-        data={savingsGoals}
-        renderItem={renderGoalCard}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-        ListHeaderComponent={
-          <>
-            {/* Hero Region */}
-            <View style={styles.headerBackground}>
-              <SafeAreaView>
-                <View style={styles.headerContent}>
-                  <TouchableOpacity
-                    style={styles.profileSection}
-                    onPress={() => router.push("/(tabs)/profile")}
-                  >
-                    <View style={styles.avatar}>
-                      <Image
-                        source={require("../../../assets/images/avatar.jpeg")}
-                        style={styles.avatarImage}
-                      />
-                    </View>
-                    <Text style={styles.welcomeText}>Hi, Taiwo</Text>
-                  </TouchableOpacity>
+      {/* Hero Region */}
+      <View style={styles.headerBackground}>
+        <SafeAreaView>
+          <View style={styles.headerContent}>
+            <TouchableOpacity
+              style={styles.profileSection}
+              onPress={() => router.push("/(tabs)/profile")}
+            >
+              <View style={styles.avatar}>
+                <Image
+                  source={require("../../../assets/images/avatar.jpeg")}
+                  style={styles.avatarImage}
+                />
+              </View>
+              <Text style={styles.welcomeText}>Hi, Taiwo</Text>
+            </TouchableOpacity>
 
-                  <Text style={styles.headerTitle}>Savings</Text>
+            <Text style={styles.headerTitle}>Savings</Text>
 
-                  <View style={styles.headerActions}>
-                    <TouchableOpacity
-                      style={styles.iconButton}
-                      onPress={() => router.push("/(tabs)/learning")}
-                    >
-                      <Ionicons name="school-outline" size={24} color={WHITE} />
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={styles.iconButton}
-                      onPress={() => router.push("/profile/notifications")}
-                    >
-                      <Ionicons
-                        name="notifications-outline"
-                        size={24}
-                        color={WHITE}
-                      />
-                    </TouchableOpacity>
-                  </View>
-                </View>
-
-                <View style={styles.summaryCardWrapper}>
-                  <DarkCard
-                    type="balance" // Using balance type for general summary look
-                    amount={totalSaved}
-                    label="Total Savings"
-                    periodLabel={`Across ${savingsGoals.length} active goals`}
-                    hideIncomeExpenses={true}
-                    style={styles.summaryCard}
-                  />
-                </View>
-              </SafeAreaView>
+            <View style={styles.headerActions}>
+              <TouchableOpacity
+                style={styles.iconButton}
+                onPress={() => router.push("/(tabs)/learning")}
+              >
+                <Ionicons name="school-outline" size={22} color={WHITE} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.iconButton}
+                onPress={() => router.push("/profile/notifications")}
+              >
+                <Ionicons
+                  name="notifications-outline"
+                  size={22}
+                  color={WHITE}
+                />
+              </TouchableOpacity>
             </View>
-            {hasGoals && <Text style={styles.sectionLabel}>My Goals</Text>}
-          </>
-        }
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <EmptyState
-              icon="wallet-outline"
-              title="No savings goals yet"
-              subtitle="Set a goal and start saving towards something you love"
-              buttonTitle="Create a Goal"
-              onButtonPress={() => router.push("/savings/create")}
+          </View>
+
+          <View style={styles.summaryCardWrapper}>
+            <DarkCard
+              type="balance" // Using balance type for general summary look
+              amount={totalSaved}
+              label="Total Savings"
+              periodLabel={`Across ${savingsGoals.length} active goals`}
+              hideIncomeExpenses={true}
+              style={styles.summaryCard}
             />
           </View>
-        }
-      />
+        </SafeAreaView>
+      </View>
+
+      <View style={styles.mainContentWrapper}>
+        <FlatList
+          data={savingsGoals}
+          renderItem={renderGoalCard}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+          ListHeaderComponent={
+            hasGoals ? <Text style={styles.sectionLabel}>My Goals</Text> : null
+          }
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <EmptyState
+                icon="wallet-outline"
+                title="No savings goals yet"
+                subtitle="Set a goal and start saving towards something you love"
+                buttonTitle="Create a Goal"
+                onButtonPress={() => router.push("/savings/create")}
+              />
+            </View>
+          }
+        />
+      </View>
     </View>
   );
 };
@@ -190,11 +191,18 @@ export const SavingsScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: BACKGROUND,
+    backgroundColor: PRIMARY_GREEN,
   },
   headerBackground: {
     backgroundColor: PRIMARY_GREEN,
-    paddingBottom: 60,
+    paddingBottom: SPACING.LG,
+  },
+  mainContentWrapper: {
+    flex: 1,
+    backgroundColor: BACKGROUND,
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    overflow: "hidden",
   },
   headerContent: {
     flexDirection: "row",
@@ -243,19 +251,15 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   summaryCardWrapper: {
-    paddingHorizontal: 20,
+    paddingHorizontal: SPACING.LG,
   },
   summaryCard: {
     // Add any summary card specific styles here if needed
   },
   listContent: {
-    backgroundColor: BACKGROUND,
-    borderTopLeftRadius: 40,
-    borderTopRightRadius: 40,
-    marginTop: -40,
-    paddingHorizontal: 20,
+    paddingTop: 24,
+    paddingHorizontal: SPACING.LG,
     paddingBottom: 100,
-    paddingTop: 30,
   },
   sectionLabel: {
     fontFamily: Fonts.bold,
