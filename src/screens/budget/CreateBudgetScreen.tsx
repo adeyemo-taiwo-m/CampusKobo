@@ -44,12 +44,17 @@ export const CreateBudgetScreen = () => {
 
   const [category, setCategory] = useState(editingBudget?.category || '');
   const [categoryIcon, setCategoryIcon] = useState(editingBudget?.categoryIcon || '');
-  const [amount, setAmount] = useState(editingBudget?.limitAmount?.toString() || '');
+  const [amount, setAmount] = useState(
+    editingBudget?.limitAmount 
+      ? editingBudget.limitAmount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') 
+      : ''
+  );
   const [period, setPeriod] = useState(
     editingBudget?.period 
       ? editingBudget.period.charAt(0).toUpperCase() + editingBudget.period.slice(1) 
-      : ''
+      : 'Monthly'
   );
+  const [startsOn] = useState('October 2025');
   const [note, setNote] = useState('');
   const [showCategorySheet, setShowCategorySheet] = useState(false);
   const [showPeriodSheet, setShowPeriodSheet] = useState(false);
@@ -105,8 +110,8 @@ export const CreateBudgetScreen = () => {
       {/* Success Modal — overlays the form */}
       <SuccessModal 
         isVisible={showSuccess}
-        title="Budget created successfully"
-        subtitle=""
+        title="Budget Created!"
+        subtitle="Your budget is now active. We will alert you when you are nearing your limit."
         onDone={() => {
           setShowSuccess(false);
           router.push('/(tabs)/budget');
@@ -114,15 +119,12 @@ export const CreateBudgetScreen = () => {
       />
 
       <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1 }}
+        style={{ flex: 1 }} 
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <ScrollView 
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-        >
+        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           <View style={styles.formSection}>
+            
             {/* Category Field */}
             <SelectField
               label="Category"
@@ -135,11 +137,10 @@ export const CreateBudgetScreen = () => {
             {/* Amount Field */}
             <InputField
               label="Amount"
-              placeholder=""
-              value={amount}
+              placeholder="₦"
+              value={amount ? `₦${amount}` : ''}
               onChangeText={handleAmountChange}
               keyboardType="numeric"
-              prefix="₦"
               state={amount ? 'active' : 'default'}
             />
 
@@ -156,10 +157,10 @@ export const CreateBudgetScreen = () => {
             <InputField
               label="Starts on"
               placeholder="e.g. 1 October 2025"
-              value="October 2025"
+              value={startsOn}
               onChangeText={() => {}}
               editable={false}
-              state={true ? 'active' : 'default'}
+              state={startsOn ? 'active' : 'default'}
             />
 
             {/* Note Field */}
