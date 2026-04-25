@@ -14,7 +14,7 @@ import { ProgressBar } from "./ProgressBar";
 
 interface DarkCardProps {
   type: "balance" | "expenses" | "transaction" | "budget";
-  amount: number;
+  amount?: number;
   income?: number;
   expenses?: number;
   // Type: 'balance' specific props
@@ -42,7 +42,7 @@ interface DarkCardProps {
 
 export const DarkCard = ({
   type,
-  amount,
+  amount = 0,
   income = 0,
   expenses = 0,
   isBalanceVisible = true,
@@ -102,6 +102,20 @@ export const DarkCard = ({
                   <Text style={isBudgetType ? styles.mutedLabel : styles.label}>
                     {label}
                   </Text>
+                )}
+
+                {/* Budget type: category icon + name header row */}
+                {isBudgetType && categoryName && (
+                  <View style={styles.budgetCategoryHeader}>
+                    <View style={styles.budgetCategoryIconCircle}>
+                      <Ionicons
+                        name={(categoryIcon as any) || 'wallet-outline'}
+                        size={16}
+                        color={"#19a051"}
+                      />
+                    </View>
+                    <Text style={styles.budgetCategoryName}>{categoryName}</Text>
+                  </View>
                 )}
 
                 <View style={styles.amountRow}>
@@ -625,5 +639,24 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.regular,
     fontSize: 13,
     color: "#4ADE80",
+  },
+  budgetCategoryHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 14,
+  },
+  budgetCategoryIconCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "rgba(255,255,255,0.15)",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 8,
+  },
+  budgetCategoryName: {
+    fontFamily: Fonts.medium,
+    fontSize: 15,
+    color: WHITE,
   },
 });
