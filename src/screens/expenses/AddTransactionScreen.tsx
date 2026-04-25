@@ -23,8 +23,10 @@ import {
   BACKGROUND 
 } from '../../constants';
 import { InputField } from '../../components/InputField';
+import { Button } from '../../components/Button';
 import { SuccessModal } from '../../components/SuccessScreen';
 import { Toast } from '../../components/Toast';
+import { CategoryBottomSheet } from '../../components/CategoryBottomSheet';
 import { useToast } from '../../hooks/useToast';
 import { useAppContext } from '../../context/AppContext';
 import { Transaction } from '../../types';

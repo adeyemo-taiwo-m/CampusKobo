@@ -10,11 +10,14 @@ interface HeaderProps {
   showBell?: boolean;
   showLearning?: boolean;
   showProfile?: boolean;
+  showBookmark?: boolean;
+  isBookmarked?: boolean;
   onBack?: () => void;
   onEdit?: () => void;
   onBell?: () => void;
   onLearning?: () => void;
   onProfile?: () => void;
+  onBookmark?: () => void;
   transparent?: boolean;
   tintColor?: string;
 }
@@ -26,11 +29,14 @@ export const Header = ({
   showBell,
   showLearning,
   showProfile,
+  showBookmark,
+  isBookmarked,
   onBack,
   onEdit,
   onBell,
   onLearning,
   onProfile,
+  onBookmark,
   transparent,
   tintColor = TEXT_PRIMARY,
 }: HeaderProps) => {
@@ -40,7 +46,7 @@ export const Header = ({
         <View style={styles.leftContainer}>
           {showBack && (
             <TouchableOpacity onPress={onBack} style={styles.iconButton}>
-              <Ionicons name="arrow-back" size={24} color={tintColor} />
+              <Ionicons name="chevron-back" size={24} color={tintColor} />
             </TouchableOpacity>
           )}
           {showProfile && (
@@ -57,6 +63,15 @@ export const Header = ({
         </View>
 
         <View style={styles.rightContainer}>
+          {showBookmark && (
+            <TouchableOpacity onPress={onBookmark} style={[styles.iconButton, isBookmarked && styles.bookmarkActive]}>
+              <Ionicons 
+                name={isBookmarked ? "bookmark" : "bookmark-outline"} 
+                size={22} 
+                color={isBookmarked ? WHITE : tintColor} 
+              />
+            </TouchableOpacity>
+          )}
           {showLearning && (
             <TouchableOpacity onPress={onLearning} style={styles.iconButton}>
               <Ionicons name="school-outline" size={24} color={tintColor} />
@@ -134,5 +149,10 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZE.MD,
     color: TEXT_PRIMARY,
     fontWeight: '600',
+  },
+  bookmarkActive: {
+    backgroundColor: '#3CB96A',
+    borderRadius: 8,
+    padding: 6,
   },
 });

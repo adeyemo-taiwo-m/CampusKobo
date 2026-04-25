@@ -10,7 +10,7 @@ import {
   Platform,
   StatusBar
 } from 'react-native';
-import { useRouter, Stack } from 'expo-router';
+import { useRouter, Stack, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { 
   PRIMARY_GREEN, 
@@ -31,6 +31,7 @@ import { useAppContext } from '../../context/AppContext';
 import { RecurringExpense } from '../../types';
 
 export default function AddRecurringExpenseScreen() {
+  const router = useRouter();
   const params = useLocalSearchParams();
   const { addRecurringExpense, updateRecurringExpense } = useAppContext();
   

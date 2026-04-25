@@ -28,6 +28,7 @@ import { InputField } from '../../components/InputField';
 import { SelectField } from '../../components/SelectField';
 import { SuccessModal } from '../../components/SuccessScreen';
 import { Toast } from '../../components/Toast';
+import { CategoryBottomSheet } from '../../components/CategoryBottomSheet';
 import { useToast } from '../../hooks/useToast';
 import { useAppContext } from '../../context/AppContext';
 import { Budget } from '../../types';
