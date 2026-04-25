@@ -25,11 +25,13 @@ import { DarkCard } from "../../components/DarkCard";
 import { ProgressBar } from "../../components/ProgressBar";
 import { TransactionCard } from "../../components/TransactionCard";
 import { EmptyState } from "../../components/EmptyState";
+import { AddFundsBottomSheet } from "../../components/AddFundsBottomSheet";
 
 export default function DashboardScreen() {
   const router = useRouter();
   const { user, transactions, budgets, savingsGoals } = useAppContext();
   const [isBalanceVisible, setIsBalanceVisible] = useState(true);
+  const [isAddFundsVisible, setIsAddFundsVisible] = useState(false);
   console.log(transactions);
 
   // Helper Functions
@@ -260,9 +262,7 @@ export default function DashboardScreen() {
               </View>
               <TouchableOpacity
                 style={styles.primaryActionBtn}
-                onPress={() =>
-                  router.push(`/savings/add-funds?id=${primaryGoal.id}`)
-                }
+                onPress={() => setIsAddFundsVisible(true)}
               >
                 <Text style={styles.primaryActionBtnText}>Add funds</Text>
               </TouchableOpacity>
@@ -320,6 +320,17 @@ export default function DashboardScreen() {
           <View style={styles.tooltipArrow} />
         </View>
       )}
+        {/* Add Funds Bottom Sheet */}
+        {primaryGoal && (
+          <AddFundsBottomSheet
+            visible={isAddFundsVisible}
+            goal={primaryGoal}
+            onClose={() => setIsAddFundsVisible(false)}
+            onSuccess={() => {
+              // Success handled by sheet overlay
+            }}
+          />
+        )}
       </View>
     </View>
   );
@@ -501,7 +512,7 @@ const styles = StyleSheet.create({
   },
   goalName: {
     fontFamily: Fonts.semiBold,
-    fontSize: 22,
+    fontSize: 18,
     color: TEXT_PRIMARY,
     marginBottom: 8,
   },
