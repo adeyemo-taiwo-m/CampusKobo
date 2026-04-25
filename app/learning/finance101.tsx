@@ -1,5 +1,5 @@
-import { Finance101Screen } from '../../src/screens/learning/Finance101Screen';
+import { Finance101SeriesScreen } from '../../src/screens/learning/Finance101SeriesScreen';
 
 export default function Finance101Route() {
-  return <Finance101Screen />;
+  return <Finance101SeriesScreen />;
 }

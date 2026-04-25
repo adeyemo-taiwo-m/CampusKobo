@@ -1,365 +1,572 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
-  SafeAreaView,
   TouchableOpacity,
   Image,
-  FlatList,
+  StatusBar,
+  Dimensions,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
-  BACKGROUND,
-  WHITE,
   PRIMARY_GREEN,
+  WHITE,
   TEXT_PRIMARY,
   TEXT_SECONDARY,
+  BACKGROUND,
   Fonts,
-  BORDER_GRAY,
+  Colors,
 } from '../../constants';
-import { Header } from '../../components/Header';
-import { LEARNING_CONTENT, FINANCE_101_SERIES } from '../../constants/learningData';
+import {
+  LEARNING_CONTENT,
+  FINANCE_101_SERIES,
+  GLOSSARY_TERMS,
+} from '../../constants/learningData';
+
+const { width } = Dimensions.get('window');
+const CARD_WIDTH = width * 0.45;
+
+const CATEGORIES = ['All', 'Budgeting', 'Saving', 'Investing', 'Loans', 'Credit'];
 
 export const LearningHubScreen = () => {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const [selectedCategory, setSelectedCategory] = useState('All');
-  
-  const categories = ['All', 'Budgeting', 'Saving', 'Investing', 'Loans', 'Credit'];
 
-  const featured = LEARNING_CONTENT.find(c => c.isFeatured);
+  const filteredContent = useMemo(() => {
+    if (selectedCategory === 'All') return LEARNING_CONTENT;
+    return LEARNING_CONTENT.filter((item) => item.category === selectedCategory);
+  }, [selectedCategory]);
+
+  const featuredItem = useMemo(() => {
+    return LEARNING_CONTENT.find((item) => item.isFeatured) || LEARNING_CONTENT[0];
+  }, []);
+
+  const latestContent = useMemo(() => {
+    return LEARNING_CONTENT.filter((item) => !item.isFeatured).slice(0, 5);
+  }, []);
+
+  const EPISODE_COLORS = [
+    '#E8F5E9', // green
+    '#E3F2FD', // blue
+    '#F3E5F5', // purple
+    '#FFF3E0', // orange
+    '#E0F2F1', // teal
+    '#FFEBEE', // red
+    '#FCE4EC', // pink
+    '#FFFDE7', // yellow
+  ];
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Header 
-        title="Learning Hub" 
-        showBack={true} 
-        onBack={() => router.back()}
-      />
+    <View style={styles.container}>
+      <StatusBar barStyle="dark-content" />
       
-      <ScrollView showsVerticalScrollIndicator={false}>
+      {/* Header */}
+      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
+        <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
+          <Ionicons name="chevron-back" size={24} color={TEXT_PRIMARY} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Learning Hub</Text>
+        <View style={{ width: 40 }} />
+      </View>
+
+      <ScrollView 
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
+        {/* Welcome Section */}
+        <View style={styles.welcomeSection}>
+          <Text style={styles.welcomeTitle}>Learn Finance</Text>
+          <Text style={styles.welcomeSubtitle}>Grow your money knowledge</Text>
+        </View>
+
         {/* Category Filter */}
-        <ScrollView 
-          horizontal 
-          showsHorizontalScrollIndicator={false} 
-          contentContainerStyle={styles.categoryRow}
-        >
-          {categories.map(cat => (
-            <TouchableOpacity 
-              key={cat}
-              style={[styles.catChip, selectedCategory === cat && styles.activeCatChip]}
-              onPress={() => setSelectedCategory(cat)}
-            >
-              <Text style={[styles.catChipText, selectedCategory === cat && styles.activeCatChipText]}>
-                {cat}
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>Browse by topic</Text>
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.categoryContainer}
+          >
+            {CATEGORIES.map((category) => (
+              <TouchableOpacity
+                key={category}
+                style={[
+                  styles.categoryChip,
+                  selectedCategory === category && styles.categoryChipActive,
+                ]}
+                onPress={() => setSelectedCategory(category)}
+              >
+                <Text
+                  style={[
+                    styles.categoryChipText,
+                    selectedCategory === category && styles.categoryChipTextActive,
+                  ]}
+                >
+                  {category}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+
+        {/* Featured Content */}
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>Featured</Text>
+          <TouchableOpacity 
+            style={styles.featuredCard}
+            onPress={() => router.push({
+              pathname: '/learning/content-detail' as any,
+              params: { id: featuredItem.id }
+            })}
+          >
+            <View style={styles.featuredImagePlaceholder}>
+              <MaterialCommunityIcons name="image-outline" size={48} color={Colors.primary.P200} />
+              <Text style={styles.illustrationText}>Illustration</Text>
+            </View>
+            <View style={styles.featuredInfo}>
+              <View style={styles.chipSmall}>
+                <Text style={styles.chipSmallText}>{featuredItem.category}</Text>
+              </View>
+              <Text style={styles.featuredTitle}>{featuredItem.title}</Text>
+              <Text style={styles.featuredMeta}>
+                {featuredItem.type === 'article' ? '📄 Article' : 
+                 featuredItem.type === 'video' ? '🎥 Video' : '🎧 Podcast'} • {featuredItem.duration}
               </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+            </View>
+          </TouchableOpacity>
+        </View>
 
-        <View style={styles.content}>
-          {/* Featured Content */}
-          <Text style={styles.sectionTitle}>Featured</Text>
-          {featured && (
-            <TouchableOpacity 
-              style={styles.featuredCard}
-              onPress={() => router.push({ pathname: '/learning/detail', params: { id: featured.id } })}
-            >
-              <View style={styles.featuredVisual}>
-                <Ionicons name="book-outline" size={40} color={PRIMARY_GREEN} />
-              </View>
-              <View style={styles.featuredInfo}>
-                <View style={styles.catBadge}>
-                  <Text style={styles.catBadgeText}>{featured.category}</Text>
-                </View>
-                <Text style={styles.featuredTitle}>{featured.title}</Text>
-                <Text style={styles.featuredMeta}>📄 Article • {featured.duration}</Text>
-              </View>
-            </TouchableOpacity>
-          )}
-
-          {/* Finance 101 Series */}
+        {/* Finance 101 Series */}
+        <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <View>
-                <Text style={styles.sectionTitle}>Finance 101 Series</Text>
-                <Text style={styles.sectionSubtitle}>By BOF OAU</Text>
+              <Text style={styles.sectionLabel}>Finance 101 Series</Text>
+              <Text style={styles.sectionSublabel}>By BOF OAU</Text>
             </View>
-            <TouchableOpacity onPress={() => router.push("/learning/finance101")}>
-                <Text style={styles.seeAllText}>See all →</Text>
+            <TouchableOpacity onPress={() => router.push('/learning/series')}>
+              <Text style={styles.viewAll}>View all →</Text>
             </TouchableOpacity>
           </View>
 
-          <FlatList
-            horizontal
+          <ScrollView 
+            horizontal 
             showsHorizontalScrollIndicator={false}
-            data={FINANCE_101_SERIES}
-            keyExtractor={item => item.id}
-            renderItem={({ item }) => (
+            contentContainerStyle={styles.seriesContainer}
+          >
+            {FINANCE_101_SERIES.map((episode, index) => (
               <TouchableOpacity 
-                style={[styles.seriesCard, { backgroundColor: item.color }]}
-                onPress={() => router.push({ pathname: '/learning/detail', params: { id: item.id } })}
+                key={episode.id}
+                style={[
+                  styles.episodeCard,
+                  { backgroundColor: EPISODE_COLORS[index % EPISODE_COLORS.length] }
+                ]}
+                onPress={() => router.push({
+                  pathname: '/learning/content-detail' as any,
+                  params: { id: episode.id, isSeries: 'true' }
+                })}
               >
-                <Text style={styles.seriesNumber}>EP 0{item.id}</Text>
-                <Text style={styles.seriesTitle}>{item.title}</Text>
-                <Text style={styles.seriesDuration}>{item.duration}</Text>
+                <Text style={styles.episodeNumber}>EP 0{episode.episodeNumber}</Text>
+                <Text style={styles.episodeTitle} numberOfLines={2}>{episode.title}</Text>
+                <Text style={styles.episodeDuration}>{episode.duration}</Text>
               </TouchableOpacity>
-            )}
-            contentContainerStyle={styles.seriesList}
-          />
-
-          {/* Quick Access */}
-          <View style={styles.quickAccessGrid}>
-            <TouchableOpacity style={styles.quickCard} onPress={() => router.push("/learning/finance101")}>
-                <View style={[styles.quickIconCircle, { backgroundColor: '#E3F2FD' }]}>
-                    <Ionicons name="book" size={24} color="#1E88E5" />
-                </View>
-                <Text style={styles.quickLabel}>Finance 101</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.quickCard} onPress={() => router.push("/learning/glossary")}>
-                <View style={[styles.quickIconCircle, { backgroundColor: '#F3E5F5' }]}>
-                    <Ionicons name="document-text" size={24} color="#8E24AA" />
-                </View>
-                <Text style={styles.quickLabel}>Glossary</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.quickCard} onPress={() => router.push("/learning/podcast")}>
-                <View style={[styles.quickIconCircle, { backgroundColor: '#FFF3E0' }]}>
-                    <Ionicons name="headphones" size={24} color="#FB8C00" />
-                </View>
-                <Text style={styles.quickLabel}>Podcast</Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Latest Content */}
-          <Text style={styles.sectionTitle}>Latest</Text>
-          <View style={styles.latestList}>
-            {LEARNING_CONTENT.map(item => (
-                <TouchableOpacity 
-                    key={item.id} 
-                    style={styles.latestItem}
-                    onPress={() => router.push({ pathname: '/learning/detail', params: { id: item.id } })}
-                >
-                    <View style={styles.latestThumb}>
-                        <Ionicons 
-                            name={item.type === 'video' ? 'play-circle' : item.type === 'podcast' ? 'mic' : 'document-text'} 
-                            size={20} 
-                            color={PRIMARY_GREEN} 
-                        />
-                    </View>
-                    <View style={styles.latestInfo}>
-                        <Text style={styles.latestCat}>{item.category}</Text>
-                        <Text style={styles.latestTitle} numberOfLines={1}>{item.title}</Text>
-                        <Text style={styles.latestMeta}>
-                            {item.type === 'article' ? '📄' : item.type === 'video' ? '🎥' : '🎧'} {item.duration}
-                        </Text>
-                    </View>
-                    <Ionicons name="chevron-forward" size={18} color={TEXT_SECONDARY} />
-                </TouchableOpacity>
             ))}
+          </ScrollView>
+        </View>
+
+        {/* Latest Content */}
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>Latest</Text>
+          {latestContent.map((item) => (
+            <TouchableOpacity 
+              key={item.id} 
+              style={styles.latestCard}
+              onPress={() => router.push({
+                pathname: '/learning/content-detail' as any,
+                params: { id: item.id }
+              })}
+            >
+              <View style={styles.latestImagePlaceholder}>
+                <Ionicons 
+                  name={item.type === 'article' ? 'document-text' : 
+                        item.type === 'video' ? 'play-circle' : 'mic'} 
+                  size={24} 
+                  color={PRIMARY_GREEN} 
+                />
+              </View>
+              <View style={styles.latestInfo}>
+                <View style={styles.chipTiny}>
+                  <Text style={styles.chipTinyText}>{item.category}</Text>
+                </View>
+                <Text style={styles.latestTitle} numberOfLines={2}>{item.title}</Text>
+                <View style={styles.latestMetaRow}>
+                  <Ionicons 
+                    name={item.type === 'article' ? 'book-outline' : 
+                          item.type === 'video' ? 'videocam-outline' : 'headset-outline'} 
+                    size={14} 
+                    color={TEXT_SECONDARY} 
+                  />
+                  <Text style={styles.latestMetaText}>{item.duration}</Text>
+                </View>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {/* Quick Access */}
+        <View style={styles.section}>
+          <View style={styles.quickAccessGrid}>
+            <TouchableOpacity 
+              style={styles.quickAccessCard}
+              onPress={() => router.push('/learning/series')}
+            >
+              <View style={[styles.quickIconBox, { backgroundColor: '#E3F2FD' }]}>
+                <Ionicons name="book" size={20} color="#2196F3" />
+              </View>
+              <Text style={styles.quickText}>Finance 101</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.quickAccessCard}
+              onPress={() => router.push('/learning/glossary')}
+            >
+              <View style={[styles.quickIconBox, { backgroundColor: '#F3E5F5' }]}>
+                <Ionicons name="document" size={20} color="#9C27B0" />
+              </View>
+              <Text style={styles.quickText}>Glossary</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.quickAccessCard}
+              onPress={() => router.push('/learning/podcast')}
+            >
+              <View style={[styles.quickIconBox, { backgroundColor: '#FFF3E0' }]}>
+                <Ionicons name="headphones" size={20} color="#FF9800" />
+              </View>
+              <Text style={styles.quickText}>Podcast</Text>
+            </TouchableOpacity>
           </View>
         </View>
+
+        {/* From BOF OAU */}
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>From BOF OAU</Text>
+          <View style={styles.bofGrid}>
+            <TouchableOpacity 
+              style={styles.bofCard}
+              onPress={() => router.push('/learning/podcast')}
+            >
+              <Text style={styles.bofEmoji}>🎧</Text>
+              <Text style={styles.bofTitle}>Market Pulse Podcast</Text>
+              <Text style={styles.bofLink}>Listen now →</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.bofCard}
+              onPress={() => router.push('/learning/podcast')}
+            >
+              <Text style={styles.bofEmoji}>📰</Text>
+              <Text style={styles.bofTitle}>BOF Newsletter</Text>
+              <Text style={styles.bofLink}>Read now →</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: BACKGROUND,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingBottom: 15,
     backgroundColor: WHITE,
   },
-  categoryRow: {
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    gap: 12,
-  },
-  catChip: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+  backBtn: {
+    width: 40,
+    height: 40,
     borderRadius: 20,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: '#F5F5F5',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  activeCatChip: {
-    backgroundColor: PRIMARY_GREEN,
-  },
-  catChipText: {
-    fontFamily: Fonts.medium,
-    fontSize: 13,
-    color: TEXT_SECONDARY,
-  },
-  activeCatChipText: {
-    color: WHITE,
-  },
-  content: {
-    padding: 20,
-  },
-  sectionTitle: {
+  headerTitle: {
     fontFamily: Fonts.bold,
     fontSize: 18,
     color: TEXT_PRIMARY,
-    marginBottom: 16,
+  },
+  scrollContent: {
+    paddingBottom: 40,
+  },
+  welcomeSection: {
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+  },
+  welcomeTitle: {
+    fontFamily: Fonts.bold,
+    fontSize: 24,
+    color: TEXT_PRIMARY,
+  },
+  welcomeSubtitle: {
+    fontFamily: Fonts.regular,
+    fontSize: 15,
+    color: TEXT_SECONDARY,
+    marginTop: 4,
+  },
+  section: {
+    marginBottom: 28,
   },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'baseline',
-    marginTop: 32,
-    marginBottom: 16,
+    alignItems: 'flex-start',
+    paddingHorizontal: 20,
+    marginBottom: 14,
   },
-  sectionSubtitle: {
+  sectionLabel: {
+    fontFamily: Fonts.bold,
+    fontSize: 18,
+    color: TEXT_PRIMARY,
+    paddingHorizontal: 20,
+    marginBottom: 12,
+  },
+  sectionSublabel: {
     fontFamily: Fonts.regular,
-    fontSize: 12,
+    fontSize: 13,
     color: TEXT_SECONDARY,
-    marginTop: 2,
+    marginTop: -8,
   },
-  seeAllText: {
-    fontFamily: Fonts.medium,
+  viewAll: {
+    fontFamily: Fonts.bold,
     fontSize: 14,
     color: PRIMARY_GREEN,
   },
-  featuredCard: {
+  categoryContainer: {
+    paddingHorizontal: 20,
+    gap: 10,
+  },
+  categoryChip: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
     backgroundColor: WHITE,
-    borderRadius: 24,
-    overflow: 'hidden',
     borderWidth: 1,
-    borderColor: BORDER_GRAY,
+    borderColor: '#E0E0E0',
+  },
+  categoryChipActive: {
+    backgroundColor: PRIMARY_GREEN,
+    borderColor: PRIMARY_GREEN,
+  },
+  categoryChipText: {
+    fontFamily: Fonts.medium,
+    fontSize: 14,
+    color: TEXT_SECONDARY,
+  },
+  categoryChipTextActive: {
+    color: WHITE,
+  },
+  featuredCard: {
+    marginHorizontal: 20,
+    backgroundColor: WHITE,
+    borderRadius: 20,
+    overflow: 'hidden',
     elevation: 3,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 10,
+    shadowRadius: 8,
   },
-  featuredVisual: {
-    height: 140,
-    backgroundColor: '#F0FDF4',
+  featuredImagePlaceholder: {
+    height: 160,
+    backgroundColor: '#F1F8E9',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  illustrationText: {
+    fontFamily: Fonts.medium,
+    fontSize: 12,
+    color: Colors.primary.P300,
+    marginTop: 8,
   },
   featuredInfo: {
     padding: 20,
   },
-  catBadge: {
-    backgroundColor: '#DCFCE7',
+  chipSmall: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#E8F5E9',
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 8,
-    alignSelf: 'flex-start',
+    borderRadius: 6,
     marginBottom: 10,
   },
-  catBadgeText: {
+  chipSmallText: {
     fontFamily: Fonts.bold,
-    fontSize: 10,
-    color: '#16A34A',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    fontSize: 11,
+    color: PRIMARY_GREEN,
   },
   featuredTitle: {
     fontFamily: Fonts.bold,
-    fontSize: 18,
+    fontSize: 20,
     color: TEXT_PRIMARY,
+    lineHeight: 28,
     marginBottom: 8,
-    lineHeight: 24,
   },
   featuredMeta: {
+    fontFamily: Fonts.regular,
+    fontSize: 13,
+    color: TEXT_SECONDARY,
+  },
+  seriesContainer: {
+    paddingHorizontal: 20,
+    gap: 12,
+  },
+  episodeCard: {
+    width: CARD_WIDTH,
+    padding: 16,
+    borderRadius: 16,
+    minHeight: 120,
+  },
+  episodeNumber: {
+    fontFamily: Fonts.bold,
+    fontSize: 12,
+    color: TEXT_SECONDARY,
+    opacity: 0.7,
+    marginBottom: 6,
+  },
+  episodeTitle: {
+    fontFamily: Fonts.bold,
+    fontSize: 15,
+    color: TEXT_PRIMARY,
+    marginBottom: 8,
+    flex: 1,
+  },
+  episodeDuration: {
     fontFamily: Fonts.regular,
     fontSize: 12,
     color: TEXT_SECONDARY,
   },
-  seriesList: {
-    gap: 16,
-    paddingBottom: 8,
-  },
-  seriesCard: {
-    width: 140,
-    padding: 16,
-    borderRadius: 20,
-    justifyContent: 'space-between',
-  },
-  seriesNumber: {
-    fontFamily: Fonts.bold,
-    fontSize: 12,
-    color: WHITE,
-    opacity: 0.8,
-  },
-  seriesTitle: {
-    fontFamily: Fonts.bold,
-    fontSize: 14,
-    color: WHITE,
-    marginVertical: 16,
-    lineHeight: 20,
-  },
-  seriesDuration: {
-    fontFamily: Fonts.medium,
-    fontSize: 11,
-    color: WHITE,
-    opacity: 0.9,
-  },
-  quickAccessGrid: {
+  latestCard: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 32,
-    marginBottom: 32,
-  },
-  quickCard: {
-    flex: 1,
-    alignItems: 'center',
-    gap: 8,
-  },
-  quickIconCircle: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  quickLabel: {
-    fontFamily: Fonts.medium,
-    fontSize: 12,
-    color: TEXT_PRIMARY,
-  },
-  latestList: {
-    gap: 12,
-  },
-  latestItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 12,
-    backgroundColor: '#F9FAFB',
-    borderRadius: 16,
-    gap: 12,
-  },
-  latestThumb: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
     backgroundColor: WHITE,
+    marginHorizontal: 20,
+    marginBottom: 12,
+    borderRadius: 16,
+    padding: 12,
+    alignItems: 'center',
+  },
+  latestImagePlaceholder: {
+    width: 60,
+    height: 60,
+    borderRadius: 12,
+    backgroundColor: '#F5F5F5',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#F3F4F6',
+    marginRight: 15,
   },
   latestInfo: {
     flex: 1,
   },
-  latestCat: {
-    fontFamily: Fonts.semiBold,
+  chipTiny: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#F1F1F1',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 4,
+    marginBottom: 4,
+  },
+  chipTinyText: {
+    fontFamily: Fonts.bold,
     fontSize: 10,
-    color: PRIMARY_GREEN,
-    textTransform: 'uppercase',
-    marginBottom: 2,
+    color: TEXT_SECONDARY,
   },
   latestTitle: {
     fontFamily: Fonts.bold,
-    fontSize: 14,
+    fontSize: 15,
     color: TEXT_PRIMARY,
-    marginBottom: 2,
+    marginBottom: 6,
   },
-  latestMeta: {
+  latestMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  latestMetaText: {
     fontFamily: Fonts.regular,
-    fontSize: 11,
+    fontSize: 12,
     color: TEXT_SECONDARY,
   },
+  quickAccessGrid: {
+    flexDirection: 'row',
+    paddingHorizontal: 20,
+    gap: 12,
+  },
+  quickAccessCard: {
+    flex: 1,
+    backgroundColor: WHITE,
+    borderRadius: 16,
+    padding: 16,
+    alignItems: 'center',
+    elevation: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+  },
+  quickIconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 10,
+  },
+  quickText: {
+    fontFamily: Fonts.bold,
+    fontSize: 12,
+    color: TEXT_PRIMARY,
+    textAlign: 'center',
+  },
+  bofGrid: {
+    flexDirection: 'row',
+    paddingHorizontal: 20,
+    gap: 12,
+  },
+  bofCard: {
+    flex: 1,
+    backgroundColor: WHITE,
+    borderRadius: 16,
+    padding: 20,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+  },
+  bofEmoji: {
+    fontSize: 24,
+    marginBottom: 12,
+  },
+  bofTitle: {
+    fontFamily: Fonts.bold,
+    fontSize: 14,
+    color: TEXT_PRIMARY,
+    marginBottom: 12,
+  },
+  bofLink: {
+    fontFamily: Fonts.bold,
+    fontSize: 13,
+    color: PRIMARY_GREEN,
+  },
 });
-
-export default LearningHubScreen;

@@ -54,6 +54,8 @@ export default function RootLayout() {
                 header is hidden — each screen renders its own custom header */}
             <Stack.Screen name="budget" options={{ headerShown: false }} />
             <Stack.Screen name="savings" options={{ headerShown: false }} />
+            <Stack.Screen name="learning" options={{ headerShown: false }} />
+            <Stack.Screen name="profile" options={{ headerShown: false }} />
             <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
           </Stack>
           <StatusBar style="auto" />

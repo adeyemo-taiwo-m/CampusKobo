@@ -1,5 +1,5 @@
-import { PodcastListScreen } from '../../src/screens/learning/PodcastListScreen';
+import { PodcastNewsletterScreen } from '../../src/screens/learning/PodcastNewsletterScreen';
 
 export default function PodcastRoute() {
-  return <PodcastListScreen />;
+  return <PodcastNewsletterScreen />;
 }

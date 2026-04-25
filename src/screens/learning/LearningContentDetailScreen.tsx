@@ -1,142 +1,326 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
-  SafeAreaView,
   TouchableOpacity,
+  Image,
   Dimensions,
+  StatusBar,
   Platform,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
-  WHITE,
+  LEARNING_CONTENT,
+  FINANCE_101_SERIES,
+} from '../../constants/learningData';
+import {
   PRIMARY_GREEN,
+  WHITE,
   TEXT_PRIMARY,
   TEXT_SECONDARY,
+  BACKGROUND,
   Fonts,
-  BORDER_GRAY,
+  Colors,
 } from '../../constants';
-import { Header } from '../../components/Header';
-import { LEARNING_CONTENT } from '../../constants/learningData';
 
 const { width } = Dimensions.get('window');
 
 export const LearningContentDetailScreen = () => {
   const router = useRouter();
-  const { id } = useLocalSearchParams();
+  const insets = useSafeAreaInsets();
+  const { id, isSeries } = useLocalSearchParams();
   const [isBookmarked, setIsBookmarked] = useState(false);
-  
-  const content = LEARNING_CONTENT.find(c => c.id === id) || LEARNING_CONTENT[0];
-  const isArticle = content.type === 'article';
-  const isVideo = content.type === 'video';
-  const isPodcast = content.type === 'podcast';
+  const [scrollProgress, setScrollProgress] = useState(0);
+
+  // Find content
+  const item = isSeries === 'true' 
+    ? FINANCE_101_SERIES.find(e => e.id === id)
+    : LEARNING_CONTENT.find(c => c.id === id);
+
+  if (!item) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <Text style={styles.errorText}>Content not found</Text>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+          <Text style={styles.backBtnText}>Go Back</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  // Determine type
+  const type = isSeries === 'true' ? 'article' : (item as any).type || 'article';
+  const category = (item as any).category || 'Series';
+  const duration = item.duration;
+  const title = item.title;
+  const contentBody = item.content;
+  const keyTakeaways = (item as any).keyTakeaways || [];
+  const date = 'Apr 25, 2026';
+
+  const handleScroll = (event: any) => {
+    const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent;
+    const progress = contentOffset.y / (contentSize.height - layoutMeasurement.height);
+    setScrollProgress(Math.max(0, Math.min(1, progress)));
+  };
+
+  const renderArticle = () => (
+    <View>
+      {/* Hero Image Placeholder */}
+      <View style={styles.heroImageContainer}>
+        <View style={[styles.heroPlaceholder, { backgroundColor: Colors.primary.P100 }]}>
+          <Ionicons name="document-text" size={60} color={PRIMARY_GREEN} />
+        </View>
+        <View style={styles.progressBarContainer}>
+          <View style={[styles.progressBar, { width: `${scrollProgress * 100}%` }]} />
+        </View>
+      </View>
+
+      <View style={styles.contentPadding}>
+        <View style={styles.categoryChip}>
+          <Text style={styles.categoryText}>{category}</Text>
+        </View>
+
+        <Text style={styles.title}>{title}</Text>
+        
+        <View style={styles.metaRow}>
+          <Ionicons name="document-text-outline" size={14} color={TEXT_SECONDARY} />
+          <Text style={styles.metaText}>Article • {duration} • {date}</Text>
+        </View>
+
+        <View style={styles.bodyContainer}>
+          <Text style={styles.bodyText}>{contentBody}</Text>
+        </View>
+
+        {keyTakeaways.length > 0 && (
+          <View style={styles.takeawaysCard}>
+            <Text style={styles.takeawaysTitle}>Key Takeaways</Text>
+            {keyTakeaways.map((takeaway: string, idx: number) => (
+              <View key={idx} style={styles.takeawayRow}>
+                <Text style={styles.checkIcon}>✅</Text>
+                <Text style={styles.takeawayText}>{takeaway}</Text>
+              </View>
+            ))}
+          </View>
+        )}
+      </View>
+    </View>
+  );
+
+  const renderVideo = () => (
+    <View>
+      {/* Video Player Placeholder */}
+      <View style={styles.videoPlayer}>
+        <TouchableOpacity style={styles.playButton}>
+          <Ionicons name="play" size={40} color={WHITE} />
+        </TouchableOpacity>
+        <View style={styles.videoDurationBadge}>
+          <Text style={styles.videoDurationText}>{duration}</Text>
+        </View>
+      </View>
+
+      <View style={styles.contentPadding}>
+        <View style={styles.categoryChip}>
+          <Text style={styles.categoryText}>{category}</Text>
+        </View>
+
+        <Text style={styles.title}>{title}</Text>
+        
+        <View style={styles.metaRow}>
+          <Ionicons name="videocam-outline" size={14} color={TEXT_SECONDARY} />
+          <Text style={styles.metaText}>Video • {duration} • {date}</Text>
+        </View>
+
+        <View style={styles.bodyContainer}>
+          <Text style={styles.sectionTitle}>About this video</Text>
+          <Text style={styles.bodyText}>{contentBody}</Text>
+          <View style={styles.bulletList}>
+            <Text style={styles.bulletItem}>• Learn how to track every kobo</Text>
+            <Text style={styles.bulletItem}>• Master the 50/30/20 rule</Text>
+            <Text style={styles.bulletItem}>• Avoid the common student 'Sapa' trap</Text>
+          </View>
+        </View>
+
+        {keyTakeaways.length > 0 && (
+          <View style={styles.takeawaysCard}>
+            <Text style={styles.takeawaysTitle}>Key Takeaways</Text>
+            {keyTakeaways.map((takeaway: string, idx: number) => (
+              <View key={idx} style={styles.takeawayRow}>
+                <Text style={styles.checkIcon}>✅</Text>
+                <Text style={styles.takeawayText}>{takeaway}</Text>
+              </View>
+            ))}
+          </View>
+        )}
+      </View>
+    </View>
+  );
+
+  const renderPodcast = () => (
+    <View>
+      {/* Podcast Cover */}
+      <View style={styles.podcastHero}>
+        <View style={styles.podcastCoverPlaceholder}>
+          <Ionicons name="mic" size={80} color={PRIMARY_GREEN} />
+        </View>
+        <Text style={styles.podcastSubtitle}>By BOF OAU</Text>
+      </View>
+
+      <View style={styles.contentPadding}>
+        {/* Audio Player Controls */}
+        <View style={styles.audioPlayer}>
+          <View style={styles.audioTrack}>
+            <View style={[styles.audioProgress, { width: '30%' }]} />
+            <View style={styles.audioKnob} />
+          </View>
+          <View style={styles.audioTimeRow}>
+            <Text style={styles.audioTime}>4:32</Text>
+            <Text style={styles.audioTime}>{duration}</Text>
+          </View>
+          <View style={styles.audioControlsRow}>
+            <TouchableOpacity style={styles.speedBtn}>
+              <Text style={styles.speedText}>1x</Text>
+            </TouchableOpacity>
+            <View style={styles.mainControls}>
+              <TouchableOpacity>
+                <MaterialCommunityIcons name="rewind-15" size={32} color={TEXT_PRIMARY} />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.podcastPlayBtn}>
+                <Ionicons name="pause" size={32} color={WHITE} />
+              </TouchableOpacity>
+              <TouchableOpacity>
+                <MaterialCommunityIcons name="fast-forward-15" size={32} color={TEXT_PRIMARY} />
+              </TouchableOpacity>
+            </View>
+            <View style={{ width: 40 }} />
+          </View>
+        </View>
+
+        <Text style={styles.title}>{title}</Text>
+
+        <View style={styles.bodyContainer}>
+          <Text style={styles.sectionTitle}>About this episode</Text>
+          <Text style={styles.bodyText}>{contentBody}</Text>
+        </View>
+
+        {keyTakeaways.length > 0 && (
+          <View style={styles.takeawaysCard}>
+            <Text style={styles.takeawaysTitle}>Key Takeaways</Text>
+            {keyTakeaways.map((takeaway: string, idx: number) => (
+              <View key={idx} style={styles.takeawayRow}>
+                <Text style={styles.checkIcon}>✅</Text>
+                <Text style={styles.takeawayText}>{takeaway}</Text>
+              </View>
+            ))}
+          </View>
+        )}
+
+        {/* More Episodes (Mock) */}
+        <View style={styles.moreEpisodesSection}>
+          <Text style={styles.sectionTitle}>More Episodes</Text>
+          {[1, 2].map((i) => (
+            <TouchableOpacity key={i} style={styles.episodeSmallCard}>
+              <View style={styles.episodeSmallThumb} />
+              <View style={styles.episodeSmallInfo}>
+                <Text style={styles.episodeSmallTitle}>EP 0{i} — Financial Freedom</Text>
+                <Text style={styles.episodeSmallMeta}>15 min • Apr {i + 10}, 2026</Text>
+              </View>
+              <Ionicons name="play-circle" size={24} color={PRIMARY_GREEN} />
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
+    </View>
+  );
 
   return (
     <View style={styles.container}>
-      <SafeAreaView style={styles.safeHeader}>
-        <View style={styles.customHeader}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.headerIconBtn}>
-            <Ionicons name="arrow-back" size={24} color={TEXT_PRIMARY} />
+      <StatusBar barStyle="dark-content" />
+      
+      {/* Header */}
+      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
+        <TouchableOpacity 
+          style={styles.headerBtn} 
+          onPress={() => router.back()}
+        >
+          <Ionicons name="arrow-back" size={24} color={TEXT_PRIMARY} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>{headerTitle}</Text>
+        <TouchableOpacity 
+          style={styles.headerBtn}
+          onPress={() => setIsBookmarked(!isBookmarked)}
+        >
+          <Ionicons 
+            name={isBookmarked ? "bookmark" : "bookmark-outline"} 
+            size={24} 
+            color={isBookmarked ? PRIMARY_GREEN : TEXT_PRIMARY} 
+          />
+        </TouchableOpacity>
+      </View>
+
+      <ScrollView 
+        showsVerticalScrollIndicator={false}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
+        contentContainerStyle={{ paddingBottom: 100 }}
+      >
+        {type === 'article' && renderArticle()}
+        {type === 'video' && renderVideo()}
+        {type === 'podcast' && renderPodcast()}
+
+        {/* Action CTAs */}
+        <View style={styles.ctaSection}>
+          <Text style={styles.ctaSectionTitle}>Apply What You Learned</Text>
+          
+          <TouchableOpacity 
+            style={styles.ctaCard}
+            onPress={() => router.push('/budget/create')}
+          >
+            <View style={[styles.ctaIconBox, { backgroundColor: '#E3F2FD' }]}>
+              <Ionicons name="bar-chart" size={24} color="#2196F3" />
+            </View>
+            <View style={styles.ctaContent}>
+              <Text style={styles.ctaTitle}>Create a Budget</Text>
+              <Text style={styles.ctaSubtitle}>Set spending limits for food, transport and more →</Text>
+            </View>
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>{content.type.charAt(0).toUpperCase() + content.type.slice(1)}</Text>
-          <TouchableOpacity onPress={() => setIsBookmarked(!isBookmarked)} style={styles.headerIconBtn}>
-            <Ionicons name={isBookmarked ? "bookmark" : "bookmark-outline"} size={22} color={isBookmarked ? PRIMARY_GREEN : TEXT_PRIMARY} />
+
+          <TouchableOpacity 
+            style={styles.ctaCard}
+            onPress={() => router.push('/savings/create')}
+          >
+            <View style={[styles.ctaIconBox, { backgroundColor: '#E8F5E9' }]}>
+              <Ionicons name="wallet" size={24} color={PRIMARY_GREEN} />
+            </View>
+            <View style={styles.ctaContent}>
+              <Text style={styles.ctaTitle}>Set a Savings Goal</Text>
+              <Text style={styles.ctaSubtitle}>Start putting money aside for something you love →</Text>
+            </View>
           </TouchableOpacity>
         </View>
-      </SafeAreaView>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollPadding}>
-        {/* Hero Visual */}
-        <View style={styles.heroVisual}>
-          {isArticle ? (
-            <View style={styles.articlePlaceholder}>
-               <Ionicons name="document-text-outline" size={80} color="#DCFCE7" />
-            </View>
-          ) : isVideo ? (
-            <View style={styles.videoPlaceholder}>
-               <View style={styles.playBtnLarge}>
-                  <Ionicons name="play" size={40} color={WHITE} />
-               </View>
-               <Text style={styles.videoDuration}>5:00</Text>
-            </View>
-          ) : (
-            <View style={styles.podcastPlaceholder}>
-                <View style={styles.podcastArt}>
-                    <Ionicons name="mic-outline" size={60} color={WHITE} />
-                </View>
-            </View>
-          )}
-        </View>
-
-        <View style={styles.body}>
-          <View style={styles.catBadge}>
-            <Text style={styles.catBadgeText}>{content.category}</Text>
-          </View>
-          <Text style={styles.title}>{content.title}</Text>
-          <View style={styles.metaRow}>
-             <Ionicons name={isArticle ? "book-outline" : isVideo ? "play-circle-outline" : "mic-outline"} size={14} color={TEXT_SECONDARY} />
-             <Text style={styles.metaText}>{isArticle ? 'Article' : isVideo ? 'Video' : 'Podcast'} • {content.duration}</Text>
-          </View>
-
-          {isPodcast && (
-              <View style={styles.podcastControls}>
-                  <View style={styles.progressBarWrapper}>
-                      <View style={styles.progressFull} />
-                      <View style={[styles.progressCurrent, { width: '30%' }]} />
-                  </View>
-                  <View style={styles.timeLabels}>
-                      <Text style={styles.timeText}>3:45</Text>
-                      <Text style={styles.timeText}>15:00</Text>
-                  </View>
-                  <View style={styles.controlBtns}>
-                      <TouchableOpacity><Ionicons name="play-back" size={28} color={TEXT_PRIMARY} /></TouchableOpacity>
-                      <TouchableOpacity style={styles.playPauseBtn}><Ionicons name="pause" size={32} color={WHITE} /></TouchableOpacity>
-                      <TouchableOpacity><Ionicons name="play-forward" size={28} color={TEXT_PRIMARY} /></TouchableOpacity>
-                  </View>
-              </View>
-          )}
-
-          <Text style={styles.contentBody}>
-            {content.content || "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."}
-          </Text>
-
-          {content.keyTakeaways && (
-            <View style={styles.takeawaysCard}>
-              <Text style={styles.takeawaysTitle}>Key Takeaways</Text>
-              {content.keyTakeaways.map((task, idx) => (
-                <View key={idx} style={styles.takeawayItem}>
-                  <Ionicons name="checkmark-circle" size={18} color={PRIMARY_GREEN} />
-                  <Text style={styles.takeawayText}>{task}</Text>
-                </View>
-              ))}
-            </View>
-          )}
-
-          <View style={styles.applySection}>
-            <Text style={styles.applyTitle}>Apply What You Learned</Text>
-            <TouchableOpacity style={styles.applyCard} onPress={() => router.push("/budget/create")}>
-                <View style={[styles.applyIcon, { backgroundColor: '#F0FDF4' }]}>
-                    <Ionicons name="bar-chart" size={20} color={PRIMARY_GREEN} />
-                </View>
-                <View style={styles.applyInfo}>
-                    <Text style={styles.applyCardTitle}>Create a Budget</Text>
-                    <Text style={styles.applyCardSub}>Set spending limits for food, transport and more →</Text>
-                </View>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.applyCard} onPress={() => router.push("/savings/create")}>
-                <View style={[styles.applyIcon, { backgroundColor: '#EFF6FF' }]}>
-                    <Ionicons name="target" size={20} color="#3B82F6" />
-                </View>
-                <View style={styles.applyInfo}>
-                    <Text style={styles.applyCardTitle}>Set a Savings Goal</Text>
-                    <Text style={styles.applyCardSub}>Start putting money aside for something you love →</Text>
-                </View>
-            </TouchableOpacity>
-          </View>
+        {/* Related Content */}
+        <View style={styles.relatedSection}>
+          <Text style={styles.sectionTitle}>You Might Also Like</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.relatedScroll}>
+            {LEARNING_CONTENT.filter(c => c.id !== id).slice(0, 3).map((c) => (
+              <TouchableOpacity 
+                key={c.id} 
+                style={styles.relatedCard}
+                onPress={() => router.push({
+                  pathname: '/learning/detail' as any,
+                  params: { id: c.id }
+                })}
+              >
+                <View style={styles.relatedThumb} />
+                <Text style={styles.relatedCardTitle} numberOfLines={2}>{c.title}</Text>
+                <Text style={styles.relatedCardMeta}>{c.duration}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
         </View>
       </ScrollView>
     </View>
@@ -148,19 +332,20 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: WHITE,
   },
-  safeHeader: {
-    backgroundColor: WHITE,
-  },
-  customHeader: {
+  header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 20,
-    height: 56,
+    paddingBottom: 15,
+    backgroundColor: WHITE,
+    zIndex: 10,
   },
-  headerIconBtn: {
+  headerBtn: {
     width: 40,
     height: 40,
+    borderRadius: 20,
+    backgroundColor: '#F9FAFB',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -169,91 +354,112 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: TEXT_PRIMARY,
   },
-  scrollPadding: {
-    paddingBottom: 40,
-  },
-  heroVisual: {
+  // Article Hero
+  heroImageContainer: {
     width: '100%',
     height: 240,
     backgroundColor: '#F3F4F6',
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
+    overflow: 'hidden',
+    position: 'relative',
   },
-  articlePlaceholder: {
+  heroPlaceholder: {
     flex: 1,
-    backgroundColor: '#0B5E2F',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  videoPlaceholder: {
-    flex: 1,
+  progressBarContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 4,
+    backgroundColor: 'rgba(0,0,0,0.05)',
+  },
+  progressBar: {
+    height: '100%',
+    backgroundColor: PRIMARY_GREEN,
+  },
+  // Video Player
+  videoPlayer: {
+    width: '100%',
+    height: 210,
     backgroundColor: '#111827',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  playBtnLarge: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+  playButton: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    backgroundColor: 'rgba(26, 158, 63, 0.9)',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.3)',
+    paddingLeft: 5,
   },
-  videoDuration: {
+  videoDurationBadge: {
     position: 'absolute',
-    bottom: 16,
-    right: 16,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    color: WHITE,
+    bottom: 12,
+    right: 12,
+    backgroundColor: 'rgba(0,0,0,0.7)',
     paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 6,
-    fontFamily: Fonts.medium,
+    borderRadius: 4,
+  },
+  videoDurationText: {
+    color: WHITE,
     fontSize: 12,
+    fontFamily: Fonts.medium,
   },
-  podcastPlaceholder: {
-    flex: 1,
-    backgroundColor: '#4C1D95',
+  // Podcast Hero
+  podcastHero: {
+    paddingVertical: 40,
     alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: '#F9FAFB',
   },
-  podcastArt: {
-    width: 140,
-    height: 140,
+  podcastCoverPlaceholder: {
+    width: 180,
+    height: 180,
     borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: Colors.primary.P100,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: 'rgba(255,255,255,0.2)',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
   },
-  body: {
+  podcastSubtitle: {
+    marginTop: 20,
+    fontFamily: Fonts.medium,
+    fontSize: 16,
+    color: TEXT_SECONDARY,
+  },
+  // Shared Content Styles
+  contentPadding: {
     padding: 20,
-    marginTop: -24,
-    backgroundColor: WHITE,
-    borderTopLeftRadius: 32,
-    borderTopRightRadius: 32,
   },
-  catBadge: {
-    backgroundColor: '#DCFCE7',
+  categoryChip: {
+    backgroundColor: Colors.primary.P100,
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 10,
+    borderRadius: 20,
     alignSelf: 'flex-start',
-    marginBottom: 12,
+    marginBottom: 16,
   },
-  catBadgeText: {
+  categoryText: {
     fontFamily: Fonts.bold,
-    fontSize: 11,
-    color: '#16A34A',
-    textTransform: 'uppercase',
+    fontSize: 12,
+    color: PRIMARY_GREEN,
   },
   title: {
     fontFamily: Fonts.bold,
-    fontSize: 24,
+    fontSize: 28,
     color: TEXT_PRIMARY,
-    lineHeight: 32,
-    marginBottom: 8,
+    lineHeight: 36,
+    marginBottom: 12,
   },
   metaRow: {
     flexDirection: 'row',
@@ -262,130 +468,258 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   metaText: {
-    fontFamily: Fonts.regular,
+    fontFamily: Fonts.medium,
     fontSize: 13,
     color: TEXT_SECONDARY,
   },
-  contentBody: {
+  bodyContainer: {
+    marginBottom: 30,
+  },
+  sectionTitle: {
+    fontFamily: Fonts.bold,
+    fontSize: 18,
+    color: TEXT_PRIMARY,
+    marginBottom: 12,
+  },
+  bodyText: {
     fontFamily: Fonts.regular,
     fontSize: 16,
-    color: TEXT_PRIMARY,
+    color: '#374151',
     lineHeight: 26,
-    marginBottom: 32,
+  },
+  bulletList: {
+    marginTop: 12,
+    gap: 8,
+  },
+  bulletItem: {
+    fontFamily: Fonts.medium,
+    fontSize: 15,
+    color: '#4B5563',
   },
   takeawaysCard: {
-    backgroundColor: '#F0FDF4',
-    padding: 20,
+    backgroundColor: '#E8F5E9',
+    padding: 24,
     borderRadius: 24,
-    marginBottom: 32,
-    borderWidth: 1,
-    borderColor: '#DCFCE7',
+    marginBottom: 30,
   },
   takeawaysTitle: {
     fontFamily: Fonts.bold,
     fontSize: 18,
-    color: '#16A34A',
+    color: PRIMARY_GREEN,
     marginBottom: 16,
   },
-  takeawayItem: {
+  takeawayRow: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 12,
     marginBottom: 12,
+    gap: 12,
+  },
+  checkIcon: {
+    fontSize: 16,
   },
   takeawayText: {
     flex: 1,
     fontFamily: Fonts.medium,
-    fontSize: 14,
-    color: '#374151',
-    lineHeight: 20,
-  },
-  applySection: {
-    gap: 16,
-  },
-  applyTitle: {
-    fontFamily: Fonts.bold,
-    fontSize: 18,
-    color: TEXT_PRIMARY,
-    marginBottom: 4,
-  },
-  applyCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-    backgroundColor: WHITE,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: BORDER_GRAY,
-    gap: 16,
-  },
-  applyIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  applyInfo: {
-    flex: 1,
-  },
-  applyCardTitle: {
-    fontFamily: Fonts.bold,
     fontSize: 15,
-    color: TEXT_PRIMARY,
-    marginBottom: 2,
+    color: '#1B5E20',
+    lineHeight: 22,
   },
-  applyCardSub: {
-    fontFamily: Fonts.medium,
-    fontSize: 12,
-    color: TEXT_SECONDARY,
-  },
-  podcastControls: {
-    marginBottom: 32,
-    backgroundColor: '#FAFAFA',
+  // Audio Player
+  audioPlayer: {
+    backgroundColor: '#F9FAFB',
     padding: 20,
     borderRadius: 24,
+    marginBottom: 30,
   },
-  progressBarWrapper: {
-    height: 6,
-    borderRadius: 3,
+  audioTrack: {
+    height: 4,
     backgroundColor: '#E5E7EB',
+    borderRadius: 2,
     position: 'relative',
-    marginBottom: 10,
+    marginBottom: 8,
   },
-  progressFull: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  progressCurrent: {
+  audioProgress: {
     height: '100%',
     backgroundColor: PRIMARY_GREEN,
-    borderRadius: 3,
+    borderRadius: 2,
   },
-  timeLabels: {
+  audioKnob: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: PRIMARY_GREEN,
+    position: 'absolute',
+    top: -4,
+    left: '30%',
+    marginLeft: -6,
+  },
+  audioTimeRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 20,
   },
-  timeText: {
+  audioTime: {
     fontFamily: Fonts.medium,
     fontSize: 12,
     color: TEXT_SECONDARY,
   },
-  controlBtns: {
+  audioControlsRow: {
     flexDirection: 'row',
-    justifyContent: 'center',
     alignItems: 'center',
-    gap: 32,
+    justifyContent: 'space-between',
   },
-  playPauseBtn: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+  speedBtn: {
+    width: 40,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#E5E7EB',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  speedText: {
+    fontFamily: Fonts.bold,
+    fontSize: 11,
+    color: TEXT_PRIMARY,
+  },
+  mainControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 30,
+  },
+  podcastPlayBtn: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     backgroundColor: PRIMARY_GREEN,
     alignItems: 'center',
     justifyContent: 'center',
-    elevation: 4,
-  }
+  },
+  // More Episodes
+  moreEpisodesSection: {
+    marginTop: 10,
+  },
+  episodeSmallCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F9FAFB',
+    padding: 12,
+    borderRadius: 16,
+    marginBottom: 12,
+    gap: 12,
+  },
+  episodeSmallThumb: {
+    width: 50,
+    height: 50,
+    borderRadius: 10,
+    backgroundColor: '#E5E7EB',
+  },
+  episodeSmallInfo: {
+    flex: 1,
+  },
+  episodeSmallTitle: {
+    fontFamily: Fonts.bold,
+    fontSize: 14,
+    color: TEXT_PRIMARY,
+  },
+  episodeSmallMeta: {
+    fontFamily: Fonts.medium,
+    fontSize: 12,
+    color: TEXT_SECONDARY,
+  },
+  // CTA Section
+  ctaSection: {
+    padding: 20,
+    backgroundColor: '#F9FAFB',
+  },
+  ctaSectionTitle: {
+    fontFamily: Fonts.bold,
+    fontSize: 18,
+    color: TEXT_PRIMARY,
+    marginBottom: 16,
+  },
+  ctaCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: WHITE,
+    padding: 16,
+    borderRadius: 20,
+    marginBottom: 12,
+    gap: 16,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+  },
+  ctaIconBox: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  ctaContent: {
+    flex: 1,
+  },
+  ctaTitle: {
+    fontFamily: Fonts.bold,
+    fontSize: 16,
+    color: TEXT_PRIMARY,
+    marginBottom: 2,
+  },
+  ctaSubtitle: {
+    fontFamily: Fonts.medium,
+    fontSize: 12,
+    color: TEXT_SECONDARY,
+  },
+  // Related Section
+  relatedSection: {
+    padding: 20,
+  },
+  relatedScroll: {
+    gap: 16,
+    paddingTop: 4,
+  },
+  relatedCard: {
+    width: 160,
+  },
+  relatedThumb: {
+    width: '100%',
+    height: 100,
+    backgroundColor: '#F3F4F6',
+    borderRadius: 16,
+    marginBottom: 8,
+  },
+  relatedCardTitle: {
+    fontFamily: Fonts.bold,
+    fontSize: 14,
+    color: TEXT_PRIMARY,
+    marginBottom: 4,
+  },
+  relatedCardMeta: {
+    fontFamily: Fonts.medium,
+    fontSize: 12,
+    color: TEXT_SECONDARY,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  errorText: {
+    fontFamily: Fonts.bold,
+    fontSize: 18,
+    color: TEXT_SECONDARY,
+    marginBottom: 20,
+  },
+  backBtn: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    backgroundColor: PRIMARY_GREEN,
+    borderRadius: 10,
+  },
+  backBtnText: {
+    color: WHITE,
+    fontFamily: Fonts.bold,
+  },
 });
-
-export default LearningContentDetailScreen;
