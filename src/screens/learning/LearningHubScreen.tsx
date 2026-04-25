@@ -135,7 +135,7 @@ export const LearningHubScreen = () => {
               >
                 <View style={styles.featuredImagePlaceholder}>
                   <Image 
-                    source={require('../../../assets/images/featured-placeholder.svg')} 
+                    source={require('../../../assets/images/featured-learning.png')} 
                     style={styles.featuredIllustration}
                     contentFit="contain"
                   />
@@ -201,40 +201,48 @@ export const LearningHubScreen = () => {
         {/* Latest Content */}
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>Latest</Text>
-          {latestContent.map((item) => (
-            <TouchableOpacity 
-              key={item.id} 
-              style={styles.latestCard}
-              onPress={() => router.push({
-                pathname: '/learning/content-detail' as any,
-                params: { id: item.id }
-              })}
-            >
-              <View style={styles.latestImagePlaceholder}>
-                <Ionicons 
-                  name={item.type === 'article' ? 'document-text' : 
-                        item.type === 'video' ? 'play-circle' : 'mic'} 
-                  size={24} 
-                  color={PRIMARY_GREEN} 
-                />
-              </View>
-              <View style={styles.latestInfo}>
-                <View style={styles.chipTiny}>
-                  <Text style={styles.chipTinyText}>{item.category}</Text>
-                </View>
-                <Text style={styles.latestTitle} numberOfLines={2}>{item.title}</Text>
-                <View style={styles.latestMetaRow}>
-                  <Ionicons 
-                    name={item.type === 'article' ? 'book-outline' : 
-                          item.type === 'video' ? 'videocam-outline' : 'headset-outline'} 
-                    size={14} 
-                    color={TEXT_SECONDARY} 
+          {latestContent.map((item) => {
+            let imageSource = require('../../../assets/images/featured-learning.png');
+            if (item.title.toLowerCase().includes('run out of money') || item.title.toLowerCase().includes('sapa')) {
+              imageSource = require('../../../assets/images/sapa.png');
+            } else if (item.title.toLowerCase().includes('stock') || item.title.toLowerCase().includes('invest')) {
+              imageSource = require('../../../assets/images/stocks.png');
+            }
+
+            return (
+              <TouchableOpacity 
+                key={item.id} 
+                style={styles.latestCard}
+                onPress={() => router.push({
+                  pathname: '/learning/content-detail' as any,
+                  params: { id: item.id }
+                })}
+              >
+                <View style={styles.latestImagePlaceholder}>
+                  <Image 
+                    source={imageSource} 
+                    style={styles.latestIllustration} 
+                    contentFit="cover"
                   />
-                  <Text style={styles.latestMetaText}>{item.duration}</Text>
                 </View>
-              </View>
-            </TouchableOpacity>
-          ))}
+                <View style={styles.latestInfo}>
+                  <View style={styles.chipTiny}>
+                    <Text style={styles.chipTinyText}>{item.category}</Text>
+                  </View>
+                  <Text style={styles.latestTitle} numberOfLines={2}>{item.title}</Text>
+                  <View style={styles.latestMetaRow}>
+                    <Ionicons 
+                      name={item.type === 'article' ? 'book-outline' : 
+                            item.type === 'video' ? 'videocam-outline' : 'headset-outline'} 
+                      size={14} 
+                      color={TEXT_SECONDARY} 
+                    />
+                    <Text style={styles.latestMetaText}>{item.duration}</Text>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            );
+          })}
         </View>
 
         {/* From BOF OAU */}
@@ -262,10 +270,11 @@ export const LearningHubScreen = () => {
               >
                 <View style={styles.podcastIconWrapper}>
                    <View style={styles.podcastIconCircle}>
-                      <Ionicons name="mic" size={24} color={WHITE} />
-                      <View style={styles.marketPulseBadge}>
-                        <Text style={styles.marketPulseText}>Market Pulse</Text>
-                      </View>
+                      <Image 
+                        source={require('../../../assets/images/market-pulse.png')} 
+                        style={styles.podcastLogo} 
+                        contentFit="cover"
+                      />
                    </View>
                 </View>
                 <Text style={styles.podcastEpText}>EP 0{pod.episodeNumber} • {pod.title}</Text>
@@ -522,6 +531,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 15,
+    overflow: 'hidden',
+  },
+  latestIllustration: {
+    width: '100%',
+    height: '100%',
   },
   latestInfo: {
     flex: 1,
@@ -594,6 +608,11 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: WHITE,
     textAlign: 'center',
+  },
+  podcastLogo: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 24,
   },
   podcastEpText: {
     fontFamily: Fonts.bold,
