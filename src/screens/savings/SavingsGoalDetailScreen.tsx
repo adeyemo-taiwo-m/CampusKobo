@@ -28,6 +28,8 @@ import {
   Colors,
 } from '../../constants';
 import { ProgressBar } from '../../components/ProgressBar';
+import { DarkCard } from '../../components/DarkCard';
+import { Button } from '../../components/Button';
 import { DeleteConfirmModal } from '../../components/DeleteConfirmModal';
 import { AddFundsBottomSheet } from '../../components/AddFundsBottomSheet';
 import { useAppContext } from '../../context/AppContext';
@@ -119,57 +121,42 @@ export const SavingsGoalDetailScreen = () => {
 
           <Text style={styles.headerTitle}>Savings Goal Details</Text>
 
-          {/* Edit button: white rounded rect, green text */}
-          <TouchableOpacity
-            style={styles.editBtn}
+          {/* Edit button using existing Button component */}
+          <Button
+            title="Edit"
+            variant="secondary"
+            size="sm"
+            fullWidth={false}
+            textStyle={{ color: PRIMARY_GREEN }}
             onPress={() =>
               router.push({
                 pathname: '/savings/create' as any,
                 params: { goal: JSON.stringify(goal) },
               })
             }
-          >
-            <Text style={styles.editBtnText}>Edit</Text>
-          </TouchableOpacity>
+          />
+
         </View>
 
-        {/* Hero card — darker green, semi-transparent */}
-        <View style={styles.heroCard}>
-          {/* Goal icon + name */}
-          <View style={styles.goalNameRow}>
-            <View style={styles.iconBox}>
-              <Text style={{ fontSize: 16 }}>{emoji}</Text>
-            </View>
-            <Text style={styles.goalName}>{goal.name}</Text>
-          </View>
-
-          {/* Amounts on one line */}
-          <Text style={styles.savedAmount}>
-            ₦{goal.savedAmount.toLocaleString()}
-            <Text style={styles.separator}>/</Text>
-            <Text style={styles.targetAmount}>₦{goal.targetAmount.toLocaleString()}</Text>
-          </Text>
-
-          {/* Progress bar + % */}
-          <View style={styles.barRow}>
-            <View style={styles.barTrack}>
-              <View style={[styles.barFill, { width: `${percent}%` }]} />
-            </View>
-            <Text style={styles.percentLabel}>{percent}%</Text>
-          </View>
-
-          {/* Footer meta */}
-          <View style={styles.heroMeta}>
-            <Text style={styles.remainingText}>₦{remaining.toLocaleString()} still needed</Text>
-            {deadlineLabel && (
-              <>
-                <Text style={styles.heroBullet}> • </Text>
-                <Text style={styles.dueText}>Due on {deadlineLabel}</Text>
-              </>
-            )}
-          </View>
+        {/* Hero card using DarkCard component */}
+        <View style={styles.summaryCardWrapper}>
+          <DarkCard
+            type="savings"
+            label={goal.name}
+            categoryIcon={emoji}
+            amount={goal.savedAmount}
+            limitAmount={goal.targetAmount}
+            progress={progress}
+            periodLabel={
+              daysLeft !== null 
+                ? `₦${remaining.toLocaleString()} left • ${daysLeft} days remaining`
+                : `₦${remaining.toLocaleString()} left`
+            }
+          />
         </View>
-      </View>
+
+
+        </View>
 
       {/* ── White Bottom Sheet ───────────────────────────────────────────── */}
       <ScrollView
@@ -234,7 +221,7 @@ export const SavingsGoalDetailScreen = () => {
                 {/* Date — gray center */}
                 <Text style={styles.cDate}>{formatDate(c.date)}</Text>
                 {/* Source — dark right */}
-                <Text style={styles.cSource}>{c.note || 'Main Wallet'}</Text>
+                <Text style={styles.cSource}>{c.source || 'Main Wallet'}</Text>
               </View>
             ))
           )}
@@ -296,7 +283,6 @@ const styles = StyleSheet.create({
   // ── Hero ──────────────────────────────────────────────────────────────────
   heroRegion: {
     backgroundColor: HERO_GREEN,
-    paddingHorizontal: 20,
     paddingBottom: 48,
   },
   headerRow: {
@@ -304,6 +290,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 20,
+    paddingHorizontal: 20,
   },
   // Circular white/light back button
   backBtn: {
@@ -319,108 +306,11 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: WHITE,
   },
-  // White rectangle, green text
-  editBtn: {
-    paddingHorizontal: 18,
-    paddingVertical: 7,
-    borderRadius: 20,
-    backgroundColor: WHITE,
+  summaryCardWrapper: {
+    paddingHorizontal: 20,
+    marginTop: 20,
+    marginBottom: 10,
   },
-  editBtnText: {
-    fontFamily: Fonts.semiBold,
-    fontSize: 13,
-    color: HERO_GREEN,
-  },
-
-  // Hero card — semi-transparent darker green
-  heroCard: {
-    backgroundColor: CARD_GREEN,
-    borderRadius: 16,
-    padding: 20,
-  },
-  goalNameRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    marginBottom: 12,
-  },
-  iconBox: {
-    width: 40,
-    height: 40,
-    borderRadius: 10,
-    backgroundColor: WHITE,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  goalName: {
-    fontFamily: Fonts.bold,
-    fontSize: 20,
-    color: WHITE,
-  },
-  // Amount row: ₦45,000/₦150,000 on one line
-  savedAmount: {
-    fontFamily: Fonts.bold,
-    fontSize: 36,
-    color: WHITE,
-    lineHeight: 44,
-    marginBottom: 14,
-  },
-  separator: {
-    fontFamily: Fonts.regular,
-    fontSize: 22,
-    color: 'rgba(255,255,255,0.6)',
-  },
-  targetAmount: {
-    fontFamily: Fonts.semiBold,
-    fontSize: 22,
-    color: 'rgba(255,255,255,0.75)',
-  },
-  // Progress bar: white fill, dark track
-  barRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    marginBottom: 12,
-  },
-  barTrack: {
-    flex: 1,
-    height: 7,
-    borderRadius: 4,
-    backgroundColor: 'rgba(255,255,255,0.25)',
-    overflow: 'hidden',
-  },
-  barFill: {
-    height: '100%',
-    borderRadius: 4,
-    backgroundColor: WHITE,
-  },
-  percentLabel: {
-    fontFamily: Fonts.bold,
-    fontSize: 13,
-    color: WHITE,
-    minWidth: 34,
-    textAlign: 'right',
-  },
-  heroMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-  },
-  remainingText: {
-    fontFamily: Fonts.regular,
-    fontSize: 14,
-    color: WHITE,
-  },
-  heroBullet: {
-    color: 'rgba(255,255,255,0.45)',
-    fontSize: 14,
-  },
-  dueText: {
-    fontFamily: Fonts.regular,
-    fontSize: 14,
-    color: Colors.primary.P200,
-  },
-
   // ── White Sheet ───────────────────────────────────────────────────────────
   sheet: {
     flex: 1,

@@ -9,7 +9,7 @@ import {
   View,
   ViewStyle,
 } from "react-native";
-import { Fonts, SPACING, WHITE } from "../constants";
+import { Colors, Fonts, SPACING, WHITE } from "../constants";
 import { ProgressBar } from "./ProgressBar";
 
 interface DarkCardProps {
@@ -84,23 +84,47 @@ export const DarkCard = ({
             {isSavingsType ? (
               /* Savings Specific Structure */
               <View style={styles.savingsContent}>
-                <Text style={styles.savingsLabel}>{label || "Total Savings"}</Text>
-                <Text style={styles.savingsAmount}>
-                  ₦{amount.toLocaleString()}
-                </Text>
+                {/* Header: Icon (optional) + Label */}
+                <View style={styles.savingsHeaderRow}>
+                  {categoryIcon && (
+                    <View style={styles.savingsIconBox}>
+                      <Text style={{ fontSize: 16 }}>{categoryIcon}</Text>
+                    </View>
+                  )}
+                  <Text style={styles.savingsLabel}>{label || "Total Savings"}</Text>
+                </View>
+
+                {/* Amount / Target */}
+                <View style={styles.savingsAmountRow}>
+                  <Text style={styles.savingsAmount}>
+                    ₦{amount.toLocaleString()}
+                  </Text>
+                  {limitAmount !== undefined && (
+                    <Text style={styles.savingsTarget}>
+                      /₦{limitAmount.toLocaleString()}
+                    </Text>
+                  )}
+                </View>
                 
                 <View style={styles.savingsProgressRow}>
                   <View style={styles.savingsBarWrapper}>
-                    <ProgressBar progress={progress || 0} height={10} fillColor={WHITE} />
+                    <ProgressBar 
+                      progress={progress || 0} 
+                      height={10} 
+                      fillColor={Colors.primary.P50} 
+                      backgroundColor={Colors.primary.P600} 
+                    />
                   </View>
                   <Text style={styles.savingsPercent}>
                     {Math.round((progress || 0) * 100)}%
                   </Text>
                 </View>
 
-                <Text style={styles.savingsFooterLabel}>
-                  {periodLabel}
-                </Text>
+                {periodLabel && (
+                  <Text style={styles.savingsFooterLabel}>
+                    {periodLabel}
+                  </Text>
+                )}
               </View>
             ) : (
               /* Standard Structure (Balance, Expenses, Transaction, Budget) */
@@ -633,16 +657,40 @@ const styles = StyleSheet.create({
   savingsContent: {
     gap: 4,
   },
+  savingsHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 4,
+  },
+  savingsIconBox: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   savingsLabel: {
     fontFamily: Fonts.regular,
     fontSize: 16,
     color: "rgba(255, 255, 255, 0.8)",
   },
+  savingsAmountRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    marginVertical: 4,
+  },
   savingsAmount: {
     fontFamily: Fonts.bold,
-    fontSize: 48,
+    fontSize: 32,
     color: WHITE,
-    marginVertical: 4,
+  },
+  savingsTarget: {
+    fontFamily: Fonts.regular,
+    fontSize: 18,
+    color: "rgba(255, 255, 255, 0.6)",
+    marginLeft: 2,
   },
   savingsProgressRow: {
     flexDirection: "row",
@@ -662,7 +710,7 @@ const styles = StyleSheet.create({
   },
   savingsFooterLabel: {
     fontFamily: Fonts.regular,
-    fontSize: 16,
+    fontSize: 14,
     color: "rgba(255, 255, 255, 0.9)",
     marginTop: 12,
   },

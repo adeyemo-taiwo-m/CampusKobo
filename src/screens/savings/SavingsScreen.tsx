@@ -209,6 +209,18 @@ export const SavingsScreen = () => {
         </ScrollView>
       </View>
 
+      {/* Add Funds Bottom Sheet */}
+      {selectedGoal && (
+        <AddFundsBottomSheet
+          visible={showAddFunds}
+          goal={selectedGoal}
+          onClose={() => {
+            setShowAddFunds(false);
+            setSelectedGoal(null);
+          }}
+          onSuccess={() => {}}
+        />
+      )}
     </View>
   );
 };
@@ -379,8 +391,9 @@ const styles = StyleSheet.create({
   },
   viewDetailsText: {
     fontFamily: Fonts.medium,
-    fontSize: 13,
+    fontSize: 15,
     color: TEXT_SECONDARY,
+    paddingVertical: 4,
   },
 
   // ── Empty State ──────────────────────────────

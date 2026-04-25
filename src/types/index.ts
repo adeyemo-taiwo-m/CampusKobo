@@ -47,6 +47,7 @@ export interface SavingsGoal {
     amount: number;
     date: string;
     note: string;
+    source: string;
   }[];
 }
 

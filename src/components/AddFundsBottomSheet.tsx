@@ -1,13 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
-  TextInput,
   ScrollView,
-  KeyboardAvoidingView,
   Platform,
+  Animated,
 } from "react-native";
 import Modal from "react-native-modal";
 import { Ionicons } from "@expo/vector-icons";
@@ -17,10 +16,11 @@ import {
   TEXT_PRIMARY,
   TEXT_SECONDARY,
   Fonts,
-  SPACING,
   BACKGROUND,
 } from "../constants";
 import { ProgressBar } from "./ProgressBar";
+import { InputField } from "./InputField";
+import { SelectField } from "./SelectField";
 import { SavingsGoal } from "../types";
 import { useAppContext } from "../context/AppContext";
 
@@ -32,6 +32,7 @@ interface AddFundsBottomSheetProps {
 }
 
 const QUICK_AMOUNTS = [1000, 2000, 5000, 10000];
+const SOURCE_OPTIONS = ["Main Wallet", "Savings Balance", "Linked Debit Card"];
 
 export const AddFundsBottomSheet = ({
   visible,
@@ -41,117 +42,207 @@ export const AddFundsBottomSheet = ({
 }: AddFundsBottomSheetProps) => {
   const { addFundsToGoal } = useAppContext();
   const [amount, setAmount] = useState("");
+  const [source, setSource] = useState(SOURCE_OPTIONS[0]);
   const [note, setNote] = useState("");
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [successAnim] = useState(new Animated.Value(0));
+  const [showSourceSelector, setShowSourceSelector] = useState(false);
 
   const progress = goal.targetAmount > 0 ? goal.savedAmount / goal.targetAmount : 0;
   const percent = Math.round(progress * 100);
 
-  const handleAddFunds = async () => {
-    const numAmount = parseFloat(amount.replace(/[^0-9.]/g, ""));
-    if (isNaN(numAmount) || numAmount <= 0) return;
+  const numAmount = parseFloat(amount.replace(/[^0-9.]/g, "")) || 0;
+  const remainingAfter = Math.max(goal.targetAmount - (goal.savedAmount + numAmount), 0);
 
-    await addFundsToGoal(goal.id, numAmount, note);
-    setAmount("");
-    setNote("");
-    onSuccess();
-    onClose();
+  const handleAddFunds = async () => {
+    if (numAmount <= 0) return;
+
+    await addFundsToGoal(goal.id, numAmount, note, source);
+    
+    // Show success overlay
+    setIsSuccess(true);
+    Animated.spring(successAnim, {
+      toValue: 1,
+      useNativeDriver: true,
+      tension: 50,
+      friction: 7,
+    }).start();
+
+    // Auto-dismiss and call onSuccess/onClose after 2 seconds
+    setTimeout(() => {
+      setIsSuccess(false);
+      setAmount("");
+      setNote("");
+      onSuccess();
+      onClose();
+      successAnim.setValue(0);
+    }, 2000);
   };
 
   return (
     <Modal
       isVisible={visible}
-      onBackdropPress={onClose}
-      onSwipeComplete={onClose}
-      swipeDirection={["down"]}
+      onBackdropPress={!isSuccess ? onClose : undefined}
+      onSwipeComplete={!isSuccess ? onClose : undefined}
+      swipeDirection={!isSuccess ? ["down"] : undefined}
       style={styles.modal}
       propagateSwipe
       avoidKeyboard
+      backdropOpacity={0.5}
+      animationIn="slideInUp"
+      animationOut="slideOutDown"
     >
       <View style={styles.container}>
         {/* Drag handle */}
         <View style={styles.dragHandle} />
 
-        <View style={styles.header}>
+        {/* Header Row */}
+        <View style={styles.headerRow}>
+          <View style={{ width: 24 }} /> {/* Spacer */}
           <Text style={styles.title}>Add Funds</Text>
-          <Text style={styles.subtitle}>Saving for: {goal.name}</Text>
+          <TouchableOpacity onPress={onClose} disabled={isSuccess}>
+            <Ionicons name="close" size={24} color={TEXT_SECONDARY} />
+          </TouchableOpacity>
         </View>
 
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-          {/* Progress Section */}
-          <View style={styles.progressSection}>
-            <ProgressBar progress={progress} height={8} />
-            <Text style={styles.progressText}>
-              ₦{goal.savedAmount.toLocaleString()} / ₦{goal.targetAmount.toLocaleString()} • {percent}%
+        <ScrollView 
+          showsVerticalScrollIndicator={false} 
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Current Progress Label */}
+          <Text style={styles.sectionLabel}>Current Progress</Text>
+          
+          {/* Progress Card */}
+          <View style={styles.progressCard}>
+            <Text style={styles.cardAmountRow}>
+              <Text style={styles.cardSavedAmount}>₦{goal.savedAmount.toLocaleString()}</Text>
+              <Text style={styles.cardAmountSeparator}> / </Text>
+              <Text style={styles.cardTargetAmount}>₦{goal.targetAmount.toLocaleString()}</Text>
             </Text>
-          </View>
-
-          {/* Amount Input */}
-          <View style={styles.inputSection}>
-            <Text style={styles.label}>How much do you want to add?</Text>
-            <View style={styles.amountInputWrapper}>
-              <Text style={styles.currency}>₦</Text>
-              <TextInput
-                style={styles.amountInput}
-                placeholder="0"
-                keyboardType="numeric"
-                value={amount}
-                onChangeText={setAmount}
-                autoFocus
-              />
+            
+            <View style={styles.cardBarRow}>
+              <View style={styles.cardBarWrapper}>
+                <ProgressBar progress={progress} height={10} fillColor={PRIMARY_GREEN} backgroundColor="#F3F4F6" />
+              </View>
+              <Text style={styles.cardPercentText}>{percent}%</Text>
             </View>
           </View>
 
+          {/* Amount Input Section using InputField */}
+          <InputField
+            label="How much do you want to add?"
+            placeholder="0"
+            prefix="₦"
+            keyboardType="numeric"
+            value={amount}
+            onChangeText={setAmount}
+          />
+
           {/* Quick Amount Chips */}
           <View style={styles.chipsRow}>
-            {QUICK_AMOUNTS.map((amt) => (
-              <TouchableOpacity
-                key={amt}
-                style={styles.chip}
-                onPress={() => setAmount(amt.toString())}
-              >
-                <Text style={styles.chipText}>₦{amt.toLocaleString()}</Text>
-              </TouchableOpacity>
-            ))}
+            {QUICK_AMOUNTS.map((amt) => {
+              const isSelected = numAmount === amt;
+              return (
+                <TouchableOpacity
+                  key={amt}
+                  style={[styles.chip, isSelected && styles.chipSelected]}
+                  onPress={() => setAmount(amt.toString())}
+                >
+                  <Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>
+                    ₦{amt.toLocaleString()}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
           </View>
 
-          {/* Source Row */}
-          <View style={styles.sourceSection}>
-            <Text style={styles.label}>Add from</Text>
-            <TouchableOpacity style={styles.sourceSelector} activeOpacity={0.7}>
-              <View style={styles.sourceLeft}>
-                <View style={styles.sourceIcon}>
-                  <Ionicons name="wallet-outline" size={20} color={PRIMARY_GREEN} />
-                </View>
-                <Text style={styles.sourceName}>Main Wallet</Text>
-              </View>
-              <Ionicons name="chevron-down" size={20} color={TEXT_SECONDARY} />
-            </TouchableOpacity>
-          </View>
+          {/* Source Selector using SelectField */}
+          <SelectField
+            label="Add from"
+            placeholder="Select source"
+            value={source}
+            onPress={() => setShowSourceSelector(!showSourceSelector)}
+            state={showSourceSelector ? "active" : "default"}
+          />
 
-          {/* Note Input */}
-          <View style={styles.inputSection}>
-            <Text style={styles.label}>Note (Optional)</Text>
-            <TextInput
-              style={styles.noteInput}
-              placeholder="e.g. Monthly savings"
-              value={note}
-              onChangeText={setNote}
-              placeholderTextColor={TEXT_SECONDARY}
-            />
-          </View>
+          {/* Static Source Dropdown (simulated) */}
+          {showSourceSelector && (
+            <View style={styles.sourceDropdown}>
+              {SOURCE_OPTIONS.map((opt) => (
+                <TouchableOpacity
+                  key={opt}
+                  style={styles.sourceOption}
+                  onPress={() => {
+                    setSource(opt);
+                    setShowSourceSelector(false);
+                  }}
+                >
+                  <Text style={[
+                    styles.sourceOptionText,
+                    source === opt && { color: PRIMARY_GREEN, fontFamily: Fonts.bold }
+                  ]}>{opt}</Text>
+                  {source === opt && <Ionicons name="checkmark" size={18} color={PRIMARY_GREEN} />}
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
 
-          {/* Bottom Button */}
+          {/* Note Input using InputField */}
+          <InputField
+            label="Note (Optional)"
+            placeholder="e.g. Monthly savings"
+            value={note}
+            onChangeText={setNote}
+          />
+
+          {/* Remaining Text info */}
+          {numAmount > 0 && (
+            <Text style={styles.remainingInfo}>
+              After this top-up, you'll still need ₦{remainingAfter.toLocaleString()} to reach your goal
+            </Text>
+          )}
+
+          {/* Submit Button */}
           <TouchableOpacity
             style={[
               styles.submitButton,
-              (!amount || parseFloat(amount) <= 0) && styles.disabledButton,
+              numAmount <= 0 && styles.disabledButton,
             ]}
             onPress={handleAddFunds}
-            disabled={!amount || parseFloat(amount) <= 0}
+            disabled={numAmount <= 0 || isSuccess}
           >
             <Text style={styles.submitButtonText}>Add Funds</Text>
           </TouchableOpacity>
         </ScrollView>
+
+        {/* Success Overlay */}
+        {isSuccess && (
+          <View style={StyleSheet.absoluteFill}>
+            <View style={styles.successBackdrop} />
+            <Animated.View 
+              style={[
+                styles.successCard,
+                {
+                  transform: [
+                    { scale: successAnim },
+                    { translateY: successAnim.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [50, 0]
+                      })
+                    }
+                  ],
+                  opacity: successAnim
+                }
+              ]}
+            >
+              <View style={styles.successIconCircle}>
+                <Ionicons name="checkmark" size={48} color={WHITE} />
+              </View>
+              <Text style={styles.successTitle}>Funds added successfully</Text>
+            </Animated.View>
+          </View>
+        )}
       </View>
     </Modal>
   );
@@ -164,149 +255,192 @@ const styles = StyleSheet.create({
   },
   container: {
     backgroundColor: WHITE,
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
+    borderTopLeftRadius: 40,
+    borderTopRightRadius: 40,
     paddingTop: 12,
-    maxHeight: "85%",
+    maxHeight: "90%",
+    position: 'relative',
+    overflow: 'hidden',
   },
   dragHandle: {
-    width: 40,
-    height: 4,
+    width: 60,
+    height: 5,
     backgroundColor: "#E0E0E0",
-    borderRadius: 2,
+    borderRadius: 3,
     alignSelf: "center",
+    marginBottom: 16,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 24,
     marginBottom: 20,
+  },
+  title: {
+    fontFamily: Fonts.bold,
+    fontSize: 18,
+    color: TEXT_PRIMARY,
   },
   scrollContent: {
     paddingHorizontal: 24,
     paddingBottom: Platform.OS === "ios" ? 40 : 24,
   },
-  header: {
-    marginBottom: 24,
-    paddingHorizontal: 24,
-  },
-  title: {
-    fontFamily: Fonts.bold,
-    fontSize: 24,
-    color: TEXT_PRIMARY,
-  },
-  subtitle: {
-    fontFamily: Fonts.regular,
-    fontSize: 16,
-    color: TEXT_SECONDARY,
-    marginTop: 4,
-  },
-  progressSection: {
-    marginBottom: 32,
-  },
-  progressText: {
+  sectionLabel: {
     fontFamily: Fonts.medium,
-    fontSize: 14,
-    color: TEXT_SECONDARY,
-    marginTop: 10,
-  },
-  inputSection: {
-    marginBottom: 24,
-  },
-  label: {
-    fontFamily: Fonts.medium,
-    fontSize: 14,
-    color: TEXT_SECONDARY,
+    fontSize: 15,
+    color: "#374151",
     marginBottom: 12,
   },
-  amountInputWrapper: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderBottomWidth: 1,
-    borderBottomColor: "#E0E0E0",
-    paddingBottom: 8,
+  // Progress Card
+  progressCard: {
+    backgroundColor: WHITE,
+    borderRadius: 20,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: "#F3F4F6",
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    marginBottom: 24,
   },
-  currency: {
+  cardAmountRow: {
+    marginBottom: 16,
+  },
+  cardSavedAmount: {
     fontFamily: Fonts.bold,
     fontSize: 32,
-    color: TEXT_PRIMARY,
-    marginRight: 8,
+    color: PRIMARY_GREEN,
   },
-  amountInput: {
+  cardAmountSeparator: {
+    fontFamily: Fonts.regular,
+    fontSize: 24,
+    color: "#9CA3AF",
+  },
+  cardTargetAmount: {
+    fontFamily: Fonts.bold,
+    fontSize: 24,
+    color: PRIMARY_GREEN,
+  },
+  cardBarRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  cardBarWrapper: {
     flex: 1,
-    fontFamily: Fonts.bold,
-    fontSize: 32,
-    color: TEXT_PRIMARY,
-    padding: 0,
   },
+  cardPercentText: {
+    fontFamily: Fonts.bold,
+    fontSize: 14,
+    color: PRIMARY_GREEN,
+  },
+  // Chips
   chipsRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 32,
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 24,
   },
   chip: {
-    backgroundColor: "#F5F5F5",
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    flex: 1,
+    height: 44,
     borderRadius: 10,
+    backgroundColor: "#F9FAFB",
+    alignItems: 'center',
+    justifyContent: 'center',
     borderWidth: 1,
-    borderColor: "#E0E0E0",
+    borderColor: "transparent",
+  },
+  chipSelected: {
+    backgroundColor: PRIMARY_GREEN,
   },
   chipText: {
-    fontFamily: Fonts.medium,
-    fontSize: 13,
-    color: TEXT_PRIMARY,
-  },
-  sourceSection: {
-    marginBottom: 32,
-  },
-  sourceSelector: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    backgroundColor: "#F9F9F9",
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#EEEEEE",
-  },
-  sourceLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  sourceIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: "#E8F5E9",
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 12,
-  },
-  sourceName: {
     fontFamily: Fonts.semiBold,
-    fontSize: 16,
-    color: TEXT_PRIMARY,
+    fontSize: 14,
+    color: "#374151",
   },
-  noteInput: {
-    backgroundColor: "#F9F9F9",
-    padding: 16,
+  chipTextSelected: {
+    color: WHITE,
+  },
+  // Source Dropdown
+  sourceDropdown: {
+    backgroundColor: "#F9FAFB",
     borderRadius: 12,
+    marginTop: -8,
+    marginBottom: 20,
+    padding: 8,
     borderWidth: 1,
-    borderColor: "#EEEEEE",
-    fontFamily: Fonts.regular,
+    borderColor: "#E5E7EB",
+  },
+  sourceOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 12,
+    borderRadius: 8,
+  },
+  sourceOptionText: {
+    fontFamily: Fonts.medium,
     fontSize: 15,
     color: TEXT_PRIMARY,
   },
+  remainingInfo: {
+    fontFamily: Fonts.regular,
+    fontSize: 13,
+    color: "#6B7280",
+    marginBottom: 24,
+  },
   submitButton: {
     backgroundColor: PRIMARY_GREEN,
-    height: 56,
+    height: 58,
     borderRadius: 16,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 8,
   },
   disabledButton: {
-    backgroundColor: "#E0E0E0",
+    opacity: 0.5,
   },
   submitButtonText: {
     fontFamily: Fonts.bold,
     fontSize: 16,
     color: WHITE,
+  },
+  // Success Overlay
+  successBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(255,255,255,0.7)',
+  },
+  successCard: {
+    position: 'absolute',
+    top: '25%',
+    alignSelf: 'center',
+    width: 280,
+    backgroundColor: WHITE,
+    borderRadius: 30,
+    padding: 40,
+    alignItems: 'center',
+    elevation: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.15,
+    shadowRadius: 20,
+  },
+  successIconCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: PRIMARY_GREEN,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 24,
+  },
+  successTitle: {
+    fontFamily: Fonts.bold,
+    fontSize: 22,
+    color: TEXT_PRIMARY,
+    textAlign: 'center',
+    lineHeight: 30,
   },
 });

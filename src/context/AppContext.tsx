@@ -35,6 +35,7 @@ interface AppContextType {
     goalId: string,
     amount: number,
     note: string,
+    source: string,
   ) => Promise<void>;
   addRecurringExpense: (item: RecurringExpense) => Promise<void>;
   updateRecurringExpense: (
@@ -324,6 +325,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     goalId: string,
     amount: number,
     note: string,
+    source: string,
   ) => {
     const goal = savingsGoals.find((g) => g.id === goalId);
     if (goal) {
@@ -332,7 +334,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         savedAmount: goal.savedAmount + amount,
         contributions: [
           ...goal.contributions,
-          { amount, note, date: new Date().toISOString() },
+          { amount, note, source, date: new Date().toISOString() },
         ],
       };
       await updateSavingsGoal(goalId, updatedGoal);
