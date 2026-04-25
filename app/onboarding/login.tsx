@@ -23,11 +23,7 @@ export default function LoginScreen() {
       
       if (existingUser && existingUser.email === email) {
         setUser(existingUser);
-        if (existingUser.hasCompletedOnboarding) {
-          router.replace('/(tabs)');
-        } else {
-          router.push('/onboarding/goal-selection');
-        }
+        router.replace('/(tabs)');
       } else {
         // Mocking a successful login for a new user entry
         const mockUser = {
@@ -39,10 +35,10 @@ export default function LoginScreen() {
           selectedGoals: [],
           selectedCategories: [],
           hasPIN: false,
-          hasCompletedOnboarding: false,
+          hasCompletedOnboarding: true,
         };
         setUser(mockUser);
-        router.push('/onboarding/goal-selection');
+        router.replace('/(tabs)');
       }
     }
   };

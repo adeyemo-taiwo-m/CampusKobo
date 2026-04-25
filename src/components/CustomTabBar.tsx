@@ -1,22 +1,29 @@
 import React from 'react';
-import { View, StyleSheet, TouchableOpacity, Dimensions, Platform } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Dimensions, Platform, Text } from 'react-native';
 import { Svg, Path } from 'react-native-svg';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
-import { PRIMARY_GREEN, WHITE, TEXT_SECONDARY, SPACING, Fonts } from '../constants';
-import { Text } from 'react-native';
+import { PRIMARY_GREEN, WHITE, Fonts } from '../constants';
 
 const { width } = Dimensions.get('window');
 const TAB_BAR_HEIGHT = 80;
 
+// The 4 visible tabs in order
+const VISIBLE_TABS = ['index', 'expenses', 'savings', 'budget'] as const;
+const TAB_TITLES: Record<string, string> = {
+  index: 'Home',
+  expenses: 'Expenses',
+  savings: 'Savings',
+  budget: 'Budget',
+};
+
 export const CustomTabBar = ({ state, descriptors, navigation }: BottomTabBarProps) => {
   const router = useRouter();
-  const handleFabPress = () => {
-    // Determine the current active tab name
-    const currentRoute = state.routes[state.index].name;
 
-    // Navigate to different screens based on the active tab
+  // FAB action depends on which tab is focused
+  const handleFabPress = () => {
+    const currentRoute = state.routes[state.index]?.name;
     switch (currentRoute) {
       case 'savings':
         router.push('/savings/create');
@@ -24,16 +31,20 @@ export const CustomTabBar = ({ state, descriptors, navigation }: BottomTabBarPro
       case 'budget':
         router.push('/budget/create');
         break;
-      case 'index': // Dashboard
       case 'expenses':
+      case 'index':
       default:
         router.push('/add-transaction');
         break;
     }
   };
 
+  // Only render the 4 visible tabs
+  const visibleRoutes = state.routes.filter(r => VISIBLE_TABS.includes(r.name as any));
+
   return (
     <View style={styles.container}>
+      {/* Curved SVG background */}
       <Svg width={width} height={TAB_BAR_HEIGHT} style={styles.svg}>
         <Path
           fill={WHITE}
@@ -53,76 +64,79 @@ export const CustomTabBar = ({ state, descriptors, navigation }: BottomTabBarPro
       </Svg>
 
       <View style={styles.tabsContainer}>
-        {state.routes
-          .filter(route => {
-            const { options } = descriptors[route.key];
-            return ['Home', 'Expenses', 'Savings', 'Budget'].includes(options.title as string);
-          })
-          .map((route, index) => {
-            const { options } = descriptors[route.key];
-            const isFocused = state.index === state.routes.findIndex(r => r.key === route.key);
+        {visibleRoutes.map((route, visibleIndex) => {
+          const { options } = descriptors[route.key];
+          // isFocused: match by name since hidden tabs shift state.index
+          const isFocused = state.routes[state.index]?.name === route.name;
 
-            const onPress = () => {
-              const event = navigation.emit({
-                type: 'tabPress',
-                target: route.key,
-                canPreventDefault: true,
-              });
-
-              if (route.name !== state.routes[state.index].name && !event.defaultPrevented) {
-                navigation.navigate(route.name);
-              }
-            };
-
-            let iconName: any = 'home-outline';
-            if (options.title === 'Home') iconName = isFocused ? 'home' : 'home-outline';
-            else if (options.title === 'Expenses') iconName = isFocused ? 'list' : 'list-outline';
-            else if (options.title === 'Savings') iconName = isFocused ? 'disc' : 'disc-outline';
-            else if (options.title === 'Budget') iconName = isFocused ? 'bar-chart' : 'bar-chart-outline';
-
-            const tabItem = (
-              <TouchableOpacity
-                key={route.key}
-                onPress={onPress}
-                style={styles.tabItem}
-                activeOpacity={0.7}
-              >
-                {isFocused && <View style={styles.activeIndicator} />}
-                <Ionicons
-                  name={iconName}
-                  size={24}
-                  color={isFocused ? PRIMARY_GREEN : '#9CA3AF'}
-                />
-                <Text style={[
-                  styles.tabLabel,
-                  { color: isFocused ? PRIMARY_GREEN : '#9CA3AF' }
-                ]}>
-                  {options.title}
-                </Text>
-              </TouchableOpacity>
-            );
-
-            // Add FAB at the center (middle of 4 tabs)
-            if (index === 2) {
-              return (
-                <React.Fragment key="fab-container">
-                  <TouchableOpacity
-                    key="fab-button"
-                    activeOpacity={0.8}
-                    onPress={handleFabPress}
-                    style={styles.fabButton}
-                  >
-                    <View style={styles.fabIconContainer}>
-                      <Ionicons name="add" size={32} color={WHITE} />
-                    </View>
-                  </TouchableOpacity>
-                  {tabItem}
-                </React.Fragment>
-              );
+          const onPress = () => {
+            const event = navigation.emit({
+              type: 'tabPress',
+              target: route.key,
+              canPreventDefault: true,
+            });
+            if (!isFocused && !event.defaultPrevented) {
+              navigation.navigate(route.name);
             }
+          };
 
-            return tabItem;
-          })}
+          const title = TAB_TITLES[route.name] ?? (options.title as string);
+
+          let iconName: any = 'home-outline';
+          switch (route.name) {
+            case 'index':
+              iconName = isFocused ? 'home' : 'home-outline';
+              break;
+            case 'expenses':
+              iconName = isFocused ? 'list' : 'list-outline';
+              break;
+            case 'savings':
+              iconName = isFocused ? 'disc' : 'disc-outline';
+              break;
+            case 'budget':
+              iconName = isFocused ? 'bar-chart' : 'bar-chart-outline';
+              break;
+          }
+
+          const tabItem = (
+            <TouchableOpacity
+              key={route.key}
+              onPress={onPress}
+              style={styles.tabItem}
+              activeOpacity={0.7}
+            >
+              {isFocused && <View style={styles.activeIndicator} />}
+              <Ionicons
+                name={iconName}
+                size={24}
+                color={isFocused ? PRIMARY_GREEN : '#9CA3AF'}
+              />
+              <Text style={[styles.tabLabel, { color: isFocused ? PRIMARY_GREEN : '#9CA3AF' }]}>
+                {title}
+              </Text>
+            </TouchableOpacity>
+          );
+
+          // Insert FAB between Expenses (index 1) and Savings (index 2)
+          if (visibleIndex === 2) {
+            return (
+              <React.Fragment key={`fab-${route.key}`}>
+                {/* FAB */}
+                <TouchableOpacity
+                  activeOpacity={0.85}
+                  onPress={handleFabPress}
+                  style={styles.fabButton}
+                >
+                  <Ionicons name="add" size={32} color={WHITE} />
+                </TouchableOpacity>
+                {/* Savings tab */}
+                {tabItem}
+              </React.Fragment>
+            );
+          }
+
+          return tabItem;
+        })}
       </View>
     </View>
   );
@@ -137,9 +151,9 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     elevation: 20,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: -10 },
-    shadowOpacity: 0.05,
-    shadowRadius: 15,
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
   },
   svg: {
     position: 'absolute',
@@ -169,28 +183,22 @@ const styles = StyleSheet.create({
     borderRadius: 2,
   },
   tabLabel: {
-    fontSize: 12,
+    fontSize: 11,
     marginTop: 4,
-    fontFamily: 'Poppins_400Regular',
+    fontFamily: Fonts.regular,
   },
   fabButton: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 58,
+    height: 58,
+    borderRadius: 29,
     backgroundColor: PRIMARY_GREEN,
     justifyContent: 'center',
     alignItems: 'center',
-    top: -30,
-    elevation: 10,
+    marginTop: -30,
+    elevation: 12,
     shadowColor: PRIMARY_GREEN,
     shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.35,
     shadowRadius: 10,
   },
-  fabIconContainer: {
-    width: '100%',
-    height: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
-  }
 });

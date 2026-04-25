@@ -47,12 +47,12 @@ export default function SignUpScreen() {
         selectedGoals: [],
         selectedCategories: [],
         hasPIN: false,
-        hasCompletedOnboarding: false,
+        hasCompletedOnboarding: true,
       };
       
       setUser(newUser);
-      // Navigate to the next onboarding step
-      router.push('/onboarding/goal-selection');
+      // Navigate directly to dashboard
+      router.replace('/(tabs)');
     }
   };
 

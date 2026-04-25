@@ -54,7 +54,7 @@ const BudgetCard = ({ budget, onPress }: { budget: Budget; onPress: () => void }
       <View style={styles.budgetCardContent}>
         <View style={styles.budgetCategoryInfo}>
           <View style={[styles.iconCircle, { backgroundColor: '#E8F5E9' }]}>
-            <Ionicons name={budget.icon} size={22} color="#1B5E20" />
+            <Ionicons name={budget.icon} size={22} color={PRIMARY_GREEN} />
           </View>
           <View style={styles.budgetTextStack}>
             <Text style={styles.categoryNameText}>{budget.category}</Text>

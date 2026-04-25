@@ -1,15 +1,15 @@
+import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ViewStyle,
   StyleProp,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  ViewStyle,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
-import { Ionicons } from "@expo/vector-icons";
-import { WHITE, Fonts, SPACING } from "../constants";
+import { Fonts, SPACING, WHITE } from "../constants";
 import { ProgressBar } from "./ProgressBar";
 
 interface DarkCardProps {
@@ -76,217 +76,223 @@ export const DarkCard = ({
         end={{ x: 1, y: 0 }} // Horizontal gradient
         style={[styles.gradient, isBudgetType && styles.budgetGradient]}
       >
-        {children ? children : (
+        {children ? (
+          children
+        ) : (
           <View style={styles.content}>
             <View
-            style={
-              (isBalanceType || isTransactionType) && !centered
-                ? styles.topRow
-                : styles.topRowCenter
-            }
-          >
-            <View style={isBalanceType || centered ? null : styles.centerAlign}>
-              {isBalanceType ? (
-                <Text style={styles.label}>Current Balance</Text>
-              ) : isTransactionType ? null : (
-                <View style={styles.periodBadgeCentered}>
-                  <Text style={styles.periodLabel}>{periodLabel} 📅</Text>
-                </View>
-              )}
-
-              {label && (
-                <Text style={isBudgetType ? styles.mutedLabel : styles.label}>
-                  {label}
-                </Text>
-              )}
-
-              <View style={styles.amountRow}>
+              style={
+                (isBalanceType || isTransactionType) && !centered
+                  ? styles.topRow
+                  : styles.topRowCenter
+              }
+            >
+              <View
+                style={isBalanceType || centered ? null : styles.centerAlign}
+              >
                 {isBalanceType ? (
-                  <View style={styles.balanceAmountRow}>
-                    <Text style={styles.amountTextLarge}>
-                      {isBalanceVisible
-                        ? `₦${Math.max(0, amount).toLocaleString()}`
-                        : "₦ ••••••"}
-                    </Text>
-                    {isBalanceVisible && (
-                      <Text style={styles.decimals}>.00</Text>
-                    )}
+                  <Text style={styles.label}>Current Balance</Text>
+                ) : isTransactionType ? null : (
+                  <View style={styles.periodBadgeCentered}>
+                    <Text style={styles.periodLabel}>{periodLabel} 📅</Text>
                   </View>
-                ) : isTransactionType ? (
-                  <Text
-                    style={[
-                      styles.amountText,
-                      centered && { textAlign: "center" },
-                    ]}
-                  >
-                    {`${isIncome ? "+" : "−"}₦${amount.toLocaleString()}`}
-                  </Text>
-                ) : isBudgetType ? (
-                  <View style={styles.budgetAmountRow}>
-                    <Text
-                      style={styles.budgetAmountPrimary}
-                    >{`₦${amount.toLocaleString()}`}</Text>
-                    {limitAmount && (
-                      <Text
-                        style={styles.budgetAmountSuffix}
-                      >{`/₦${limitAmount.toLocaleString()}`}</Text>
-                    )}
-                  </View>
-                ) : (
-                  <Text
-                    style={[
-                      styles.amountText,
-                      centered && { textAlign: "center" },
-                    ]}
-                  >
-                    {`₦${amount.toLocaleString()}`}
-                    {type === "expenses" && (
-                      <Text style={styles.spentLabel}> spent</Text>
-                    )}
+                )}
+
+                {label && (
+                  <Text style={isBudgetType ? styles.mutedLabel : styles.label}>
+                    {label}
                   </Text>
                 )}
-              </View>
 
-              {isTransactionType && (
-                <View style={styles.transactionMeta}>
-                  <View style={styles.categoryRow}>
-                    <View
-                      style={[
-                        styles.categoryBadgeDetail,
-                        { backgroundColor: isIncome ? "#2DBB6D" : "#FFE6E6" },
-                      ]}
-                    >
-                      <Ionicons
-                        name={categoryIcon as any}
-                        size={20}
-                        color={isIncome ? WHITE : "#E03A3A"}
-                      />
+                <View style={styles.amountRow}>
+                  {isBalanceType ? (
+                    <View style={styles.balanceAmountRow}>
+                      <Text style={styles.amountTextLarge}>
+                        {isBalanceVisible
+                          ? `₦${Math.max(0, amount).toLocaleString()}`
+                          : "₦ ••••••"}
+                      </Text>
+                      {isBalanceVisible && (
+                        <Text style={styles.decimals}>.00</Text>
+                      )}
                     </View>
-                    <Text style={styles.categoryNameText}>{categoryName}</Text>
-                  </View>
-
-                  <View style={styles.tagRow}>
-                    <View
+                  ) : isTransactionType ? (
+                    <Text
                       style={[
-                        styles.typeTag,
-                        { backgroundColor: isIncome ? "#2DBB6D" : "#FFE6E6" },
+                        styles.amountText,
+                        centered && { textAlign: "center" },
                       ]}
                     >
+                      {`${isIncome ? "+" : "−"}₦${amount.toLocaleString()}`}
+                    </Text>
+                  ) : isBudgetType ? (
+                    <View style={styles.budgetAmountRow}>
                       <Text
+                        style={styles.budgetAmountPrimary}
+                      >{`₦${amount.toLocaleString()}`}</Text>
+                      {limitAmount && (
+                        <Text
+                          style={styles.budgetAmountSuffix}
+                        >{`/₦${limitAmount.toLocaleString()}`}</Text>
+                      )}
+                    </View>
+                  ) : (
+                    <Text
+                      style={[
+                        styles.amountText,
+                        centered && { textAlign: "center" },
+                      ]}
+                    >
+                      {`₦${amount.toLocaleString()}`}
+                      {type === "expenses" && (
+                        <Text style={styles.spentLabel}> spent</Text>
+                      )}
+                    </Text>
+                  )}
+                </View>
+
+                {isTransactionType && (
+                  <View style={styles.transactionMeta}>
+                    <View style={styles.categoryRow}>
+                      <View
                         style={[
-                          styles.tagText,
-                          { color: isIncome ? WHITE : "#E03A3A" },
+                          styles.categoryBadgeDetail,
+                          { backgroundColor: isIncome ? "#2DBB6D" : "#FFE6E6" },
                         ]}
                       >
-                        {isIncome ? "Income" : "Expense"}
+                        <Ionicons
+                          name={categoryIcon as any}
+                          size={20}
+                          color={isIncome ? WHITE : "#E03A3A"}
+                        />
+                      </View>
+                      <Text style={styles.categoryNameText}>
+                        {categoryName}
                       </Text>
                     </View>
 
-                    <View style={styles.monthTag}>
-                      <Text style={styles.monthTagText}>This Month</Text>
+                    <View style={styles.tagRow}>
+                      <View
+                        style={[
+                          styles.typeTag,
+                          { backgroundColor: isIncome ? "#2DBB6D" : "#FFE6E6" },
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.tagText,
+                            { color: isIncome ? WHITE : "#E03A3A" },
+                          ]}
+                        >
+                          {isIncome ? "Income" : "Expense"}
+                        </Text>
+                      </View>
+
+                      <View style={styles.monthTag}>
+                        <Text style={styles.monthTagText}>This Month</Text>
+                      </View>
                     </View>
                   </View>
-                </View>
+                )}
+              </View>
+
+              {isBalanceType && onToggleVisibility && (
+                <TouchableOpacity
+                  onPress={onToggleVisibility}
+                  style={styles.eyeButton}
+                >
+                  <Ionicons
+                    name={isBalanceVisible ? "eye-outline" : "eye-off-outline"}
+                    size={24}
+                    color="rgba(255, 255, 255, 0.7)"
+                  />
+                </TouchableOpacity>
+              )}
+
+              {showToggle && (
+                <TouchableOpacity style={styles.tealToggle} onPress={onToggle}>
+                  <View style={styles.tealToggleInner} />
+                </TouchableOpacity>
               )}
             </View>
 
-            {isBalanceType && onToggleVisibility && (
-              <TouchableOpacity
-                onPress={onToggleVisibility}
-                style={styles.eyeButton}
-              >
-                <Ionicons
-                  name={isBalanceVisible ? "eye-outline" : "eye-off-outline"}
-                  size={24}
-                  color="rgba(255, 255, 255, 0.7)"
-                />
-              </TouchableOpacity>
+            {isBalanceType && !hideIncomeExpenses && (
+              <>
+                <View style={styles.divider} />
+                <View style={styles.bottomRow}>
+                  <View style={styles.statCol}>
+                    <View style={styles.statHeader}>
+                      <Ionicons name="arrow-up" size={14} color="#A5D6A7" />
+                      <Text style={styles.statLabel}>Income</Text>
+                    </View>
+                    <Text style={styles.statValue}>
+                      +₦{income.toLocaleString()}
+                    </Text>
+                  </View>
+
+                  <View style={styles.verticalDivider} />
+
+                  <View style={styles.statCol}>
+                    <View style={styles.statHeader}>
+                      <Ionicons name="arrow-down" size={14} color="#A5D6A7" />
+                      <Text style={styles.statLabel}>Expenses</Text>
+                    </View>
+                    <Text style={styles.statValue}>
+                      −₦{expenses.toLocaleString()}
+                    </Text>
+                  </View>
+                </View>
+              </>
             )}
 
-            {showToggle && (
-              <TouchableOpacity style={styles.tealToggle} onPress={onToggle}>
-                <View style={styles.tealToggleInner} />
-              </TouchableOpacity>
-            )}
-          </View>
-
-          {isBalanceType && !hideIncomeExpenses && (
-            <>
+            {!(isTransactionType || isBudgetType || isBalanceType) && (
               <View style={styles.divider} />
-              <View style={styles.bottomRow}>
-                <View style={styles.statCol}>
-                  <View style={styles.statHeader}>
-                    <Ionicons name="arrow-up" size={14} color="#A5D6A7" />
-                    <Text style={styles.statLabel}>Income</Text>
-                  </View>
-                  <Text style={styles.statValue}>
-                    +₦{income.toLocaleString()}
-                  </Text>
+            )}
+
+            {isBudgetType && progress !== undefined && (
+              <View style={styles.budgetProgressSection}>
+                <View style={styles.budgetProgressBarTrack}>
+                  <View
+                    style={[
+                      styles.budgetProgressBarFill,
+                      { width: `${Math.round(progress * 100)}%` },
+                    ]}
+                  />
                 </View>
-
-                <View style={styles.verticalDivider} />
-
-                <View style={styles.statCol}>
-                  <View style={styles.statHeader}>
-                    <Ionicons name="arrow-down" size={14} color="#A5D6A7" />
-                    <Text style={styles.statLabel}>Expenses</Text>
-                  </View>
-                  <Text style={styles.statValue}>
-                    −₦{expenses.toLocaleString()}
-                  </Text>
-                </View>
-              </View>
-            </>
-          )}
-
-          {!(isTransactionType || isBudgetType || isBalanceType) && (
-            <View style={styles.divider} />
-          )}
-
-          {isBudgetType && progress !== undefined && (
-            <View style={styles.budgetProgressSection}>
-              <View style={styles.budgetProgressBarTrack}>
-                <View
-                  style={[
-                    styles.budgetProgressBarFill,
-                    { width: `${Math.round(progress * 100)}%` },
-                  ]}
-                />
-              </View>
-              <Text style={styles.budgetProgressPercent}>
-                {Math.round(progress * 100)}%
-              </Text>
-            </View>
-          )}
-
-          {isBudgetType && progressLabel && (
-            <View style={styles.budgetStatusLine}>
-              <Text style={styles.budgetStatusLeft}>
-                {progressLabel.split(" • ")[0]}
-              </Text>
-              <Text style={styles.budgetStatusDot}>•</Text>
-              <Text style={styles.budgetStatusMotivation}>
-                {progressLabel.split(" • ")[1]}
-              </Text>
-            </View>
-          )}
-
-          {type === "expenses" && progress !== undefined && (
-            <>
-              {statusCaption && (
-                <Text style={styles.statusCaptionTop}>{statusCaption}</Text>
-              )}
-              <View style={styles.progressSection}>
-                <View style={{ flex: 1 }}>
-                  <ProgressBar progress={progress} />
-                </View>
-                <Text style={styles.progressPercent}>
+                <Text style={styles.budgetProgressPercent}>
                   {Math.round(progress * 100)}%
                 </Text>
               </View>
-            </>
-          )}
-        </View>
+            )}
+
+            {isBudgetType && progressLabel && (
+              <View style={styles.budgetStatusLine}>
+                <Text style={styles.budgetStatusLeft}>
+                  {progressLabel.split(" • ")[0]}
+                </Text>
+                <Text style={styles.budgetStatusDot}>•</Text>
+                <Text style={styles.budgetStatusMotivation}>
+                  {progressLabel.split(" • ")[1]}
+                </Text>
+              </View>
+            )}
+
+            {type === "expenses" && progress !== undefined && (
+              <>
+                {statusCaption && (
+                  <Text style={styles.statusCaptionTop}>{statusCaption}</Text>
+                )}
+                <View style={styles.progressSection}>
+                  <View style={{ flex: 1 }}>
+                    <ProgressBar progress={progress} />
+                  </View>
+                  <Text style={styles.progressPercent}>
+                    {Math.round(progress * 100)}%
+                  </Text>
+                </View>
+              </>
+            )}
+          </View>
         )}
       </LinearGradient>
     </View>

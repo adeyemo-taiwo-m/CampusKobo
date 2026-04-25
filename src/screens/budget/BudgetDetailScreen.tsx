@@ -1,7 +1,6 @@
 import React from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   ScrollView,
   SafeAreaView,
@@ -113,38 +112,17 @@ export const BudgetDetailScreen = () => {
             />
           </View>
 
-          {/* Summary DarkCard */}
+          {/* Summary DarkCard — using built-in budget type */}
           <View style={styles.summaryCardWrapper}>
-            <DarkCard type="budget">
-              <View style={styles.darkCardInner}>
-                {/* Category icon + name */}
-                <View style={styles.catHeaderRow}>
-                  <View style={styles.iconCircleSmall}>
-                    <Ionicons name={budget.icon as any} size={18} color="#27AE60" />
-                  </View>
-                  <Text style={styles.catName}>{budget.category}</Text>
-                </View>
-
-                {/* Spent / Limit */}
-                <View style={styles.amountRow}>
-                  <Text style={styles.spentAmount}>₦{budget.spentAmount.toLocaleString()}</Text>
-                  <Text style={styles.limitAmountText}> / ₦{budget.limitAmount.toLocaleString()}</Text>
-                </View>
-
-                {/* Progress bar */}
-                <View style={styles.progressRow}>
-                  <View style={styles.progressBarTrack}>
-                    <View style={[styles.progressBarFill, { width: `${Math.min(100, percent)}%` }]} />
-                  </View>
-                  <Text style={styles.percentText}>{percent}%</Text>
-                </View>
-
-                {/* Meta */}
-                <Text style={styles.metaLine}>
-                  ₦{remaining.toLocaleString()} left • {budget.daysLeft} days remaining
-                </Text>
-              </View>
-            </DarkCard>
+            <DarkCard
+              type="budget"
+              categoryName={budget.category}
+              categoryIcon={budget.icon}
+              amount={budget.spentAmount}
+              limitAmount={budget.limitAmount}
+              progress={progress}
+              progressLabel={`₦${remaining.toLocaleString()} left • ${budget.daysLeft} days remaining`}
+            />
           </View>
         </SafeAreaView>
       </View>
@@ -305,73 +283,6 @@ const styles = StyleSheet.create({
   summaryCardWrapper: {
     paddingHorizontal: 20,
     marginTop: 4,
-  },
-  darkCardInner: {
-    paddingVertical: 4,
-  },
-  catHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 14,
-  },
-  iconCircleSmall: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 10,
-  },
-  catName: {
-    fontFamily: Fonts.medium,
-    fontSize: 16,
-    color: WHITE,
-  },
-  amountRow: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    marginBottom: 14,
-  },
-  spentAmount: {
-    fontFamily: Fonts.bold,
-    fontSize: 30,
-    color: WHITE,
-  },
-  limitAmountText: {
-    fontFamily: Fonts.medium,
-    fontSize: 16,
-    color: 'rgba(255,255,255,0.65)',
-  },
-  progressRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  progressBarTrack: {
-    flex: 1,
-    height: 7,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    borderRadius: 4,
-    marginRight: 10,
-    overflow: 'hidden',
-  },
-  progressBarFill: {
-    height: '100%',
-    backgroundColor: '#6EE7B7',
-    borderRadius: 4,
-  },
-  percentText: {
-    fontFamily: Fonts.medium,
-    fontSize: 12,
-    color: WHITE,
-    minWidth: 32,
-    textAlign: 'right',
-  },
-  metaLine: {
-    fontFamily: Fonts.regular,
-    fontSize: 12,
-    color: 'rgba(255,255,255,0.65)',
   },
 
   // ── Curved white body ────────────────────────
