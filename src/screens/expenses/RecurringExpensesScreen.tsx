@@ -17,6 +17,7 @@ import {
 import { useAppContext } from '../../context/AppContext';
 import { DarkCard } from '../../components/DarkCard';
 import { Button } from '../../components/Button';
+import { formatCurrency, getPercentage } from '../../utils/formatters';
 import { RecurringExpense } from '../../types';
 
 const { width } = Dimensions.get('window');
@@ -97,7 +98,7 @@ export default function RecurringExpensesScreen() {
             {item.isPaused ? 'Paused' : 'Active'}
           </Text>
         </View>
-        <Text style={styles.itemAmountText}>−₦{item.amount.toLocaleString()}</Text>
+        <Text style={styles.itemAmountText}>−{formatCurrency(item.amount)}</Text>
       </View>
     </TouchableOpacity>
   );
@@ -130,7 +131,7 @@ export default function RecurringExpensesScreen() {
           periodLabel="Recurring this month"
           progress={progress}
           statusCaption="This will be deducted automatically every month"
-          progressLabel={`${progressPercent}% of monthly budget taken`}
+          progressLabel={`${getPercentage(activeSum, budgetLimit)}% of monthly budget taken`}
           style={styles.summaryCard}
         />
 

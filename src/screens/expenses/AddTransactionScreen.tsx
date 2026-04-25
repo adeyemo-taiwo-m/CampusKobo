@@ -23,9 +23,9 @@ import {
   BACKGROUND 
 } from '../../constants';
 import { InputField } from '../../components/InputField';
-import { Button } from '../../components/Button';
-import { CategoryBottomSheet } from '../../components/CategoryBottomSheet';
 import { SuccessModal } from '../../components/SuccessScreen';
+import { Toast } from '../../components/Toast';
+import { useToast } from '../../hooks/useToast';
 import { useAppContext } from '../../context/AppContext';
 import { Transaction } from '../../types';
 
@@ -33,6 +33,7 @@ export default function AddTransactionScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const { addTransaction, updateTransaction } = useAppContext();
+  const { toastProps, showToast } = useToast();
   
   // Edit mode check
   const editTransaction = params.transaction ? JSON.parse(params.transaction as string) as Transaction : null;
@@ -80,12 +81,16 @@ export default function AddTransactionScreen() {
       isRecurring: isEditMode ? editTransaction.isRecurring : false,
     };
 
-    if (isEditMode) {
-      await updateTransaction(editTransaction.id, transactionData);
-      setShowSuccess(true);
-    } else {
-      await addTransaction(transactionData);
-      setShowSuccess(true);
+    try {
+      if (isEditMode) {
+        await updateTransaction(editTransaction.id, transactionData);
+        setShowSuccess(true);
+      } else {
+        await addTransaction(transactionData);
+        setShowSuccess(true);
+      }
+    } catch (error) {
+      showToast("Failed to save transaction. Please try again.", "error");
     }
   };
 
@@ -254,6 +259,7 @@ export default function AddTransactionScreen() {
           if (validationErrors.category) setValidationErrors({...validationErrors, category: false});
         }}
       />
+      <Toast {...toastProps} />
     </SafeAreaView>
   );
 }

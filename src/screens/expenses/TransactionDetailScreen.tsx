@@ -26,6 +26,7 @@ import { Transaction } from '../../types';
 import { DeleteConfirmModal } from '../../components/DeleteConfirmModal';
 import { ProgressBar } from '../../components/ProgressBar';
 import { DarkCard } from '../../components/DarkCard';
+import { formatCurrency, getPercentage } from '../../utils/formatters';
 
 export default function TransactionDetailScreen() {
   const router = useRouter();
@@ -144,7 +145,7 @@ export default function TransactionDetailScreen() {
               <DetailRow 
                 icon="bar-chart-outline" 
                 label="Budget Category" 
-                value={`${transaction.category} (₦${relatedBudget?.spentAmount.toLocaleString() || 0} /₦${relatedBudget?.limitAmount.toLocaleString() || 0} used)`} 
+                value={`${transaction.category} (${formatCurrency(relatedBudget?.spentAmount || 0)} /${formatCurrency(relatedBudget?.limitAmount || 0)} used)`} 
               />
             )}
             <DetailRow 
@@ -160,7 +161,7 @@ export default function TransactionDetailScreen() {
             <View style={styles.impactWidget}>
               <View style={styles.impactHeader}>
                 <Text style={styles.impactLabel}>Budget Impact: <Text style={styles.impactCategory}>{transaction.category}</Text></Text>
-                <Text style={styles.impactPercent}>{Math.round(budgetProgress)}%</Text>
+                <Text style={styles.impactPercent}>{getPercentage(relatedBudget.spentAmount, relatedBudget.limitAmount)}%</Text>
               </View>
               
               <View style={styles.progressBarBg}>
@@ -168,7 +169,7 @@ export default function TransactionDetailScreen() {
               </View>
               
               <Text style={styles.impactCaption}>
-                You've now used {Math.round(budgetProgress)}% of your {transaction.category} budget this month, ₦{remainingBudget.toLocaleString()} left before you hit your limit
+                You've now used {getPercentage(relatedBudget.spentAmount, relatedBudget.limitAmount)}% of your {transaction.category} budget this month, {formatCurrency(remainingBudget)} left before you hit your limit
               </Text>
             </View>
           )}

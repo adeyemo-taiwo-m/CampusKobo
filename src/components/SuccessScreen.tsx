@@ -9,6 +9,7 @@ import {
   SPACING,
   Fonts,
 } from "../constants";
+import { Confetti } from "./Confetti";
 
 interface SuccessModalProps {
   isVisible: boolean;
@@ -72,6 +73,7 @@ export const SuccessModal = ({
           <Text style={styles.title}>{title}</Text>
           <Text style={styles.subtitle}>{subtitle}</Text>
         </Animated.View>
+        <Confetti active={isVisible} />
       </View>
     </Modal>
   );

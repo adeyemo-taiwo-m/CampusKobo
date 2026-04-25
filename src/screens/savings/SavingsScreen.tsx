@@ -16,6 +16,7 @@ import {
   SafeAreaView,
   StatusBar,
   Image,
+  ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -32,9 +33,12 @@ import {
 } from "../../constants";
 import { DarkCard } from "../../components/DarkCard";
 import { EmptyState } from "../../components/EmptyState";
+import { AddFundsBottomSheet } from "../../components/AddFundsBottomSheet";
+import { Toast } from "../../components/Toast";
+import { useToast } from "../../hooks/useToast";
 import { useAppContext } from "../../context/AppContext";
 import { ProgressBar } from "../../components/ProgressBar";
-import { AddFundsBottomSheet } from "../../components/AddFundsBottomSheet";
+import { formatCurrency, getPercentage } from "../../utils/formatters";
 import { SavingsGoal } from "../../types";
 
 // Returns an emoji that fits the goal name
@@ -56,7 +60,8 @@ const getGoalEmoji = (name: string): string => {
 export const SavingsScreen = () => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { savingsGoals } = useAppContext();
+  const { savingsGoals, isLoading } = useAppContext();
+  const { toastProps, showToast } = useToast();
   const hasGoals = savingsGoals.length > 0;
   const totalSaved = savingsGoals.reduce((sum, g) => sum + g.savedAmount, 0);
   const totalTarget = savingsGoals.reduce((sum, g) => sum + g.targetAmount, 0);
@@ -72,7 +77,7 @@ export const SavingsScreen = () => {
 
   const renderGoalCard = (item: SavingsGoal) => {
     const progress = item.targetAmount > 0 ? item.savedAmount / item.targetAmount : 0;
-    const percent = Math.round(progress * 100);
+    const percent = getPercentage(item.savedAmount, item.targetAmount);
     const emoji = item.emoji || getGoalEmoji(item.name);
 
     return (
@@ -88,8 +93,8 @@ export const SavingsScreen = () => {
           <View style={styles.goalInfo}>
             <Text style={styles.goalName} numberOfLines={1}>{item.name}</Text>
             <Text style={styles.goalAmounts}>
-              ₦{item.savedAmount.toLocaleString()}
-              <Text style={styles.goalTarget}>/₦{item.targetAmount.toLocaleString()}</Text>
+              {formatCurrency(item.savedAmount)}
+              <Text style={styles.goalTarget}>/{formatCurrency(item.targetAmount)}</Text>
             </Text>
             {item.deadline && (
               <Text style={styles.deadlineText}>
@@ -218,9 +223,20 @@ export const SavingsScreen = () => {
             setShowAddFunds(false);
             setSelectedGoal(null);
           }}
-          onSuccess={() => {}}
+          onSuccess={() => {
+            showToast("Funds added successfully!", "success");
+          }}
         />
       )}
+
+      {/* Loading Overlay */}
+      {isLoading && (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color={PRIMARY_GREEN} />
+        </View>
+      )}
+
+      <Toast {...toastProps} />
     </View>
   );
 };
@@ -399,12 +415,16 @@ const styles = StyleSheet.create({
   // ── Empty State ──────────────────────────────
   emptyWrapper: {
     flex: 1,
-    justifyContent: "center",
     alignItems: "center",
     paddingTop: 40,
   },
-
-
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(255, 255, 255, 0.8)",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 1000,
+  },
 });
 
 export default SavingsScreen;

@@ -26,8 +26,9 @@ import { Header } from '../../components/Header';
 import { Button } from '../../components/Button';
 import { InputField } from '../../components/InputField';
 import { SelectField } from '../../components/SelectField';
-import { CategoryBottomSheet } from '../../components/CategoryBottomSheet';
 import { SuccessModal } from '../../components/SuccessScreen';
+import { Toast } from '../../components/Toast';
+import { useToast } from '../../hooks/useToast';
 import { useAppContext } from '../../context/AppContext';
 import { Budget } from '../../types';
 
@@ -38,6 +39,7 @@ export const CreateBudgetScreen = () => {
   const router = useRouter();
   const { budget: budgetParam } = useLocalSearchParams();
   const { addBudget, updateBudget } = useAppContext();
+  const { toastProps, showToast } = useToast();
   
   const editingBudget = budgetParam ? JSON.parse(budgetParam as string) as Budget : null;
   const isEditing = !!editingBudget;
@@ -76,13 +78,16 @@ export const CreateBudgetScreen = () => {
       color: editingBudget?.color || PRIMARY_GREEN,
     };
 
-    if (isEditing) {
-      await updateBudget(budgetData.id, budgetData);
-      // UPDATE 2026-04-25: Show success modal on edit (was previously just router.back())
-      setShowSuccess(true);
-    } else {
-      await addBudget(budgetData);
-      setShowSuccess(true);
+    try {
+      if (isEditing) {
+        await updateBudget(budgetData.id, budgetData);
+        setShowSuccess(true);
+      } else {
+        await addBudget(budgetData);
+        setShowSuccess(true);
+      }
+    } catch (error) {
+      showToast("Failed to save budget. Please try again.", "error");
     }
   };
 
@@ -257,6 +262,7 @@ export const CreateBudgetScreen = () => {
           </View>
         </TouchableWithoutFeedback>
       </Modal>
+      <Toast {...toastProps} />
     </SafeAreaView>
   );
 };

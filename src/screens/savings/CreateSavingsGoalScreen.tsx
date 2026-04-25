@@ -27,6 +27,9 @@ import {
   Fonts,
   BORDER_GRAY,
 } from '../../constants';
+import { Toast } from '../../components/Toast';
+import { useToast } from '../../hooks/useToast';
+import { Confetti } from '../../components/Confetti';
 import { useAppContext } from '../../context/AppContext';
 import { SavingsGoal } from '../../types';
 
@@ -81,6 +84,7 @@ const SuccessOverlay = ({ visible, onDismiss }: { visible: boolean; onDismiss: (
           </View>
           <Text style={overlay.title}>Savings created{'\n'}successfully</Text>
         </Animated.View>
+        <Confetti active={visible} />
       </View>
     </Modal>
   );
@@ -130,6 +134,7 @@ export const CreateSavingsGoalScreen = () => {
   const insets = useSafeAreaInsets();
   const { goal: goalParam } = useLocalSearchParams();
   const { addSavingsGoal, updateSavingsGoal } = useAppContext();
+  const { toastProps, showToast } = useToast();
 
   const editingGoal = goalParam ? JSON.parse(goalParam as string) as SavingsGoal : null;
   const isEditing = !!editingGoal;
@@ -156,36 +161,38 @@ export const CreateSavingsGoalScreen = () => {
     if (!digits) return '';
     return parseInt(digits, 10).toLocaleString();
   };
-  const parseAmount = (s: string) => parseFloat(s.replace(/,/g, '')) || 0;
-
   const handleSave = async () => {
     if (!isFormValid) return;
     const deposit = parseAmount(initialDeposit);
     const emoji = editingGoal?.emoji || getGoalEmoji(name);
 
-    if (isEditing && editingGoal) {
-      await updateSavingsGoal(editingGoal.id, {
-        name,
-        targetAmount: parseAmount(targetAmount),
-        deadline: targetDate || undefined,
-        emoji,
-      });
-      router.back();
-    } else {
-      const newGoal: SavingsGoal = {
-        id: Math.random().toString(36).substr(2, 9),
-        name,
-        targetAmount: parseAmount(targetAmount),
-        savedAmount: deposit,
-        deadline: targetDate || undefined,
-        emoji,
-        createdAt: new Date().toISOString(),
-        contributions: deposit > 0
-          ? [{ amount: deposit, date: new Date().toISOString(), note: notes || 'Initial deposit' }]
-          : [],
-      };
-      await addSavingsGoal(newGoal);
-      setShowSuccess(true);
+    try {
+      if (isEditing && editingGoal) {
+        await updateSavingsGoal(editingGoal.id, {
+          name,
+          targetAmount: parseAmount(targetAmount),
+          deadline: targetDate || undefined,
+          emoji,
+        });
+        router.back();
+      } else {
+        const newGoal: SavingsGoal = {
+          id: Math.random().toString(36).substr(2, 9),
+          name,
+          targetAmount: parseAmount(targetAmount),
+          savedAmount: deposit,
+          deadline: targetDate || undefined,
+          emoji,
+          createdAt: new Date().toISOString(),
+          contributions: deposit > 0
+            ? [{ amount: deposit, date: new Date().toISOString(), note: notes || 'Initial deposit' }]
+            : [],
+        };
+        await addSavingsGoal(newGoal);
+        setShowSuccess(true);
+      }
+    } catch (error) {
+      showToast("Failed to save savings goal. Please try again.", "error");
     }
   };
 
@@ -314,6 +321,7 @@ export const CreateSavingsGoalScreen = () => {
 
       {/* ── Screen 3: Success Overlay ──────────────────── */}
       <SuccessOverlay visible={showSuccess} onDismiss={handleSuccessDismiss} />
+      <Toast {...toastProps} />
     </View>
   );
 };

@@ -8,6 +8,7 @@ import {
   SafeAreaView,
   StatusBar,
   Image,
+  ActivityIndicator,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -26,12 +27,16 @@ import { ProgressBar } from "../../components/ProgressBar";
 import { TransactionCard } from "../../components/TransactionCard";
 import { EmptyState } from "../../components/EmptyState";
 import { AddFundsBottomSheet } from "../../components/AddFundsBottomSheet";
+import { Toast } from "../../components/Toast";
+import { useToast } from "../../hooks/useToast";
+import { formatCurrency, getPercentage, getDaysLeftInMonth } from "../../utils/formatters";
 
 export default function DashboardScreen() {
   const router = useRouter();
-  const { user, transactions, budgets, savingsGoals } = useAppContext();
+  const { user, transactions, budgets, savingsGoals, isLoading } = useAppContext();
   const [isBalanceVisible, setIsBalanceVisible] = useState(true);
   const [isAddFundsVisible, setIsAddFundsVisible] = useState(false);
+  const { toastProps, showToast } = useToast();
   console.log(transactions);
 
   // Helper Functions
@@ -69,15 +74,6 @@ export default function DashboardScreen() {
 
   const budgetProgress = budgetTotal > 0 ? budgetSpent / budgetTotal : 0;
 
-  const getDaysLeftInMonth = () => {
-    const now = new Date();
-    const lastDay = new Date(
-      now.getFullYear(),
-      now.getMonth() + 1,
-      0,
-    ).getDate();
-    return lastDay - now.getDate();
-  };
 
   const primaryGoal = savingsGoals.length > 0 ? savingsGoals[0] : null;
 
@@ -178,7 +174,7 @@ export default function DashboardScreen() {
             <Text style={styles.sectionTitle}>Budget</Text>
             {budgets.length > 0 && (
               <Text style={styles.percentageText}>
-                {Math.round(budgetProgress * 100)}%
+                {getPercentage(budgetSpent, budgetTotal)}%
               </Text>
             )}
           </View>
@@ -187,16 +183,16 @@ export default function DashboardScreen() {
             <TouchableOpacity onPress={() => router.push("/(tabs)/budget")}>
               <View style={styles.amountRowBaseline}>
                 <Text style={styles.budgetValue}>
-                  ₦{budgetSpent.toLocaleString()}
+                  {formatCurrency(budgetSpent)}
                 </Text>
                 <Text style={styles.budgetTotal}>
-                  /₦{budgetTotal.toLocaleString()}
+                  /{formatCurrency(budgetTotal)}
                 </Text>
               </View>
               <ProgressBar progress={budgetProgress} />
               <View style={styles.budgetFooter}>
                 <Text style={styles.budgetLeft}>
-                  ₦{(budgetTotal - budgetSpent).toLocaleString()} left
+                  {formatCurrency(budgetTotal - budgetSpent)} left
                 </Text>
                 <Text style={styles.budgetStatus}> • You are doing well</Text>
               </View>
@@ -230,10 +226,10 @@ export default function DashboardScreen() {
                   <Text style={styles.goalName}>{primaryGoal.name}</Text>
                   <View style={styles.amountRowBaseline}>
                     <Text style={styles.goalAmount}>
-                      ₦{primaryGoal.savedAmount.toLocaleString()}
+                      {formatCurrency(primaryGoal.savedAmount)}
                     </Text>
                     <Text style={styles.goalTarget}>
-                      /₦{primaryGoal.targetAmount.toLocaleString()}
+                      /{formatCurrency(primaryGoal.targetAmount)}
                     </Text>
                   </View>
                 </View>
@@ -251,11 +247,7 @@ export default function DashboardScreen() {
                       ]}
                     />
                     <Text style={styles.circleText}>
-                      {Math.round(
-                        (primaryGoal.savedAmount / primaryGoal.targetAmount) *
-                          100,
-                      )}
-                      %
+                      {getPercentage(primaryGoal.savedAmount, primaryGoal.targetAmount)}%
                     </Text>
                   </View>
                 </View>
@@ -320,18 +312,26 @@ export default function DashboardScreen() {
           <View style={styles.tooltipArrow} />
         </View>
       )}
-        {/* Add Funds Bottom Sheet */}
-        {primaryGoal && (
-          <AddFundsBottomSheet
-            visible={isAddFundsVisible}
-            goal={primaryGoal}
-            onClose={() => setIsAddFundsVisible(false)}
-            onSuccess={() => {
-              // Success handled by sheet overlay
-            }}
-          />
-        )}
-      </View>
+      {/* Add Funds Bottom Sheet */}
+      {primaryGoal && (
+        <AddFundsBottomSheet
+          visible={isAddFundsVisible}
+          goal={primaryGoal}
+          onClose={() => setIsAddFundsVisible(false)}
+          onSuccess={() => {
+            showToast("Funds added successfully!", "success");
+          }}
+        />
+      )}
+
+      {/* Loading Overlay */}
+      {isLoading && (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color={PRIMARY_GREEN} />
+        </View>
+      )}
+
+      <Toast {...toastProps} />
     </View>
   );
 }
@@ -643,5 +643,12 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
+  },
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(255, 255, 255, 0.8)",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 1000,
   },
 });

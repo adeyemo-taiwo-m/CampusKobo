@@ -91,3 +91,14 @@ export const getPercentage = (current: number, total: number): number => {
   if (total === 0) return 0;
   return Math.round((current / total) * 100);
 };
+
+/**
+ * Truncates text if it exceeds a maximum length.
+ * @param text The text to truncate
+ * @param maxLength The maximum allowed length
+ * @returns Truncated text with '...' if needed
+ */
+export const truncateText = (text: string, maxLength: number): string => {
+  if (text.length <= maxLength) return text;
+  return text.substring(0, maxLength) + '...';
+};

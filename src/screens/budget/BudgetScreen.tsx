@@ -9,6 +9,7 @@ import {
   StatusBar,
   Dimensions,
   Image,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -26,6 +27,9 @@ import {
 import { ProgressBar } from '../../components/ProgressBar';
 import { DarkCard } from '../../components/DarkCard';
 import { useAppContext } from '../../context/AppContext';
+import { Toast } from '../../components/Toast';
+import { useToast } from '../../hooks/useToast';
+import { formatCurrency, getPercentage } from '../../utils/formatters';
 
 const { width } = Dimensions.get('window');
 
@@ -59,9 +63,9 @@ const BudgetCard = ({ budget, onPress }: { budget: Budget; onPress: () => void }
           <View style={styles.budgetTextStack}>
             <Text style={styles.categoryNameText}>{budget.category}</Text>
             <View style={styles.amountTextRow}>
-               <Text style={styles.spentAmountText}>₦{budget.spentAmount.toLocaleString()}/₦{budget.limitAmount.toLocaleString()}</Text>
+               <Text style={styles.spentAmountText}>{formatCurrency(budget.spentAmount)}/{formatCurrency(budget.limitAmount)}</Text>
             </View>
-            <Text style={styles.remainingSubtextRow}>₦{remaining.toLocaleString()} left • {budget.daysLeft} days remaining</Text>
+            <Text style={styles.remainingSubtextRow}>{formatCurrency(remaining)} left • {budget.daysLeft} days remaining</Text>
           </View>
         </View>
         
@@ -87,7 +91,8 @@ const BudgetCard = ({ budget, onPress }: { budget: Budget; onPress: () => void }
 
 export const BudgetScreen = () => {
   const router = useRouter();
-  const { budgets } = useAppContext();
+  const { budgets, isLoading } = useAppContext();
+  const { toastProps, showToast } = useToast();
   const hasBudgets = budgets.length > 0;
   
   // Icon Mapping function
@@ -152,7 +157,7 @@ export const BudgetScreen = () => {
                 label="Total Budget"
                 periodLabel={currentMonth}
                 progress={totalProgress}
-                statusCaption={`You've spent ${Math.round(totalProgress * 100)}% of your total budget`}
+                statusCaption={`You've spent ${getPercentage(totalSpent, totalBudget)}% of your total budget`}
                 style={styles.summaryCard}
               />
             </View>
@@ -210,6 +215,14 @@ export const BudgetScreen = () => {
           <View style={{ height: 120 }} />
         </ScrollView>
       </View>
+      {/* Loading Overlay */}
+      {isLoading && (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color={PRIMARY_GREEN} />
+        </View>
+      )}
+
+      <Toast {...toastProps} />
     </View>
   );
 };
@@ -425,6 +438,13 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     paddingHorizontal: 20,
     lineHeight: 20,
+  },
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(255, 255, 255, 0.8)",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 1000,
   },
 });
 

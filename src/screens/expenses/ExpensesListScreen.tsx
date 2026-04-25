@@ -9,7 +9,8 @@ import {
   StatusBar, 
   TextInput,
   Image,
-  Alert
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -27,19 +28,22 @@ import { useAppContext } from '../../context/AppContext';
 import { TransactionCard } from '../../components/TransactionCard';
 import { ProgressBar } from '../../components/ProgressBar';
 import { EmptyState } from '../../components/EmptyState';
-import { DarkCard } from '../../components/DarkCard';
 import { InputField } from '../../components/InputField';
 import { ExportBottomSheet } from '../../components/ExportBottomSheet';
+import { Toast } from '../../components/Toast';
+import { useToast } from '../../hooks/useToast';
+import { formatCurrency, getPercentage } from '../../utils/formatters';
 import { format, isToday, isYesterday, isThisWeek, isThisMonth, subMonths } from 'date-fns';
 
 type FilterType = 'This Month' | 'Last Month' | 'This Week' | 'All';
 
 export default function ExpensesListScreen() {
   const router = useRouter();
-  const { transactions, budgets } = useAppContext();
+  const { transactions, budgets, isLoading } = useAppContext();
   const [activeFilter, setActiveFilter] = useState<FilterType>('This Month');
   const [searchQuery, setSearchQuery] = useState('');
   const [isExportVisible, setIsExportVisible] = useState(false);
+  const { toastProps, showToast } = useToast();
 
   // Helper calculation for budget progress
   const budgetTotal = useMemo(() => budgets.reduce((sum, b) => sum + b.limitAmount, 0), [budgets]);
@@ -142,7 +146,7 @@ export default function ExpensesListScreen() {
             expenses={totalExpenses}
             progress={budgetProgress}
             periodLabel="This Month"
-            statusCaption={`You've spent ${Math.round(budgetProgress * 100)}% of your monthly budget`}
+            statusCaption={`You've spent ${getPercentage(budgetSpent, budgetTotal)}% of your monthly budget`}
             style={styles.summaryCard}
           />
         </SafeAreaView>
@@ -218,6 +222,14 @@ export default function ExpensesListScreen() {
           <View style={{ height: 100 }} />
         </ScrollView>
       </View>
+      {/* Loading Overlay */}
+      {isLoading && (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color={PRIMARY_GREEN} />
+        </View>
+      )}
+
+      <Toast {...toastProps} />
     </View>
   );
 }
@@ -348,9 +360,14 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   dateHeader: {
-    fontFamily: Fonts.bold,
-    fontSize: 18,
     color: TEXT_PRIMARY,
     marginBottom: 12,
+  },
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(255, 255, 255, 0.8)",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 1000,
   },
 });

@@ -32,6 +32,7 @@ import { DarkCard } from '../../components/DarkCard';
 import { Button } from '../../components/Button';
 import { DeleteConfirmModal } from '../../components/DeleteConfirmModal';
 import { AddFundsBottomSheet } from '../../components/AddFundsBottomSheet';
+import { formatCurrency, getPercentage } from '../../utils/formatters';
 import { useAppContext } from '../../context/AppContext';
 
 export const SavingsGoalDetailScreen = () => {
@@ -54,7 +55,7 @@ export const SavingsGoalDetailScreen = () => {
 
   // ── Computed values ────────────────────────────────────────────────────────
   const progress = goal.targetAmount > 0 ? goal.savedAmount / goal.targetAmount : 0;
-  const percent = Math.round(Math.min(progress * 100, 100));
+  const percent = getPercentage(goal.savedAmount, goal.targetAmount);
   const remaining = Math.max(goal.targetAmount - goal.savedAmount, 0);
 
   let daysLeft: number | null = null;
@@ -149,8 +150,8 @@ export const SavingsGoalDetailScreen = () => {
             progress={progress}
             periodLabel={
               daysLeft !== null 
-                ? `₦${remaining.toLocaleString()} left • ${daysLeft} days remaining`
-                : `₦${remaining.toLocaleString()} left`
+                ? `${formatCurrency(remaining)} left • ${daysLeft} days remaining`
+                : `${formatCurrency(remaining)} left`
             }
           />
         </View>
@@ -169,13 +170,13 @@ export const SavingsGoalDetailScreen = () => {
           <View style={styles.miniCard}>
             <Text style={styles.miniLabel}>Daily Target</Text>
             <Text style={styles.miniValue}>
-              {dailyTarget ? `₦${dailyTarget.toLocaleString()}` : '—'}
+              {dailyTarget ? formatCurrency(dailyTarget) : '—'}
             </Text>
           </View>
           <View style={styles.miniCard}>
             <Text style={styles.miniLabel}>Monthly Target</Text>
             <Text style={styles.miniValue}>
-              {monthlyTarget ? `₦${monthlyTarget.toLocaleString()}` : '—'}
+              {monthlyTarget ? formatCurrency(monthlyTarget) : '—'}
             </Text>
           </View>
           <View style={styles.miniCard}>
@@ -217,7 +218,7 @@ export const SavingsGoalDetailScreen = () => {
                 ]}
               >
                 {/* Amount — green bold left */}
-                <Text style={styles.cAmount}>+₦{c.amount.toLocaleString()}</Text>
+                <Text style={styles.cAmount}>+{formatCurrency(c.amount)}</Text>
                 {/* Date — gray center */}
                 <Text style={styles.cDate}>{formatDate(c.date)}</Text>
                 {/* Source — dark right */}
