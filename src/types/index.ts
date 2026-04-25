@@ -71,7 +71,24 @@ export interface LearningContent {
   category: string;
   duration: string;
   content: string;
-  keyTakeaways: string[];
-  relatedContentIds: string[];
+  keyTakeaways?: string[];
+  relatedContentIds?: string[];
   isFeatured: boolean;
+}
+
+export interface FinanceSeriesEpisode {
+  id: string;
+  title: string;
+  duration: string;
+  episodeNumber: number;
+  content: string;
+}
+
+export interface GlossaryTerm {
+  id: string;
+  term: string;
+  partOfSpeech: "noun" | "verb";
+  definition: string;
+  example: string;
+  relatedTerms: string[];
 }
