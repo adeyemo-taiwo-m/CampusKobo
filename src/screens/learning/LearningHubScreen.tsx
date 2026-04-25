@@ -117,28 +117,48 @@ export const LearningHubScreen = () => {
         {/* Featured Content */}
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>Featured</Text>
-          <TouchableOpacity 
-            style={styles.featuredCard}
-            onPress={() => router.push({
-              pathname: '/learning/content-detail' as any,
-              params: { id: featuredItem.id }
-            })}
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.featuredCarousel}
+            snapToInterval={width - 40 + 16}
+            decelerationRate="fast"
           >
-            <View style={styles.featuredImagePlaceholder}>
-              <MaterialCommunityIcons name="image-outline" size={48} color={Colors.primary.P200} />
-              <Text style={styles.illustrationText}>Illustration</Text>
-            </View>
-            <View style={styles.featuredInfo}>
-              <View style={styles.chipSmall}>
-                <Text style={styles.chipSmallText}>{featuredItem.category}</Text>
-              </View>
-              <Text style={styles.featuredTitle}>{featuredItem.title}</Text>
-              <Text style={styles.featuredMeta}>
-                {featuredItem.type === 'article' ? '📄 Article' : 
-                 featuredItem.type === 'video' ? '🎥 Video' : '🎧 Podcast'} • {featuredItem.duration}
-              </Text>
-            </View>
-          </TouchableOpacity>
+            {LEARNING_CONTENT.filter(item => item.isFeatured).map((item) => (
+              <TouchableOpacity 
+                key={item.id}
+                style={styles.featuredCard}
+                onPress={() => router.push({
+                  pathname: '/learning/content-detail' as any,
+                  params: { id: item.id }
+                })}
+              >
+                <View style={styles.featuredImagePlaceholder}>
+                  <Image 
+                    source={require('../../../assets/images/featured-placeholder.svg')} 
+                    style={styles.featuredIllustration}
+                    contentFit="contain"
+                  />
+                </View>
+                <View style={styles.featuredInfo}>
+                  <View style={styles.chipSmall}>
+                    <Text style={styles.chipSmallText}>{item.category}</Text>
+                  </View>
+                  <Text style={styles.featuredTitle}>{item.title}</Text>
+                  <View style={styles.featuredMetaRow}>
+                    <Ionicons 
+                      name={item.type === 'article' ? 'document-text-outline' : 'play-circle-outline'} 
+                      size={14} 
+                      color={TEXT_SECONDARY} 
+                    />
+                    <Text style={styles.featuredMeta}>
+                      {item.type === 'article' ? 'Article' : 'Video'} • {item.duration}
+                    </Text>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
         </View>
 
         {/* Finance 101 Series */}
@@ -217,62 +237,79 @@ export const LearningHubScreen = () => {
           ))}
         </View>
 
-        {/* Quick Access */}
-        <View style={styles.section}>
-          <View style={styles.quickAccessGrid}>
-            <TouchableOpacity 
-              style={styles.quickAccessCard}
-              onPress={() => router.push('/learning/series')}
-            >
-              <View style={[styles.quickIconBox, { backgroundColor: '#E3F2FD' }]}>
-                <Ionicons name="book" size={20} color="#2196F3" />
-              </View>
-              <Text style={styles.quickText}>Finance 101</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity 
-              style={styles.quickAccessCard}
-              onPress={() => router.push('/learning/glossary')}
-            >
-              <View style={[styles.quickIconBox, { backgroundColor: '#F3E5F5' }]}>
-                <Ionicons name="document" size={20} color="#9C27B0" />
-              </View>
-              <Text style={styles.quickText}>Glossary</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity 
-              style={styles.quickAccessCard}
-              onPress={() => router.push('/learning/podcast')}
-            >
-              <View style={[styles.quickIconBox, { backgroundColor: '#FFF3E0' }]}>
-                <Ionicons name="headphones" size={20} color="#FF9800" />
-              </View>
-              <Text style={styles.quickText}>Podcast</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
         {/* From BOF OAU */}
         <View style={styles.section}>
-          <Text style={styles.sectionLabel}>From BOF OAU</Text>
-          <View style={styles.bofGrid}>
-            <TouchableOpacity 
-              style={styles.bofCard}
-              onPress={() => router.push('/learning/podcast')}
-            >
-              <Text style={styles.bofEmoji}>🎧</Text>
-              <Text style={styles.bofTitle}>Market Pulse Podcast</Text>
-              <Text style={styles.bofLink}>Listen now →</Text>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionLabel}>From BOF OAU</Text>
+            <TouchableOpacity onPress={() => router.push('/learning/podcast')}>
+              <Text style={styles.viewAll}>View all</Text>
             </TouchableOpacity>
+          </View>
+          
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.podcastContainer}
+          >
+            {LEARNING_CONTENT.filter(item => item.type === 'podcast').map((pod, index) => (
+              <TouchableOpacity 
+                key={pod.id}
+                style={styles.podcastCard}
+                onPress={() => router.push({
+                  pathname: '/learning/content-detail' as any,
+                  params: { id: pod.id }
+                })}
+              >
+                <View style={styles.podcastIconWrapper}>
+                   <View style={styles.podcastIconCircle}>
+                      <Ionicons name="mic" size={24} color={WHITE} />
+                      <View style={styles.marketPulseBadge}>
+                        <Text style={styles.marketPulseText}>Market Pulse</Text>
+                      </View>
+                   </View>
+                </View>
+                <Text style={styles.podcastEpText}>EP 0{pod.episodeNumber} • {pod.title}</Text>
+                <Text style={styles.podcastAction}>Listen now →</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
 
-            <TouchableOpacity 
-              style={styles.bofCard}
-              onPress={() => router.push('/learning/podcast')}
-            >
-              <Text style={styles.bofEmoji}>📰</Text>
-              <Text style={styles.bofTitle}>BOF Newsletter</Text>
-              <Text style={styles.bofLink}>Read now →</Text>
+        {/* Financial Glossary */}
+        <View style={[styles.section, { marginBottom: 100 }]}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionLabel}>Financial Glossary</Text>
+            <TouchableOpacity onPress={() => router.push('/learning/glossary')}>
+              <Text style={styles.viewAll}>View all</Text>
             </TouchableOpacity>
+          </View>
+
+          <View style={styles.glossaryList}>
+            {GLOSSARY_TERMS.slice(0, 3).map((term, index) => (
+              <TouchableOpacity 
+                key={term.id}
+                style={[
+                  styles.glossaryRow,
+                  index < 2 && styles.glossaryDivider
+                ]}
+                onPress={() => router.push('/learning/glossary')}
+              >
+                <View style={styles.glossaryIconBox}>
+                  <Ionicons 
+                    name={index === 0 ? 'wallet' : index === 1 ? 'book' : 'receipt'} 
+                    size={24} 
+                    color={PRIMARY_GREEN} 
+                  />
+                </View>
+                <View style={styles.glossaryTextContent}>
+                  <Text style={styles.glossaryTerm}>{term.term}</Text>
+                  <Text style={styles.glossaryDef} numberOfLines={2}>
+                    {term.definition}
+                  </Text>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color="#D1D5DB" />
+              </TouchableOpacity>
+            ))}
           </View>
         </View>
 
@@ -377,31 +414,37 @@ const styles = StyleSheet.create({
   categoryChipTextActive: {
     color: WHITE,
   },
+  featuredCarousel: {
+    paddingLeft: 20,
+    paddingRight: 10,
+    gap: 16,
+  },
   featuredCard: {
-    marginHorizontal: 20,
+    width: width - 56, // Peek effect
     backgroundColor: WHITE,
-    borderRadius: 20,
+    borderRadius: 24,
     overflow: 'hidden',
-    elevation: 3,
+    borderWidth: 1,
+    borderColor: '#F3F4F6',
+    elevation: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
   },
   featuredImagePlaceholder: {
-    height: 160,
-    backgroundColor: '#F1F8E9',
+    height: 180,
+    backgroundColor: WHITE,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  illustrationText: {
-    fontFamily: Fonts.medium,
-    fontSize: 12,
-    color: Colors.primary.P300,
-    marginTop: 8,
+  featuredIllustration: {
+    width: '100%',
+    height: '100%',
   },
   featuredInfo: {
     padding: 20,
+    paddingTop: 12,
   },
   chipSmall: {
     alignSelf: 'flex-start',
@@ -410,6 +453,11 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 6,
     marginBottom: 10,
+  },
+  featuredMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   chipSmallText: {
     fontFamily: Fonts.bold,
@@ -507,66 +555,98 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: TEXT_SECONDARY,
   },
-  quickAccessGrid: {
-    flexDirection: 'row',
+  podcastContainer: {
     paddingHorizontal: 20,
-    gap: 12,
+    gap: 16,
   },
-  quickAccessCard: {
-    flex: 1,
+  podcastCard: {
+    width: width * 0.65,
     backgroundColor: WHITE,
-    borderRadius: 16,
-    padding: 16,
-    alignItems: 'center',
-    elevation: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-  },
-  quickIconBox: {
-    width: 40,
-    height: 40,
     borderRadius: 20,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#F3F4F6',
+  },
+  podcastIconWrapper: {
+    marginBottom: 16,
+  },
+  podcastIconCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: PRIMARY_GREEN,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 10,
+    position: 'relative',
   },
-  quickText: {
+  marketPulseBadge: {
+    position: 'absolute',
+    top: -4,
+    left: 40,
+    backgroundColor: '#064E3B',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 4,
+    width: 80,
+  },
+  marketPulseText: {
     fontFamily: Fonts.bold,
-    fontSize: 12,
-    color: TEXT_PRIMARY,
+    fontSize: 10,
+    color: WHITE,
     textAlign: 'center',
   },
-  bofGrid: {
-    flexDirection: 'row',
-    paddingHorizontal: 20,
-    gap: 12,
+  podcastEpText: {
+    fontFamily: Fonts.bold,
+    fontSize: 16,
+    color: TEXT_PRIMARY,
+    lineHeight: 22,
+    marginBottom: 8,
   },
-  bofCard: {
-    flex: 1,
-    backgroundColor: WHITE,
-    borderRadius: 16,
-    padding: 20,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-  },
-  bofEmoji: {
-    fontSize: 24,
-    marginBottom: 12,
-  },
-  bofTitle: {
+  podcastAction: {
     fontFamily: Fonts.bold,
     fontSize: 14,
-    color: TEXT_PRIMARY,
-    marginBottom: 12,
+    color: TEXT_SECONDARY,
   },
-  bofLink: {
+  glossaryList: {
+    marginHorizontal: 20,
+    backgroundColor: WHITE,
+    borderRadius: 20,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: '#F3F4F6',
+  },
+  glossaryRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+  },
+  glossaryDivider: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+  },
+  glossaryIconBox: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: '#E6F7ED',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 16,
+  },
+  glossaryTextContent: {
+    flex: 1,
+    marginRight: 8,
+  },
+  glossaryTerm: {
     fontFamily: Fonts.bold,
+    fontSize: 16,
+    color: TEXT_PRIMARY,
+    marginBottom: 2,
+  },
+  glossaryDef: {
+    fontFamily: Fonts.regular,
     fontSize: 13,
-    color: PRIMARY_GREEN,
+    color: TEXT_SECONDARY,
+    lineHeight: 18,
   },
 });

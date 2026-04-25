@@ -305,6 +305,7 @@ export default function DashboardScreen() {
 
         <View style={{ height: 100 }} />
       </ScrollView>
+    </View>
 
       {transactions.length === 0 && (
         <View style={styles.fabTooltip}>
