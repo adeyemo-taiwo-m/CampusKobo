@@ -129,7 +129,7 @@ export const LearningHubScreen = () => {
                 key={item.id}
                 style={styles.featuredCard}
                 onPress={() => router.push({
-                  pathname: '/learning/content-detail' as any,
+                  pathname: '/learning/detail' as any,
                   params: { id: item.id }
                 })}
               >
@@ -168,7 +168,7 @@ export const LearningHubScreen = () => {
               <Text style={styles.sectionLabel}>Finance 101 Series</Text>
               <Text style={styles.sectionSublabel}>By BOF OAU</Text>
             </View>
-            <TouchableOpacity onPress={() => router.push('/learning/series')}>
+            <TouchableOpacity onPress={() => router.push('/learning/finance101')}>
               <Text style={styles.viewAll}>View all →</Text>
             </TouchableOpacity>
           </View>
@@ -186,7 +186,7 @@ export const LearningHubScreen = () => {
                   { backgroundColor: EPISODE_COLORS[index % EPISODE_COLORS.length] }
                 ]}
                 onPress={() => router.push({
-                  pathname: '/learning/content-detail' as any,
+                  pathname: '/learning/detail' as any,
                   params: { id: episode.id, isSeries: 'true' }
                 })}
               >
@@ -214,7 +214,7 @@ export const LearningHubScreen = () => {
                 key={item.id} 
                 style={styles.latestCard}
                 onPress={() => router.push({
-                  pathname: '/learning/content-detail' as any,
+                  pathname: '/learning/detail' as any,
                   params: { id: item.id }
                 })}
               >
@@ -264,7 +264,7 @@ export const LearningHubScreen = () => {
                 key={pod.id}
                 style={styles.podcastCard}
                 onPress={() => router.push({
-                  pathname: '/learning/content-detail' as any,
+                  pathname: '/learning/detail' as any,
                   params: { id: pod.id }
                 })}
               >
