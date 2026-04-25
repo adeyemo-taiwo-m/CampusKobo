@@ -152,9 +152,9 @@ const LearningContentDetailScreen = () => {
     <View style={styles.podcastContainer}>
       <View style={styles.podcastHeader}>
         <Image 
-          source={require('../../../assets/images/market-pulse.png')} 
+          source={require('../../../assets/images/Market Pulse.svg')} 
           style={styles.podcastCover}
-          contentFit="cover"
+          contentFit="contain"
         />
         <View style={styles.audioControls}>
           <View style={styles.progressContainer}>

@@ -201,12 +201,20 @@ export const LearningHubScreen = () => {
         {/* Latest Content */}
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>Latest</Text>
-          {latestContent.map((item) => {
+          {latestContent.map((item, index) => {
+            // Map specific assets based on index or title
             let imageSource = require('../../../assets/images/featured-learning.png');
-            if (item.title.toLowerCase().includes('run out of money') || item.title.toLowerCase().includes('sapa')) {
-              imageSource = require('../../../assets/images/sapa.png');
-            } else if (item.title.toLowerCase().includes('stock') || item.title.toLowerCase().includes('invest')) {
-              imageSource = require('../../../assets/images/stocks.png');
+            if (index === 0) imageSource = require('../../../assets/images/latest-1.svg');
+            if (index === 1) imageSource = require('../../../assets/images/latest-2.svg');
+            if (index === 2) imageSource = require('../../../assets/images/latest-3.svg');
+            
+            // Fallback to title-based logic if index > 2
+            if (index > 2) {
+              if (item.title.toLowerCase().includes('run out of money') || item.title.toLowerCase().includes('sapa')) {
+                imageSource = require('../../../assets/images/sapa.png');
+              } else if (item.title.toLowerCase().includes('stock') || item.title.toLowerCase().includes('invest')) {
+                imageSource = require('../../../assets/images/stocks.png');
+              }
             }
 
             return (
@@ -271,9 +279,9 @@ export const LearningHubScreen = () => {
                 <View style={styles.podcastIconWrapper}>
                    <View style={styles.podcastIconCircle}>
                       <Image 
-                        source={require('../../../assets/images/market-pulse.png')} 
+                        source={require('../../../assets/images/Market Pulse.svg')} 
                         style={styles.podcastLogo} 
-                        contentFit="cover"
+                        contentFit="contain"
                       />
                    </View>
                 </View>

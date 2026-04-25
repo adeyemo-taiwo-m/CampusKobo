@@ -99,9 +99,9 @@ const PodcastNewsletterScreen = () => {
               })}
             >
               <Image 
-                source={require('../../../assets/images/market-pulse.png')} 
+                source={require('../../../assets/images/Market Pulse.svg')} 
                 style={styles.featuredCover}
-                contentFit="cover"
+                contentFit="contain"
               />
               <View style={styles.featuredInfo}>
                 <View style={styles.liveBadge}>
@@ -133,9 +133,9 @@ const PodcastNewsletterScreen = () => {
             >
               <View style={styles.itemIconBox}>
                 <Image 
-                  source={require('../../../assets/images/market-pulse.png')} 
+                  source={require('../../../assets/images/Market Pulse.svg')} 
                   style={styles.itemThumb}
-                  contentFit="cover"
+                  contentFit="contain"
                 />
                 <View style={styles.itemPlayOverlay}>
                   <Ionicons name="play" size={12} color={WHITE} />
