@@ -50,6 +50,10 @@ export default function RootLayout() {
             <Stack.Screen name="index" options={{ headerShown: false }} />
             <Stack.Screen name="onboarding" options={{ headerShown: false }} />
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            {/* UPDATE 2026-04-25: Registered sub-route groups so the default native
+                header is hidden — each screen renders its own custom header */}
+            <Stack.Screen name="budget" options={{ headerShown: false }} />
+            <Stack.Screen name="savings" options={{ headerShown: false }} />
             <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
           </Stack>
           <StatusBar style="auto" />

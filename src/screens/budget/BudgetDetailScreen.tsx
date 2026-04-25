@@ -4,9 +4,13 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  SafeAreaView,
   TouchableOpacity,
+  StatusBar,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+// FIX 2026-04-25: Removed SafeAreaView wrapper — replaced with useSafeAreaInsets
+// to manually apply only the top inset, preventing the auto-padding that was
+// making the native header appear above our custom green hero header.
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import {
@@ -28,6 +32,7 @@ export const BudgetDetailScreen = () => {
   const { id } = useLocalSearchParams();
   const { budgets, transactions: allTransactions, deleteBudget } = useAppContext();
   const [showDeleteModal, setShowDeleteModal] = React.useState(false);
+  const insets = useSafeAreaInsets();
 
   const handleDelete = async () => {
     if (id) {
@@ -88,44 +93,45 @@ export const BudgetDetailScreen = () => {
 
   return (
     <View style={styles.container}>
+      {/* FIX 2026-04-25: Hidden system StatusBar so it doesn't overlay the hero */}
+      <StatusBar barStyle="light-content" backgroundColor="#0B5E2F" />
 
-      {/* Green Hero Header */}
-      <View style={styles.headerHeroRegion}>
-        <SafeAreaView>
-          {/* Top nav row */}
-          <View style={styles.headerRow}>
-            <TouchableOpacity onPress={() => router.back()} style={styles.headerBackBtn}>
-              <Ionicons name="chevron-back" size={20} color={WHITE} />
-            </TouchableOpacity>
-            <Text style={styles.headerTitle}>Budget Details</Text>
-            <Button
-              title="Edit"
-              variant="secondary"
-              size="sm"
-              fullWidth={false}
-              textStyle={{ color: PRIMARY_GREEN }}
-              onPress={() =>
-                router.push({
-                  pathname: '/budget/create',
-                  params: { budget: JSON.stringify(budget) },
-                })
-              }
-            />
-          </View>
+      {/* Green Hero Header — insets applied manually via useSafeAreaInsets */}
+      <View style={[styles.headerHeroRegion, { paddingTop: insets.top + 10 }]}>
+        {/* Top nav row */}
+        <View style={styles.headerRow}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.headerBackBtn}>
+            <Ionicons name="chevron-back" size={20} color={WHITE} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Budget Details</Text>
+          <Button
+            title="Edit"
+            variant="secondary"
+            size="sm"
+            fullWidth={false}
+            textStyle={{ color: PRIMARY_GREEN }}
+            onPress={() =>
+              router.push({
+                pathname: '/budget/create',
+                params: { budget: JSON.stringify(budget) },
+              })
+            }
+          />
+        </View>
 
-          {/* Summary DarkCard — using built-in budget type */}
-          <View style={styles.summaryCardWrapper}>
-            <DarkCard
-              type="budget"
-              categoryName={budget.category}
-              categoryIcon={budget.icon}
-              amount={budget.spentAmount}
-              limitAmount={budget.limitAmount}
-              progress={progress}
-              progressLabel={`₦${remaining.toLocaleString()} left • ${budget.daysLeft} days remaining`}
-            />
-          </View>
-        </SafeAreaView>
+        {/* UPDATE 2026-04-25: DarkCard with budget type — renders category icon,
+            amount/limit, progress bar, and remaining/days meta line via props */}
+        <View style={styles.summaryCardWrapper}>
+          <DarkCard
+            type="budget"
+            categoryName={budget.category}
+            categoryIcon={budget.icon}
+            amount={budget.spentAmount}
+            limitAmount={budget.limitAmount}
+            progress={progress}
+            progressLabel={`₦${remaining.toLocaleString()} left • ${budget.daysLeft} days remaining`}
+          />
+        </View>
       </View>
 
       {/* White curved body */}
