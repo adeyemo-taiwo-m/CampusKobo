@@ -12,12 +12,14 @@ interface HeaderProps {
   showProfile?: boolean;
   showBookmark?: boolean;
   isBookmarked?: boolean;
+  showSearch?: boolean;
   onBack?: () => void;
   onEdit?: () => void;
   onBell?: () => void;
   onLearning?: () => void;
   onProfile?: () => void;
   onBookmark?: () => void;
+  onSearch?: () => void;
   transparent?: boolean;
   tintColor?: string;
 }
@@ -31,12 +33,14 @@ export const Header = ({
   showProfile,
   showBookmark,
   isBookmarked,
+  showSearch,
   onBack,
   onEdit,
   onBell,
   onLearning,
   onProfile,
   onBookmark,
+  onSearch,
   transparent,
   tintColor = TEXT_PRIMARY,
 }: HeaderProps) => {
@@ -80,6 +84,11 @@ export const Header = ({
           {showBell && (
             <TouchableOpacity onPress={onBell} style={styles.iconButton}>
               <Ionicons name="notifications-outline" size={24} color={tintColor} />
+            </TouchableOpacity>
+          )}
+          {showSearch && (
+            <TouchableOpacity onPress={onSearch} style={styles.searchButton}>
+              <Ionicons name="search" size={24} color={tintColor} />
             </TouchableOpacity>
           )}
           {showEdit && (
@@ -154,5 +163,14 @@ const styles = StyleSheet.create({
     backgroundColor: '#3CB96A',
     borderRadius: 8,
     padding: 6,
+  },
+  searchButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#E7F5ED',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 8,
   },
 });
