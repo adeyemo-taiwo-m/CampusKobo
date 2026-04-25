@@ -6,14 +6,17 @@ interface ProgressBarProps {
   progress: number; // 0 to 1
   height?: number;
   backgroundColor?: string;
+  fillColor?: string;
 }
 
 export const ProgressBar = ({
   progress,
   height = 8,
   backgroundColor = "#F3F4F6",
+  fillColor,
 }: ProgressBarProps) => {
   const getFillColor = () => {
+    if (fillColor) return fillColor;
     if (progress < 0.7) return "#10B981"; // Green
     if (progress <= 0.9) return "#F59E0B"; // Yellow
     return "#EF4444"; // Red

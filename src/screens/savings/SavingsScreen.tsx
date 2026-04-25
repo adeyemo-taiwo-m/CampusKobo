@@ -34,6 +34,7 @@ import { DarkCard } from "../../components/DarkCard";
 import { EmptyState } from "../../components/EmptyState";
 import { useAppContext } from "../../context/AppContext";
 import { ProgressBar } from "../../components/ProgressBar";
+import { AddFundsBottomSheet } from "../../components/AddFundsBottomSheet";
 import { SavingsGoal } from "../../types";
 
 // Returns an emoji that fits the goal name
@@ -60,6 +61,14 @@ export const SavingsScreen = () => {
   const totalSaved = savingsGoals.reduce((sum, g) => sum + g.savedAmount, 0);
   const totalTarget = savingsGoals.reduce((sum, g) => sum + g.targetAmount, 0);
   const overallProgress = totalTarget > 0 ? totalSaved / totalTarget : 0;
+
+  const [selectedGoal, setSelectedGoal] = React.useState<SavingsGoal | null>(null);
+  const [showAddFunds, setShowAddFunds] = React.useState(false);
+
+  const handleOpenAddFunds = (goal: SavingsGoal) => {
+    setSelectedGoal(goal);
+    setShowAddFunds(true);
+  };
 
   const renderGoalCard = (item: SavingsGoal) => {
     const progress = item.targetAmount > 0 ? item.savedAmount / item.targetAmount : 0;
@@ -96,9 +105,7 @@ export const SavingsScreen = () => {
           {/* Add Funds btn */}
           <TouchableOpacity
             style={styles.addFundsBtn}
-            onPress={() => {
-              // TODO Step 30: open AddFundsBottomSheet for this goal
-            }}
+            onPress={() => handleOpenAddFunds(item)}
           >
             <Text style={styles.addFundsBtnText}>Add funds</Text>
           </TouchableOpacity>
@@ -163,10 +170,10 @@ export const SavingsScreen = () => {
           </View>
         </View>
 
-        {/* DarkCard summary */}
+        {/* Savings specific DarkCard summary */}
         <View style={styles.cardWrapper}>
           <DarkCard
-            type="expenses"
+            type="savings"
             amount={totalSaved}
             label="Total Savings"
             periodLabel={
@@ -175,7 +182,6 @@ export const SavingsScreen = () => {
                 : "No active goals yet"
             }
             progress={overallProgress}
-            hideIncomeExpenses={true}
           />
         </View>
       </View>

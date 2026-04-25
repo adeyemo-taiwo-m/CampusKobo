@@ -1232,9 +1232,7 @@ Paste this instruction into your agent:
 > - Circular progress ring showing percentage
 > - '₦{remaining} left • {daysLeft} days remaining'
 > - Ring color follows the same green/yellow/red logic
->-
-> **Three summary mini-cards (side by side):**
->
+> - **Three summary mini-cards (side by side):**
 > - 'Daily Average' — ₦{totalSpent / daysElapsed}
 > - 'Highest Spend' — ₦{maxSingleTransaction}
 > - 'Days Left' — {daysLeft}
@@ -1449,8 +1447,6 @@ Paste this instruction into your agent:
 >
 > - On save: call `addFundsToGoal(goalId, amount, note)` from context, close the sheet, call `onSuccess()`
 > - Show a toast or brief success message after saving"
-
----
 
 ## PART 9 — LEARNING HUB SCREENS
 

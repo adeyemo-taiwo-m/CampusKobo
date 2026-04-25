@@ -29,6 +29,7 @@ import {
 } from '../../constants';
 import { ProgressBar } from '../../components/ProgressBar';
 import { DeleteConfirmModal } from '../../components/DeleteConfirmModal';
+import { AddFundsBottomSheet } from '../../components/AddFundsBottomSheet';
 import { useAppContext } from '../../context/AppContext';
 
 export const SavingsGoalDetailScreen = () => {
@@ -37,6 +38,7 @@ export const SavingsGoalDetailScreen = () => {
   const { id } = useLocalSearchParams();
   const { savingsGoals, deleteSavingsGoal } = useAppContext();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showAddFunds, setShowAddFunds] = useState(false);
 
   const goal = savingsGoals.find((g) => g.id === id);
 
@@ -243,10 +245,11 @@ export const SavingsGoalDetailScreen = () => {
           {/* Add Funds — 55% width, green */}
           <TouchableOpacity
             style={styles.addFundsBtn}
-            onPress={() => { /* Step 30: AddFundsBottomSheet */ }}
+            onPress={() => setShowAddFunds(true)}
           >
             <Text style={styles.addFundsBtnText}>Add Funds</Text>
           </TouchableOpacity>
+
 
           {/* Delete Goal — 40% width, light pink bg, red text */}
           <TouchableOpacity
@@ -258,7 +261,18 @@ export const SavingsGoalDetailScreen = () => {
         </View>
       </ScrollView>
 
+      {/* Add Funds Bottom Sheet */}
+      <AddFundsBottomSheet
+        visible={showAddFunds}
+        goal={goal}
+        onClose={() => setShowAddFunds(false)}
+        onSuccess={() => {
+          // Success handled in sheet, maybe add a toast if needed later
+        }}
+      />
+
       {/* Delete Confirm Modal */}
+
       <DeleteConfirmModal
         isVisible={showDeleteModal}
         title="Delete Savings Goal?"
