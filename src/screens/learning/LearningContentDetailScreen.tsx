@@ -28,35 +28,47 @@ import { Header } from '../../components/Header';
 import { ProgressBar } from '../../components/ProgressBar';
 import { LearningContent } from '../../types';
 
+import {
+  LEARNING_CONTENT,
+  FINANCE_101_SERIES,
+} from '../../constants/learningData';
+
 const { width } = Dimensions.get('window');
 
 const LearningContentDetailScreen = () => {
   const router = useRouter();
   const params = useLocalSearchParams();
-  const content = params.content ? JSON.parse(params.content as string) as LearningContent : null;
-  const type = (params.type as 'article' | 'video' | 'podcast') || content?.type || 'article';
+  const { id, isSeries, type: paramType } = params;
+  
+  // Find content from data constants
+  const foundContent = isSeries === 'true' 
+    ? FINANCE_101_SERIES.find(e => e.id === id)
+    : LEARNING_CONTENT.find(c => c.id === id);
+
+  const content = params.content ? JSON.parse(params.content as string) as LearningContent : foundContent;
+  const type = (paramType as 'article' | 'video' | 'podcast') || (content as any)?.type || 'article';
 
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
 
-  // Fallback data if content is null
-  const displayContent = content || {
-    id: '1',
-    title: type === 'article' ? 'How to stop overspending as a student' : 
+  // Map FinanceSeriesEpisode to LearningContent structure if needed
+  const displayContent = {
+    id: content?.id || '1',
+    title: content?.title || (type === 'article' ? 'How to stop overspending as a student' : 
            type === 'video' ? 'How to create your first budget' : 
-           'Market Pulse Podcast - Ep 1',
-    category: 'Budgeting',
-    duration: type === 'article' ? '3 mins read' : type === 'video' ? '5:00' : '15:00',
+           'Market Pulse Podcast - Ep 1'),
+    category: (content as any)?.category || 'Budgeting',
+    duration: content?.duration || (type === 'article' ? '3 mins read' : type === 'video' ? '5:00' : '15:00'),
     type: type,
-    content: 'As a student at OAU, managing your money can feel overwhelming. Between feeding yourself, transport, data, and hanging out with friends — your allowance disappears faster than you expect.\n\n1. Understand Your Needs vs Wants\nBefore spending anything, ask yourself — do I need this or do I just want it? Food is a need. A new outfit every weekend is a want.\n\n2. Use the 50/30/20 Rule\nSplit your monthly allowance like this:\n• 50% → Needs (food, transport, data)\n• 30% → Wants (entertainment, hangouts)\n• 20% → Savings (future goals)\n\n3. Track Every Kobo\nLog every expense — even ₦100 pure water. Small amounts add up quickly. Use CampusKobo to track instantly.',
-    keyTakeaways: [
+    content: content?.content || 'As a student at OAU, managing your money can feel overwhelming...',
+    keyTakeaways: (content as any)?.keyTakeaways || [
       'Separate needs from wants',
       'Use the 50/30/20 rule',
       'Track every expense daily',
       'Review your spending weekly',
     ],
-    isFeatured: false,
+    isFeatured: (content as any)?.isFeatured || false,
   };
 
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -165,11 +177,31 @@ const LearningContentDetailScreen = () => {
   const renderVideo = () => (
     <>
       <View style={styles.videoPlayer}>
+        <Image 
+          source={require('../../../assets/images/market-pulse.png')} 
+          style={styles.videoThumbnail}
+          resizeMode="cover"
+        />
         <View style={styles.videoOverlay}>
           <TouchableOpacity style={styles.playButtonLarge}>
             <Ionicons name="play" size={40} color={WHITE} />
           </TouchableOpacity>
-          <Text style={styles.videoDurationLabel}>{displayContent.duration}</Text>
+          
+          {/* Video Controls Overlay */}
+          <View style={styles.videoControlsOverlay}>
+            <View style={styles.videoControlsLeft}>
+              <TouchableOpacity><Ionicons name="play-skip-back" size={24} color={WHITE} /></TouchableOpacity>
+              <TouchableOpacity style={styles.controlMargin}><Ionicons name="refresh" size={24} color={WHITE} style={{ transform: [{ scaleX: -1 }] }} /></TouchableOpacity>
+              <TouchableOpacity style={styles.controlMargin}><Ionicons name="refresh" size={24} color={WHITE} /></TouchableOpacity>
+            </View>
+            <View style={styles.videoControlsRight}>
+              <TouchableOpacity><Ionicons name="settings-outline" size={20} color={WHITE} /></TouchableOpacity>
+              <TouchableOpacity style={styles.controlMargin}><Ionicons name="play-skip-forward" size={24} color={WHITE} /></TouchableOpacity>
+            </View>
+          </View>
+          <View style={styles.videoBottomProgress}>
+             <ProgressBar progress={0.6} height={3} backgroundColor="rgba(255,255,255,0.3)" fillColor={WHITE} />
+          </View>
         </View>
       </View>
 
@@ -183,6 +215,12 @@ const LearningContentDetailScreen = () => {
         <View style={styles.metaRow}>
           <Ionicons name="videocam-outline" size={14} color={TEXT_SECONDARY} />
           <Text style={styles.metaText}> Video • {displayContent.duration} • April 2026</Text>
+          <Text style={styles.timeRemainingText}>2:00 / 3:00</Text>
+          <Text style={styles.percentText}>60%</Text>
+        </View>
+
+        <View style={styles.progressWrapper}>
+          <ProgressBar progress={0.6} height={8} fillColor={PRIMARY_GREEN} />
         </View>
 
         <Text style={styles.bodyText}>
@@ -198,6 +236,24 @@ const LearningContentDetailScreen = () => {
 
         {renderKeyTakeaways()}
         {renderActionCTAs()}
+
+        <View style={styles.relatedSection}>
+          <Text style={styles.relatedHeader}>You Might Also Like</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.relatedScroll}>
+            <TouchableOpacity style={styles.relatedCard}>
+              <Image source={require('../../../assets/images/learning-article.png')} style={styles.relatedImage} />
+              <Text style={styles.relatedTitle} numberOfLines={2}>How to stop overspending</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.relatedCard}>
+              <Image source={require('../../../assets/images/learning-related1.png')} style={styles.relatedImage} />
+              <Text style={styles.relatedTitle} numberOfLines={2}>Saving: Simple Hacks</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.relatedCard}>
+              <Image source={require('../../../assets/images/market-pulse.png')} style={styles.relatedImage} />
+              <Text style={styles.relatedTitle} numberOfLines={2}>Investing Basics</Text>
+            </TouchableOpacity>
+          </ScrollView>
+        </View>
       </View>
     </>
   );
@@ -205,11 +261,11 @@ const LearningContentDetailScreen = () => {
   const renderPodcast = () => (
     <View style={styles.podcastContainer}>
       <View style={styles.coverArtContainer}>
-        <View style={styles.coverArtPlaceholder}>
-          <Ionicons name="mic-outline" size={60} color={WHITE} />
-          <Text style={styles.coverArtTitle}>Market Pulse</Text>
-          <Ionicons name="trending-up" size={24} color="#F59E0B" style={styles.coverArtIcon} />
-        </View>
+        <Image 
+          source={require('../../../assets/images/market-pulse.png')} 
+          style={styles.coverArtImage}
+          resizeMode="cover"
+        />
       </View>
 
       <View style={styles.contentPadding}>
@@ -509,21 +565,55 @@ const styles = StyleSheet.create({
     backgroundColor: '#000',
     justifyContent: 'center',
     alignItems: 'center',
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
+    overflow: 'hidden',
+  },
+  videoThumbnail: {
+    ...StyleSheet.absoluteFillObject,
+    width: '100%',
+    height: '100%',
   },
   videoOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.3)',
+    backgroundColor: 'rgba(0,0,0,0.4)',
     justifyContent: 'center',
     alignItems: 'center',
   },
+  videoControlsOverlay: {
+    position: 'absolute',
+    bottom: 20,
+    left: 20,
+    right: 20,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  videoControlsLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  videoControlsRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  controlMargin: {
+    marginLeft: 15,
+  },
+  videoBottomProgress: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+  },
   playButtonLarge: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    backgroundColor: 'rgba(255,255,255,0.3)',
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: 'rgba(255,255,255,0.2)',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: WHITE,
   },
   videoDurationLabel: {
@@ -547,29 +637,15 @@ const styles = StyleSheet.create({
     padding: 40,
     alignItems: 'center',
   },
-  coverArtPlaceholder: {
+  coverArtImage: {
     width: 220,
     height: 220,
-    backgroundColor: PRIMARY_GREEN,
     borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
     elevation: 10,
-    shadowColor: PRIMARY_GREEN,
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.3,
-    shadowRadius: 20,
-  },
-  coverArtTitle: {
-    color: WHITE,
-    fontSize: 22,
-    fontFamily: Fonts.bold,
-    marginTop: 10,
-  },
-  coverArtIcon: {
-    position: 'absolute',
-    bottom: 20,
-    right: 20,
+    shadowOpacity: 0.2,
+    shadowRadius: 15,
   },
   podcastSubtitle: {
     fontSize: 14,

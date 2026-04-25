@@ -130,7 +130,7 @@ export const LearningHubScreen = () => {
                 style={styles.featuredCard}
                 onPress={() => router.push({
                   pathname: '/learning/detail' as any,
-                  params: { id: item.id }
+                  params: { id: item.id, type: item.type }
                 })}
               >
                 <View style={styles.featuredImagePlaceholder}>
@@ -187,7 +187,7 @@ export const LearningHubScreen = () => {
                 ]}
                 onPress={() => router.push({
                   pathname: '/learning/detail' as any,
-                  params: { id: episode.id, isSeries: 'true' }
+                  params: { id: episode.id, isSeries: 'true', type: 'article' }
                 })}
               >
                 <Text style={styles.episodeNumber}>EP 0{episode.episodeNumber}</Text>
@@ -223,7 +223,7 @@ export const LearningHubScreen = () => {
                 style={styles.latestCard}
                 onPress={() => router.push({
                   pathname: '/learning/detail' as any,
-                  params: { id: item.id }
+                  params: { id: item.id, type: item.type }
                 })}
               >
                 <View style={styles.latestImagePlaceholder}>
@@ -273,7 +273,7 @@ export const LearningHubScreen = () => {
                 style={styles.podcastCard}
                 onPress={() => router.push({
                   pathname: '/learning/detail' as any,
-                  params: { id: pod.id }
+                  params: { id: pod.id, type: 'podcast' }
                 })}
               >
                 <View style={styles.podcastIconWrapper}>

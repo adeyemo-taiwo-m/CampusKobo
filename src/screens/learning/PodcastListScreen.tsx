@@ -52,7 +52,7 @@ export const PodcastListScreen = () => {
             <TouchableOpacity 
               key={item.id} 
               style={styles.episodeCard}
-              onPress={() => router.push({ pathname: '/learning/detail', params: { id: item.id } })}
+              onPress={() => router.push({ pathname: '/learning/detail', params: { id: item.id, type: 'podcast' } })}
             >
               <View style={styles.episodeLeft}>
                  <View style={styles.thumb}>
