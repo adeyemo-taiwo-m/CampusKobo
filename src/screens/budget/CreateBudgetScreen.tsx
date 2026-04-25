@@ -78,7 +78,8 @@ export const CreateBudgetScreen = () => {
 
     if (isEditing) {
       await updateBudget(budgetData.id, budgetData);
-      router.back();
+      // UPDATE 2026-04-25: Show success modal on edit (was previously just router.back())
+      setShowSuccess(true);
     } else {
       await addBudget(budgetData);
       setShowSuccess(true);

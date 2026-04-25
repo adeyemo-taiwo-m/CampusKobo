@@ -135,6 +135,7 @@ export const BudgetDetailScreen = () => {
       </View>
 
       {/* White curved body */}
+      {/* White curved body */}
       <ScrollView style={styles.mainContent} showsVerticalScrollIndicator={false}>
         <View style={styles.contentPadding}>
 

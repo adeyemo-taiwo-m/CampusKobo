@@ -92,7 +92,10 @@ export const DarkCard = ({
               >
                 {isBalanceType ? (
                   <Text style={styles.label}>Current Balance</Text>
-                ) : isTransactionType ? null : (
+                ) : (isTransactionType || isBudgetType) ? null : (
+                  // FIX 2026-04-25: budget type was showing 'This Month 📅' badge
+                  // because the ternary only excluded transaction type, not budget.
+                  // Budget type uses its own category header row instead.
                   <View style={styles.periodBadgeCentered}>
                     <Text style={styles.periodLabel}>{periodLabel} 📅</Text>
                   </View>
@@ -111,7 +114,9 @@ export const DarkCard = ({
                       <Ionicons
                         name={(categoryIcon as any) || 'wallet-outline'}
                         size={16}
-                        color={"#19a051"}
+                        // UPDATE 2026-04-25: Changed icon color from P600 (#19a051) to
+                        // P200 (#bcf6d3) — the dark green was blending into the gradient.
+                        color={"#bcf6d3"}
                       />
                     </View>
                     <Text style={styles.budgetCategoryName}>{categoryName}</Text>
@@ -330,13 +335,15 @@ const styles = StyleSheet.create({
     borderColor: "rgba(255, 255, 255, 0.15)",
     borderRadius: 20,
   },
+  // FIX 2026-04-25: Restored shadow + border on budget gradient —
+  // elevation:0/shadowOpacity:0 was causing the card to be invisible
+  // against the green hero background (no visual separation at all).
   budgetGradient: {
     paddingVertical: 20,
     paddingHorizontal: 24,
     borderRadius: 16,
-    borderWidth: 0,
-    elevation: 0,
-    shadowOpacity: 0,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.18)",
   },
   content: {
     flex: 1,
