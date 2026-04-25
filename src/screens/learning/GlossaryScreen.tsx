@@ -23,7 +23,7 @@ import {
   BG_LIGHT, 
   Fonts,
   DARK_GREEN 
-} from '../../constants/theme';
+} from '../../constants';
 import { GLOSSARY_TERMS } from '../../constants/learningData';
 import { GlossaryTerm } from '../../types';
 

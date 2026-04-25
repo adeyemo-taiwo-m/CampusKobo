@@ -57,3 +57,4 @@ export const FOREST_GREEN = "#1A7A3C";
 export const LIGHT_GREEN = Colors.primary.P100;
 export const DARK_GREEN = Colors.primary.P800;
 export const DARK_CARD = Colors.primary.P950;
+export const BG_LIGHT = Colors.neutral.whiteBg;

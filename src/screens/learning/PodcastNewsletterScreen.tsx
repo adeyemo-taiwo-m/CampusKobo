@@ -20,7 +20,7 @@ import {
   BG_LIGHT, 
   Fonts,
   DARK_GREEN 
-} from '../../constants/theme';
+} from '../../constants';
 import { LEARNING_CONTENT } from '../../constants/learningData';
 
 const { width } = Dimensions.get('window');

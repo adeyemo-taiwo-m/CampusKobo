@@ -19,7 +19,7 @@ import {
   TEXT_SECONDARY, 
   BG_LIGHT, 
   Fonts 
-} from '../../constants/theme';
+} from '../../constants';
 import { LEARNING_CONTENT } from '../../constants/learningData';
 
 const { width } = Dimensions.get('window');

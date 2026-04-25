@@ -19,7 +19,7 @@ import {
   BG_LIGHT, 
   Fonts,
   DARK_GREEN
-} from '../../constants/theme';
+} from '../../constants';
 import { FINANCE_101_SERIES } from '../../constants/learningData';
 
 const { width } = Dimensions.get('window');

@@ -25,6 +25,7 @@ import {
   BACKGROUND 
 } from '../../constants';
 import { useAppContext } from '../../context/AppContext';
+import { DarkCard } from '../../components/DarkCard';
 import { TransactionCard } from '../../components/TransactionCard';
 import { ProgressBar } from '../../components/ProgressBar';
 import { EmptyState } from '../../components/EmptyState';
