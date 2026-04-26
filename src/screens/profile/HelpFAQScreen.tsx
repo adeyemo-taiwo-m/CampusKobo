@@ -1,393 +1,739 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  TextInput,
+  SafeAreaView,
   StatusBar,
+  TextInput,
   LayoutAnimation,
   Platform,
   UIManager,
   Linking,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import {
-  PRIMARY_GREEN,
   WHITE,
+  PRIMARY_GREEN,
   TEXT_PRIMARY,
   TEXT_SECONDARY,
   BACKGROUND,
   Fonts,
-  Colors,
+  BORDER_GRAY,
 } from '../../constants';
+import { Header } from '../../components/Header';
+import { InputField } from '../../components/InputField';
 
-// Enable LayoutAnimation for Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-const FAQS = [
+type Category = 'All' | 'Expenses' | 'Budget' | 'Savings' | 'Account';
+
+interface FAQItem {
+  id: string;
+  category: Category;
+  question: string;
+  answer: string;
+}
+
+const faqs: FAQItem[] = [
+  // Expenses
   {
-    id: 1,
-    q: "How do I create a budget?",
-    a: "To create a budget, go to the 'Budget' tab from the bottom navigation. Tap the '+' (Add) button, give your budget a name, set your total monthly limit, and add categories like 'Food' or 'Transport'."
+    id: 'e1',
+    category: 'Expenses',
+    question: 'How do I track expenses?',
+    answer: 'Tap the + button on the home screen, enter your amount, select a category and tap Save.',
   },
   {
-    id: 2,
-    q: "Is my financial data secure?",
-    a: "Absolutely. CampusKobo encrypts all your sensitive data and stores it securely. We do not have access to your bank account passwords, and you can add a PIN or Biometric lock for extra security."
+    id: 'e2',
+    category: 'Expenses',
+    question: 'How do I edit a transaction?',
+    answer: 'Tap any transaction from the Expenses screen, then tap Edit Transaction.',
   },
   {
-    id: 3,
-    q: "How does the Savings Goal work?",
-    a: "Savings goals help you put money aside for specific needs. You set a target amount and a deadline, and we'll track your progress and remind you to save regularly."
+    id: 'e3',
+    category: 'Expenses',
+    question: 'Can I export my transactions?',
+    answer: 'Yes! On the Expenses screen, tap the export icon next to the search bar.',
+  },
+  // Budget
+  {
+    id: 'b1',
+    category: 'Budget',
+    question: 'How do budgets work?',
+    answer: 'You set a spending limit for each category. The app tracks your expenses and shows how close you are to the limit.',
   },
   {
-    id: 4,
-    q: "Can I use CampusKobo offline?",
-    a: "Yes! Core features like adding expenses, updating budgets, and tracking savings work perfectly offline. You only need the internet to access the Learning Hub and receive app updates."
+    id: 'b2',
+    category: 'Budget',
+    question: 'How do I create a budget?',
+    answer: 'Go to the Budget tab and tap the + button. Choose a category and set your limit.',
   },
   {
-    id: 5,
-    q: "What is the BOF OAU?",
-    a: "The Bureau of Finance (BOF) at OAU is a specialized student body dedicated to promoting financial literacy, wealth management, and fiscal discipline among the student population."
-  }
+    id: 'b3',
+    category: 'Budget',
+    question: 'Can I reset my monthly budget?',
+    answer: 'Budgets reset automatically at the start of each month.',
+  },
+  // Savings
+  {
+    id: 's1',
+    category: 'Savings',
+    question: 'How do I set a savings goal?',
+    answer: 'Go to the Savings tab and tap +. Enter a goal name and target amount.',
+  },
+  {
+    id: 's2',
+    category: 'Savings',
+    question: 'How do I add funds to my goal?',
+    answer: 'Open any savings goal and tap Add Funds. Enter the amount you want to save.',
+  },
+  {
+    id: 's3',
+    category: 'Savings',
+    question: 'Can I have multiple savings goals?',
+    answer: 'Yes! You can create as many goals as you need.',
+  },
+  // Account
+  {
+    id: 'a1',
+    category: 'Account',
+    question: 'How do I change my password?',
+    answer: 'Go to Profile > Security & Privacy > Change Password.',
+  },
+  {
+    id: 'a2',
+    category: 'Account',
+    question: 'How do I delete my account?',
+    answer: 'Go to Profile > Security & Privacy > Delete Account. Note: this action is permanent.',
+  },
 ];
+
+const ExpandableFAQ = ({ item, isExpanded, onToggle }: { item: FAQItem, isExpanded: boolean, onToggle: () => void }) => {
+  return (
+    <TouchableOpacity 
+      activeOpacity={0.7} 
+      onPress={onToggle}
+      style={styles.faqItem}
+    >
+      <View style={styles.faqHeader}>
+        <Text style={styles.faqQuestion}>{item.question}</Text>
+        <Ionicons 
+          name={isExpanded ? "chevron-up" : "chevron-down"} 
+          size={20} 
+          color={TEXT_SECONDARY} 
+        />
+      </View>
+      {isExpanded && (
+        <View style={styles.faqAnswerContainer}>
+          <Text style={styles.faqAnswer}>{item.answer}</Text>
+        </View>
+      )}
+    </TouchableOpacity>
+  );
+};
 
 export const HelpFAQScreen = () => {
   const router = useRouter();
-  const insets = useSafeAreaInsets();
+  const scrollViewRef = useRef<ScrollView>(null);
+  
+  const [activeTab, setActiveTab] = useState<'FAQ' | 'Contact'>('FAQ');
   const [searchQuery, setSearchQuery] = useState('');
-  const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<Category>('All');
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  const toggleExpand = (id: number) => {
+  // Form State
+  const [contactName, setContactName] = useState('');
+  const [contactEmail, setContactEmail] = useState('');
+  const [contactIssue, setContactIssue] = useState('');
+
+  const categories: Category[] = ['All', 'Expenses', 'Budget', 'Savings', 'Account'];
+
+  const filteredFAQs = faqs.filter(faq => {
+    const matchesSearch = faq.question.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                         faq.answer.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = selectedCategory === 'All' || faq.category === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
+
+  const toggleExpand = (id: string) => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setExpandedId(expandedId === id ? null : id);
   };
 
-  const filteredFaqs = FAQS.filter(f => 
-    f.q.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    f.a.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const scrollToSection = (category: Category) => {
+    setSelectedCategory(category);
+    setSearchQuery('');
+    // For prototype, we'll just set the category
+  };
 
-  return (
-    <View style={styles.container}>
-      <StatusBar barStyle="dark-content" />
-      
-      {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
+  const renderFAQTab = () => (
+    <>
+      <InputField
+        placeholder="What are you looking for?"
+        value={searchQuery}
+        onChangeText={setSearchQuery}
+        leftIcon={<Ionicons name="search-outline" size={20} color={TEXT_SECONDARY} />}
+        outerContainerStyle={styles.searchOuter}
+      />
+
+      <View style={styles.tabSwitcher}>
         <TouchableOpacity 
-          style={styles.headerBtn} 
-          onPress={() => router.back()}
+          style={[styles.tabItem, activeTab === 'FAQ' && styles.activeTabItem]} 
+          onPress={() => setActiveTab('FAQ')}
         >
-          <Ionicons name="arrow-back" size={24} color={TEXT_PRIMARY} />
+          <Text style={[styles.tabText, activeTab === 'FAQ' && styles.activeTabText]}>FAQ</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Help & FAQ</Text>
-        <View style={{ width: 40 }} />
+        <TouchableOpacity 
+          style={[styles.tabItem, activeTab === 'Contact' && styles.activeTabItem]} 
+          onPress={() => setActiveTab('Contact')}
+        >
+          <Text style={[styles.tabText, activeTab === 'Contact' && styles.activeTabText]}>Contact Us</Text>
+        </TouchableOpacity>
       </View>
 
       <ScrollView 
-        showsVerticalScrollIndicator={false}
+        ref={scrollViewRef}
+        showsVerticalScrollIndicator={false} 
         contentContainerStyle={styles.scrollContent}
       >
-        {/* Search Bar */}
-        <View style={styles.searchContainer}>
-          <View style={styles.searchBar}>
-            <Ionicons name="search-outline" size={20} color={TEXT_SECONDARY} />
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Search help topics..."
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-            />
-          </View>
+        {/* Quick Help Grid */}
+        <Text style={styles.sectionTitle}>Quick Help</Text>
+        <View style={styles.quickHelpGrid}>
+          <TouchableOpacity style={styles.quickHelpCard} onPress={() => scrollToSection('Expenses')}>
+            <View style={[styles.quickIconWrapper, { backgroundColor: '#E7F5ED' }]}>
+              <Ionicons name="receipt-outline" size={20} color={PRIMARY_GREEN} />
+            </View>
+            <Text style={styles.quickHelpText}>How do i track expenses</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.quickHelpCard} onPress={() => scrollToSection('Budget')}>
+            <View style={[styles.quickIconWrapper, { backgroundColor: '#E7F5ED' }]}>
+              <Ionicons name="pie-chart-outline" size={20} color={PRIMARY_GREEN} />
+            </View>
+            <Text style={styles.quickHelpText}>How do I create a budget?</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.quickHelpCard} onPress={() => scrollToSection('Savings')}>
+            <View style={[styles.quickIconWrapper, { backgroundColor: '#E7F5ED' }]}>
+              <Ionicons name="leaf-outline" size={20} color={PRIMARY_GREEN} />
+            </View>
+            <Text style={styles.quickHelpText}>How do I set a savings goal?</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.quickHelpCard} onPress={() => scrollToSection('Account')}>
+            <View style={[styles.quickIconWrapper, { backgroundColor: '#E7F5ED' }]}>
+              <Ionicons name="key-outline" size={20} color={PRIMARY_GREEN} />
+            </View>
+            <Text style={styles.quickHelpText}>How do I reset my password?</Text>
+          </TouchableOpacity>
         </View>
 
-        {!searchQuery && (
-          <View style={styles.categoriesRow}>
-            <TouchableOpacity style={styles.catCard}>
-              <View style={[styles.catIcon, { backgroundColor: '#E3F2FD' }]}>
-                <Ionicons name="person" size={20} color="#1565C0" />
-              </View>
-              <Text style={styles.catLabel}>Account</Text>
+        {/* Category Chips */}
+        <Text style={styles.sectionTitle}>Frequently Asked Questions</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryScroll}>
+          {categories.map(cat => (
+            <TouchableOpacity 
+              key={cat} 
+              style={[styles.categoryChip, selectedCategory === cat && styles.activeCategoryChip]}
+              onPress={() => setSelectedCategory(cat)}
+            >
+              <Text style={[styles.categoryText, selectedCategory === cat && styles.activeCategoryText]}>{cat}</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.catCard}>
-              <View style={[styles.catIcon, { backgroundColor: '#E8F5E9' }]}>
-                <Ionicons name="bar-chart" size={20} color={PRIMARY_GREEN} />
-              </View>
-              <Text style={styles.catLabel}>Budget</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.catCard}>
-              <View style={[styles.catIcon, { backgroundColor: '#FFF3E0' }]}>
-                <Ionicons name="wallet" size={20} color="#E65100" />
-              </View>
-              <Text style={styles.catLabel}>Savings</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.catCard}>
-              <View style={[styles.catIcon, { backgroundColor: '#F3E5F5' }]}>
-                <Ionicons name="shield-checkmark" size={20} color="#7B1FA2" />
-              </View>
-              <Text style={styles.catLabel}>Privacy</Text>
+          ))}
+        </ScrollView>
+
+        {/* FAQ List */}
+        {filteredFAQs.length > 0 ? (
+          <View style={styles.faqList}>
+            {categories.filter(c => c !== 'All').map(category => {
+              const categoryFaqs = filteredFAQs.filter(f => f.category === category);
+              if (categoryFaqs.length === 0) return null;
+              
+              return (
+                <View key={category} style={styles.faqGroup}>
+                  <Text style={styles.groupLabel}>{category}</Text>
+                  {categoryFaqs.map(faq => (
+                    <ExpandableFAQ 
+                      key={faq.id} 
+                      item={faq} 
+                      isExpanded={expandedId === faq.id}
+                      onToggle={() => toggleExpand(faq.id)}
+                    />
+                  ))}
+                </View>
+              );
+            })}
+          </View>
+        ) : (
+          <View style={styles.emptyState}>
+            <Ionicons name="search-outline" size={48} color="#D1D5DB" />
+            <Text style={styles.emptyTitle}>No results found</Text>
+            <Text style={styles.emptySubtitle}>Try different keywords</Text>
+            <TouchableOpacity style={styles.contactSupportSmallBtn}>
+              <Text style={styles.contactSupportSmallText}>Contact Support →</Text>
             </TouchableOpacity>
           </View>
         )}
 
-        {/* Top Questions */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Top Questions</Text>
-          {filteredFaqs.map((faq) => (
-            <TouchableOpacity 
-              key={faq.id} 
-              style={styles.faqItem}
-              onPress={() => toggleExpand(faq.id)}
-              activeOpacity={0.7}
-            >
-              <View style={styles.faqHeader}>
-                <Text style={styles.faqQuestion}>{faq.q}</Text>
-                <Ionicons 
-                  name={expandedId === faq.id ? "chevron-up" : "chevron-down"} 
-                  size={18} 
-                  color={TEXT_SECONDARY} 
-                />
-              </View>
-              {expandedId === faq.id && (
-                <Text style={styles.faqAnswer}>{faq.a}</Text>
-              )}
-            </TouchableOpacity>
-          ))}
+        {/* Still Need Help Card */}
+        <View style={styles.stillNeedHelpCard}>
+          <View style={styles.stillNeedHelpHeader}>
+            <View style={styles.whatsappIconWrapper}>
+              <Ionicons name="logo-whatsapp" size={20} color={PRIMARY_GREEN} />
+            </View>
+            <View>
+              <Text style={styles.stillNeedHelpTitle}>Still need help?</Text>
+              <Text style={styles.stillNeedHelpSubtitle}>Can't find what you're looking for?</Text>
+            </View>
+          </View>
+          <TouchableOpacity style={styles.contactSupportBtn}>
+            <Text style={styles.contactSupportText}>Contact Support</Text>
+          </TouchableOpacity>
         </View>
 
-        {/* Contact Support */}
-        <View style={styles.supportSection}>
-          <Text style={styles.sectionTitle}>Still need help?</Text>
-          <View style={styles.supportCards}>
+        <View style={{ height: 100 }} />
+      </ScrollView>
+
+      <View style={styles.fixedBottom}>
+        <TouchableOpacity style={styles.sendMessageBtn}>
+          <Text style={styles.sendMessageText}>Send message</Text>
+        </TouchableOpacity>
+      </View>
+    </>
+  );
+
+  const renderContactTab = () => (
+    <>
+      <InputField
+        placeholder="What are you looking for?"
+        value={searchQuery}
+        onChangeText={setSearchQuery}
+        leftIcon={<Ionicons name="search-outline" size={20} color={TEXT_SECONDARY} />}
+        outerContainerStyle={styles.searchOuter}
+      />
+
+      <View style={styles.tabSwitcher}>
+        <TouchableOpacity 
+          style={[styles.tabItem, activeTab === 'FAQ' && styles.activeTabItem]} 
+          onPress={() => setActiveTab('FAQ')}
+        >
+          <Text style={[styles.tabText, activeTab === 'FAQ' && styles.activeTabText]}>FAQ</Text>
+        </TouchableOpacity>
+        <TouchableOpacity 
+          style={[styles.tabItem, activeTab === 'Contact' && styles.activeTabItem]} 
+          onPress={() => setActiveTab('Contact')}
+        >
+          <Text style={[styles.tabText, activeTab === 'Contact' && styles.activeTabText]}>Contact Us</Text>
+        </TouchableOpacity>
+      </View>
+
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+        <View style={styles.contactContent}>
+          <Text style={styles.contactTitle}>Get in touch with us</Text>
+          
+          <View style={styles.contactCard}>
             <TouchableOpacity 
-              style={styles.supportCard}
-              onPress={() => Linking.openURL('mailto:support@campuskobo.com')}
+              style={styles.contactRow}
+              onPress={() => Linking.openURL('mailto:support@bofaou.com')}
             >
-              <Ionicons name="mail-outline" size={24} color={PRIMARY_GREEN} />
-              <Text style={styles.supportCardTitle}>Email Support</Text>
-              <Text style={styles.supportCardSub}>Response in 24h</Text>
+              <View style={styles.contactIconBox}>
+                <Ionicons name="mail-outline" size={20} color={PRIMARY_GREEN} />
+              </View>
+              <View style={styles.contactInfo}>
+                <Text style={styles.contactLabel}>Email Support</Text>
+                <Text style={styles.contactValue}>support@bofaou.com</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color="#D1D5DB" />
             </TouchableOpacity>
 
             <TouchableOpacity 
-              style={styles.supportCard}
-              onPress={() => router.push('/learning/hub')}
+              style={styles.contactRow}
+              onPress={() => Linking.openURL('https://wa.me/2340000000000')}
             >
-              <Ionicons name="book-outline" size={24} color={PRIMARY_GREEN} />
-              <Text style={styles.supportCardTitle}>Learning Hub</Text>
-              <Text style={styles.supportCardSub}>Self-help guides</Text>
+              <View style={styles.contactIconBox}>
+                <Ionicons name="logo-whatsapp" size={20} color={PRIMARY_GREEN} />
+              </View>
+              <View style={styles.contactInfo}>
+                <Text style={styles.contactLabel}>WhatsApp</Text>
+                <Text style={styles.contactValue}>Chat with us on WhatsApp</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color="#D1D5DB" />
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={[styles.contactRow, styles.noBorder]}
+              onPress={() => Linking.openURL('https://instagram.com/bofaou')}
+            >
+              <View style={styles.contactIconBox}>
+                <Ionicons name="logo-instagram" size={20} color={PRIMARY_GREEN} />
+              </View>
+              <View style={styles.contactInfo}>
+                <Text style={styles.contactLabel}>Instagram</Text>
+                <Text style={styles.contactValue}>@bofaou</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color="#D1D5DB" />
             </TouchableOpacity>
           </View>
 
-          <TouchableOpacity style={styles.bugBtn}>
-            <Ionicons name="bug-outline" size={20} color={TEXT_PRIMARY} />
-            <Text style={styles.bugBtnText}>Report a bug</Text>
-          </TouchableOpacity>
+          <Text style={styles.formTitle}>Send us a message</Text>
+          
+          <InputField
+            placeholder="Your name"
+            value={contactName}
+            onChangeText={setContactName}
+            outerContainerStyle={styles.formFieldOuter}
+          />
+          <InputField
+            placeholder="Your email"
+            value={contactEmail}
+            onChangeText={setContactEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            outerContainerStyle={styles.formFieldOuter}
+          />
+          <InputField
+            placeholder="Describe your issue"
+            value={contactIssue}
+            onChangeText={setContactIssue}
+            multiline
+            numberOfLines={4}
+            textAlignVertical="top"
+            containerStyle={styles.formTextAreaContainer}
+            style={styles.formTextAreaInput}
+            outerContainerStyle={styles.formFieldOuter}
+          />
         </View>
 
-        {/* BOF Info */}
-        <View style={styles.footerInfo}>
-          <Text style={styles.footerTitle}>About BOF OAU</Text>
-          <Text style={styles.footerText}>
-            This application is an initiative of the Bureau of Finance (BOF) at Obafemi Awolowo University. We empower students with financial intelligence.
-          </Text>
-          <TouchableOpacity onPress={() => Linking.openURL('https://bofoau.com')}>
-            <Text style={styles.footerLink}>Visit our website →</Text>
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity 
+          style={styles.submitBtn}
+          onPress={() => {
+            if (contactName && contactEmail && contactIssue) {
+              alert('Message sent successfully!');
+              setContactName('');
+              setContactEmail('');
+              setContactIssue('');
+            } else {
+              alert('Please fill in all fields.');
+            }
+          }}
+        >
+          <Text style={styles.submitBtnText}>Send message</Text>
+        </TouchableOpacity>
+
+        <View style={{ height: 40 }} />
       </ScrollView>
-    </View>
+    </>
+  );
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" />
+      <Header title="Help & FAQ" showBack={true} onBack={() => router.back()} />
+      {activeTab === 'FAQ' ? renderFAQTab() : renderContactTab()}
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: WHITE,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingBottom: 15,
-  },
-  headerBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#F9FAFB',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTitle: {
-    fontFamily: Fonts.bold,
-    fontSize: 18,
-    color: TEXT_PRIMARY,
+    backgroundColor: BACKGROUND,
   },
   scrollContent: {
-    paddingBottom: 40,
-  },
-  searchContainer: {
     paddingHorizontal: 20,
-    marginVertical: 10,
+    paddingTop: 10,
   },
-  searchBar: {
+  searchOuter: {
+    paddingHorizontal: 20,
+    marginTop: 16,
+  },
+  tabSwitcher: {
     flexDirection: 'row',
-    alignItems: 'center',
     backgroundColor: '#F3F4F6',
     borderRadius: 12,
-    paddingHorizontal: 12,
-    height: 50,
+    marginHorizontal: 20,
+    marginTop: 20,
+    padding: 4,
   },
-  searchInput: {
+  tabItem: {
     flex: 1,
-    marginLeft: 10,
-    fontFamily: Fonts.medium,
-    fontSize: 15,
-    color: TEXT_PRIMARY,
-  },
-  categoriesRow: {
-    flexDirection: 'row',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    gap: 12,
-    marginBottom: 20,
-  },
-  catCard: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  catIcon: {
-    width: 50,
-    height: 50,
-    borderRadius: 16,
-    alignItems: 'center',
+    height: 40,
     justifyContent: 'center',
-    marginBottom: 8,
+    alignItems: 'center',
+    borderRadius: 8,
   },
-  catLabel: {
-    fontFamily: Fonts.bold,
-    fontSize: 12,
+  activeTabItem: {
+    backgroundColor: WHITE,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+  },
+  tabText: {
+    fontSize: 14,
+    fontFamily: Fonts.medium,
+    color: TEXT_SECONDARY,
+  },
+  activeTabText: {
     color: TEXT_PRIMARY,
-  },
-  section: {
-    paddingHorizontal: 20,
-    marginBottom: 30,
+    fontFamily: Fonts.bold,
   },
   sectionTitle: {
-    fontFamily: Fonts.bold,
-    fontSize: 18,
-    color: TEXT_PRIMARY,
+    fontSize: 13,
+    color: '#9CA3AF',
+    fontFamily: Fonts.medium,
+    marginTop: 24,
     marginBottom: 16,
   },
-  faqItem: {
-    backgroundColor: '#F9FAFB',
+  quickHelpGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  quickHelpCard: {
+    width: '48%',
+    backgroundColor: WHITE,
     borderRadius: 16,
     padding: 16,
-    marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#F3F4F6',
+    borderColor: '#F9FAFB',
+  },
+  quickIconWrapper: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  quickHelpText: {
+    fontSize: 14,
+    fontFamily: Fonts.bold,
+    color: TEXT_PRIMARY,
+    lineHeight: 20,
+  },
+  categoryScroll: {
+    flexDirection: 'row',
+    marginBottom: 20,
+  },
+  categoryChip: {
+    paddingHorizontal: 20,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: WHITE,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    justifyContent: 'center',
+    marginRight: 8,
+  },
+  activeCategoryChip: {
+    backgroundColor: PRIMARY_GREEN,
+    borderColor: PRIMARY_GREEN,
+  },
+  categoryText: {
+    fontSize: 14,
+    fontFamily: Fonts.medium,
+    color: TEXT_SECONDARY,
+  },
+  activeCategoryText: {
+    color: WHITE,
+  },
+  faqList: {
+    marginBottom: 24,
+  },
+  faqGroup: {
+    marginBottom: 24,
+  },
+  groupLabel: {
+    fontSize: 12,
+    fontFamily: Fonts.bold,
+    color: '#9CA3AF',
+    marginBottom: 12,
+    textTransform: 'uppercase',
+  },
+  faqItem: {
+    backgroundColor: WHITE,
+    borderRadius: 12,
+    marginBottom: 8,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#F9FAFB',
   },
   faqHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
   },
   faqQuestion: {
-    flex: 1,
+    fontSize: 14,
     fontFamily: Fonts.bold,
-    fontSize: 15,
     color: TEXT_PRIMARY,
+    flex: 1,
     marginRight: 10,
   },
+  faqAnswerContainer: {
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#F9FAFB',
+    paddingTop: 12,
+  },
   faqAnswer: {
-    marginTop: 12,
-    fontFamily: Fonts.regular,
-    fontSize: 14,
+    fontSize: 13,
     color: TEXT_SECONDARY,
     lineHeight: 20,
-    paddingTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
+    fontFamily: Fonts.regular,
   },
-  supportSection: {
-    paddingHorizontal: 20,
-    marginBottom: 30,
-  },
-  supportCards: {
-    flexDirection: 'row',
-    gap: 16,
-    marginBottom: 16,
-  },
-  supportCard: {
-    flex: 1,
+  stillNeedHelpCard: {
     backgroundColor: WHITE,
     borderRadius: 20,
-    padding: 16,
-    alignItems: 'center',
+    padding: 20,
+    marginBottom: 24,
     borderWidth: 1,
-    borderColor: '#F3F4F6',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
+    borderColor: '#F9FAFB',
   },
-  supportCardTitle: {
-    marginTop: 12,
-    fontFamily: Fonts.bold,
-    fontSize: 14,
-    color: TEXT_PRIMARY,
-  },
-  supportCardSub: {
-    marginTop: 4,
-    fontFamily: Fonts.medium,
-    fontSize: 11,
-    color: TEXT_SECONDARY,
-  },
-  bugBtn: {
+  stillNeedHelpHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    height: 54,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-  },
-  bugBtnText: {
-    fontFamily: Fonts.bold,
-    fontSize: 14,
-    color: TEXT_PRIMARY,
-  },
-  footerInfo: {
-    marginHorizontal: 20,
-    padding: 24,
-    backgroundColor: Colors.primary.P100,
-    borderRadius: 24,
-  },
-  footerTitle: {
-    fontFamily: Fonts.bold,
-    fontSize: 16,
-    color: PRIMARY_GREEN,
-    marginBottom: 8,
-  },
-  footerText: {
-    fontFamily: Fonts.medium,
-    fontSize: 13,
-    color: '#374151',
-    lineHeight: 18,
     marginBottom: 16,
   },
-  footerLink: {
+  whatsappIconWrapper: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#E7F5ED',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  stillNeedHelpTitle: {
+    fontSize: 16,
     fontFamily: Fonts.bold,
+    color: TEXT_PRIMARY,
+  },
+  stillNeedHelpSubtitle: {
     fontSize: 13,
+    color: TEXT_SECONDARY,
+    fontFamily: Fonts.regular,
+  },
+  contactSupportBtn: {
+    backgroundColor: '#E7F5ED',
+    borderRadius: 12,
+    height: 48,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  contactSupportText: {
     color: PRIMARY_GREEN,
+    fontSize: 14,
+    fontFamily: Fonts.bold,
+  },
+  fixedBottom: {
+    padding: 20,
+    backgroundColor: WHITE,
+    borderTopWidth: 1,
+    borderTopColor: '#F3F4F6',
+  },
+  sendMessageBtn: {
+    backgroundColor: PRIMARY_GREEN,
+    borderRadius: 12,
+    height: 56,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  sendMessageText: {
+    color: WHITE,
+    fontSize: 16,
+    fontFamily: Fonts.bold,
+  },
+  // Contact Us Tab
+  contactContent: {
+    paddingTop: 10,
+  },
+  contactTitle: {
+    fontSize: 14,
+    fontFamily: Fonts.medium,
+    color: TEXT_SECONDARY,
+    marginBottom: 16,
+  },
+  contactCard: {
+    backgroundColor: WHITE,
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    marginBottom: 32,
+    borderWidth: 1,
+    borderColor: '#F9FAFB',
+  },
+  contactRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F9FAFB',
+  },
+  contactIconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: '#E7F5ED',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 16,
+  },
+  contactInfo: {
+    flex: 1,
+  },
+  contactLabel: {
+    fontSize: 14,
+    fontFamily: Fonts.bold,
+    color: TEXT_PRIMARY,
+    marginBottom: 2,
+  },
+  contactValue: {
+    fontSize: 13,
+    color: TEXT_SECONDARY,
+    fontFamily: Fonts.regular,
+  },
+  formTitle: {
+    fontSize: 14,
+    fontFamily: Fonts.medium,
+    color: TEXT_SECONDARY,
+    marginBottom: 16,
+  },
+  formFieldOuter: {
+    marginBottom: 12,
+  },
+  formTextAreaContainer: {
+    height: 120,
+    alignItems: 'flex-start',
+    paddingTop: 12,
+  },
+  formTextAreaInput: {
+    textAlignVertical: 'top',
+    height: '100%',
+  },
+  submitBtn: {
+    backgroundColor: PRIMARY_GREEN,
+    borderRadius: 12,
+    height: 56,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 12,
+  },
+  submitBtnText: {
+    color: WHITE,
+    fontSize: 16,
+    fontFamily: Fonts.bold,
+  },
+  // Empty State
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 40,
   },
 });

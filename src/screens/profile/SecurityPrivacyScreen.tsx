@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   SafeAreaView,
   StatusBar,
-  Switch,
   Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -22,39 +21,78 @@ import {
 } from '../../constants';
 import { Header } from '../../components/Header';
 
+const CustomToggle = ({ value, onValueChange, disabled = false }: { value: boolean, onValueChange: (v: boolean) => void, disabled?: boolean }) => {
+  return (
+    <TouchableOpacity 
+      activeOpacity={0.8}
+      onPress={() => !disabled && onValueChange(!value)}
+      style={[
+        styles.toggleContainer,
+        value ? styles.toggleOn : styles.toggleOff,
+        disabled && styles.toggleDisabled
+      ]}
+    >
+      {value ? (
+        <>
+          <Text style={styles.toggleText}>ON</Text>
+          <View style={styles.toggleCircle} />
+        </>
+      ) : (
+        <>
+          <View style={styles.toggleCircle} />
+          <Text style={styles.toggleText}>OFF</Text>
+        </>
+      )}
+    </TouchableOpacity>
+  );
+};
+
 const SecurityRow = ({ 
   icon, 
   title, 
   description, 
+  type = 'toggle',
+  value, 
+  onValueChange, 
   onPress,
-  isLast = false 
+  isLast = false,
+  isDestructive = false
 }: { 
   icon: string, 
   title: string, 
   description: string, 
-  onPress: () => void,
-  isLast?: boolean
+  type?: 'toggle' | 'arrow',
+  value?: boolean, 
+  onValueChange?: (v: boolean) => void,
+  onPress?: () => void,
+  isLast?: boolean,
+  isDestructive?: boolean
 }) => (
   <TouchableOpacity 
-    style={[styles.row, isLast && styles.noBorder]} 
-    onPress={onPress}
-    activeOpacity={0.7}
+    activeOpacity={type === 'arrow' ? 0.7 : 1}
+    onPress={type === 'arrow' ? onPress : undefined}
+    style={[styles.row, isLast && styles.noBorder]}
   >
     <View style={styles.iconWrapper}>
-      <Ionicons name={icon as any} size={22} color={PRIMARY_GREEN} />
+      <Ionicons name={icon as any} size={20} color={PRIMARY_GREEN} />
     </View>
     <View style={styles.rowContent}>
-      <Text style={styles.rowTitle}>{title}</Text>
+      <Text style={[styles.rowTitle, isDestructive && { color: '#EF4444' }]}>{title}</Text>
       <Text style={styles.rowDescription}>{description}</Text>
     </View>
-    <Ionicons name="arrow-forward" size={20} color={TEXT_PRIMARY} />
+    {type === 'toggle' ? (
+      <CustomToggle value={value || false} onValueChange={onValueChange || (() => {})} />
+    ) : (
+      <Ionicons name="chevron-forward" size={20} color="#D1D5DB" />
+    )}
   </TouchableOpacity>
 );
 
 export const SecurityPrivacyScreen = () => {
   const router = useRouter();
+  
   const [appLock, setAppLock] = useState(false);
-  const [useBiometric, setUseBiometric] = useState(true);
+  const [biometricUnlock, setBiometricUnlock] = useState(true);
   const [pinLock, setPinLock] = useState(false);
   const [fingerprintLogin, setFingerprintLogin] = useState(true);
   const [faceId, setFaceId] = useState(true);
@@ -71,7 +109,7 @@ export const SecurityPrivacyScreen = () => {
           text: 'Delete', 
           style: 'destructive',
           onPress: () => {
-            // clearAllData() logic
+            // clearAllData();
             router.replace('/(onboarding)/welcome-1');
           }
         }
@@ -88,60 +126,34 @@ export const SecurityPrivacyScreen = () => {
         <Text style={styles.description}>Keep your account safe and secure</Text>
 
         {/* App Lock Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionLabel}>APP LOCK</Text>
-          <View style={styles.card}>
-            <View style={styles.row}>
-              <View style={styles.iconWrapper}>
-                <Ionicons name="lock-closed-outline" size={22} color={PRIMARY_GREEN} />
-              </View>
-              <View style={styles.rowContent}>
-                <Text style={styles.rowTitle}>App Lock</Text>
-                <Text style={styles.rowDescription}>Require authentication to open CampusKobo</Text>
-              </View>
-              <Switch 
-                value={appLock} 
-                onValueChange={setAppLock} 
-                trackColor={{ false: '#D1D5DB', true: PRIMARY_GREEN }}
-                thumbColor={WHITE}
+        <View style={styles.card}>
+          <SecurityRow
+            icon="lock-closed-outline"
+            title="App Lock"
+            description="Require authentication to open CampusKobo"
+            value={appLock}
+            onValueChange={setAppLock}
+            isLast={!appLock}
+          />
+          {appLock && (
+            <>
+              <SecurityRow
+                icon="finger-print-outline"
+                title="Face ID / Fingerprint"
+                description="Use biometric to unlock the app"
+                value={biometricUnlock}
+                onValueChange={setBiometricUnlock}
               />
-            </View>
-            
-            {appLock && (
-              <>
-                <View style={styles.row}>
-                  <View style={styles.iconWrapper}>
-                    <Ionicons name="finger-print-outline" size={22} color={PRIMARY_GREEN} />
-                  </View>
-                  <View style={styles.rowContent}>
-                    <Text style={styles.rowTitle}>Face ID / Fingerprint</Text>
-                    <Text style={styles.rowDescription}>Use biometric to unlock the app</Text>
-                  </View>
-                  <Switch 
-                    value={useBiometric} 
-                    onValueChange={setUseBiometric}
-                    trackColor={{ false: '#D1D5DB', true: PRIMARY_GREEN }}
-                    thumbColor={WHITE}
-                  />
-                </View>
-                <View style={[styles.row, styles.noBorder]}>
-                  <View style={styles.iconWrapper}>
-                    <Ionicons name="keypad-outline" size={22} color={PRIMARY_GREEN} />
-                  </View>
-                  <View style={styles.rowContent}>
-                    <Text style={styles.rowTitle}>PIN Lock</Text>
-                    <Text style={styles.rowDescription}>Use PIN to unlock the app</Text>
-                  </View>
-                  <Switch 
-                    value={pinLock} 
-                    onValueChange={setPinLock}
-                    trackColor={{ false: '#D1D5DB', true: PRIMARY_GREEN }}
-                    thumbColor={WHITE}
-                  />
-                </View>
-              </>
-            )}
-          </View>
+              <SecurityRow
+                icon="grid-outline"
+                title="PIN Lock"
+                description="Use a 4-digit PIN to unlock the app"
+                value={pinLock}
+                onValueChange={setPinLock}
+                isLast={true}
+              />
+            </>
+          )}
         </View>
 
         {/* PIN Section */}
@@ -152,13 +164,15 @@ export const SecurityPrivacyScreen = () => {
               icon="key-outline"
               title="Set PIN"
               description="Create a 4-digit PIN for app lock"
-              onPress={() => {}}
+              type="arrow"
+              onPress={() => router.push('/profile/set-pin')}
             />
             <SecurityRow
               icon="create-outline"
               title="Change PIN"
               description="Update your current PIN"
-              onPress={() => {}}
+              type="arrow"
+              onPress={() => router.push('/profile/set-pin')}
               isLast={true}
             />
           </View>
@@ -166,107 +180,75 @@ export const SecurityPrivacyScreen = () => {
 
         {/* Biometric Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionLabel}>BIOMETRIC</Text>
+          <Text style={styles.sectionLabel}>Biometric</Text>
           <View style={styles.card}>
-            <View style={styles.row}>
-              <View style={styles.iconWrapper}>
-                <Ionicons name="finger-print-outline" size={22} color={PRIMARY_GREEN} />
-              </View>
-              <View style={styles.rowContent}>
-                <Text style={styles.rowTitle}>Fingerprint Login</Text>
-                <Text style={styles.rowDescription}>Use fingerprint to access your account</Text>
-              </View>
-              <Switch 
-                value={fingerprintLogin} 
-                onValueChange={setFingerprintLogin}
-                trackColor={{ false: '#D1D5DB', true: PRIMARY_GREEN }}
-                thumbColor={WHITE}
-              />
-            </View>
-            <View style={[styles.row, styles.noBorder]}>
-              <View style={styles.iconWrapper}>
-                <Ionicons name="scan-outline" size={22} color={PRIMARY_GREEN} />
-              </View>
-              <View style={styles.rowContent}>
-                <Text style={styles.rowTitle}>Face ID</Text>
-                <Text style={styles.rowDescription}>Use Face ID to access your account</Text>
-              </View>
-              <Switch 
-                value={faceId} 
-                onValueChange={setFaceId}
-                trackColor={{ false: '#D1D5DB', true: PRIMARY_GREEN }}
-                thumbColor={WHITE}
-              />
-            </View>
+            <SecurityRow
+              icon="finger-print-outline"
+              title="Fingerprint Login"
+              description="Use fingerprint to access your account"
+              value={fingerprintLogin}
+              onValueChange={setFingerprintLogin}
+            />
+            <SecurityRow
+              icon="scan-outline"
+              title="Face ID"
+              description="Use Face ID to access your account"
+              value={faceId}
+              onValueChange={setFaceId}
+              isLast={true}
+            />
           </View>
         </View>
 
         {/* Privacy Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionLabel}>PRIVACY</Text>
+          <Text style={styles.sectionLabel}>Privacy</Text>
           <View style={styles.card}>
-            <View style={styles.row}>
-              <View style={styles.iconWrapper}>
-                <Ionicons name="eye-off-outline" size={22} color={PRIMARY_GREEN} />
-              </View>
-              <View style={styles.rowContent}>
-                <Text style={styles.rowTitle}>Hide Balance</Text>
-                <Text style={styles.rowDescription}>Mask your balance on the home screen</Text>
-              </View>
-              <Switch 
-                value={hideBalance} 
-                onValueChange={setHideBalance}
-                trackColor={{ false: '#D1D5DB', true: PRIMARY_GREEN }}
-                thumbColor={WHITE}
-              />
-            </View>
-            <View style={[styles.row, styles.noBorder]}>
-              <View style={styles.iconWrapper}>
-                <Ionicons name="analytics-outline" size={22} color={PRIMARY_GREEN} />
-              </View>
-              <View style={styles.rowContent}>
-                <Text style={styles.rowTitle}>Data & Analytics</Text>
-                <Text style={styles.rowDescription}>Help improve CampusKobo with usage data</Text>
-              </View>
-              <Switch 
-                value={dataAnalytics} 
-                onValueChange={setDataAnalytics}
-                trackColor={{ false: '#D1D5DB', true: PRIMARY_GREEN }}
-                thumbColor={WHITE}
-              />
-            </View>
+            <SecurityRow
+              icon="eye-off-outline"
+              title="Hide Balance"
+              description="Mask your balance on the home screen"
+              value={hideBalance}
+              onValueChange={setHideBalance}
+            />
+            <SecurityRow
+              icon="stats-chart-outline"
+              title="Data & Analytics"
+              description="Help improve CampusKobo with usage data"
+              value={dataAnalytics}
+              onValueChange={setDataAnalytics}
+              isLast={true}
+            />
           </View>
         </View>
 
         {/* Account Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionLabel}>ACCOUNT</Text>
+          <Text style={styles.sectionLabel}>Account</Text>
           <View style={styles.card}>
             <SecurityRow
-              icon="lock-open-outline"
+              icon="key-outline"
               title="Change Password"
               description="Update your account password"
-              onPress={() => Alert.alert('Coming soon')}
+              type="arrow"
+              onPress={() => Alert.alert('Coming soon', 'This feature is coming in the next update.')}
             />
             <SecurityRow
               icon="mail-outline"
               title="Change Email"
               description="Update your email address"
-              onPress={() => Alert.alert('Coming soon')}
+              type="arrow"
+              onPress={() => Alert.alert('Coming soon', 'This feature is coming in the next update.')}
             />
-            <TouchableOpacity 
-              style={[styles.row, styles.noBorder]}
+            <SecurityRow
+              icon="trash-outline"
+              title="Delete Account"
+              description="Permanently delete your account"
+              type="arrow"
+              isDestructive={true}
               onPress={handleDeleteAccount}
-            >
-              <View style={[styles.iconWrapper, { backgroundColor: '#FEE2E2' }]}>
-                <Ionicons name="trash-outline" size={22} color="#EF4444" />
-              </View>
-              <View style={styles.rowContent}>
-                <Text style={[styles.rowTitle, { color: '#EF4444' }]}>Delete Account</Text>
-                <Text style={styles.rowDescription}>Permanently delete your account</Text>
-              </View>
-              <Ionicons name="arrow-forward" size={20} color="#EF4444" />
-            </TouchableOpacity>
+              isLast={true}
+            />
           </View>
         </View>
 
@@ -292,36 +274,35 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   section: {
-    marginBottom: 24,
+    marginTop: 24,
   },
   sectionLabel: {
     fontSize: 13,
     color: '#9CA3AF',
-    fontFamily: Fonts.bold,
+    fontFamily: Fonts.medium,
     marginBottom: 12,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    marginLeft: 4,
   },
   card: {
     backgroundColor: WHITE,
     borderRadius: 24,
     overflow: 'hidden',
+    paddingHorizontal: 16,
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 20,
-    paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: '#F9FAFB',
   },
   noBorder: {
     borderBottomWidth: 0,
   },
   iconWrapper: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 40,
+    height: 40,
+    borderRadius: 12,
     backgroundColor: '#E7F5ED',
     alignItems: 'center',
     justifyContent: 'center',
@@ -334,12 +315,47 @@ const styles = StyleSheet.create({
   rowTitle: {
     fontSize: 16,
     fontFamily: Fonts.bold,
-    color: '#4B5563',
+    color: TEXT_PRIMARY,
     marginBottom: 4,
   },
   rowDescription: {
     fontSize: 13,
-    color: '#9CA3AF',
+    color: TEXT_SECONDARY,
     fontFamily: Fonts.regular,
+  },
+  // Custom Toggle Styles
+  toggleContainer: {
+    width: 60,
+    height: 32,
+    borderRadius: 16,
+    paddingHorizontal: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  toggleOn: {
+    backgroundColor: PRIMARY_GREEN,
+  },
+  toggleOff: {
+    backgroundColor: '#9CA3AF',
+  },
+  toggleDisabled: {
+    opacity: 0.4,
+  },
+  toggleText: {
+    fontSize: 10,
+    fontFamily: Fonts.bold,
+    color: WHITE,
+  },
+  toggleCircle: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: WHITE,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
   },
 });

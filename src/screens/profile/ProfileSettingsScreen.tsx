@@ -162,7 +162,7 @@ export const ProfileSettingsScreen = () => {
             <SettingsRow
               icon="help-circle-outline"
               title="Help & FAQ"
-              onPress={() => {}}
+              onPress={() => router.push('/profile/help')}
             />
             <SettingsRow
               icon="call-outline"
