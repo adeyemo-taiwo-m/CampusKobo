@@ -5,40 +5,69 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  SafeAreaView,
   StatusBar,
+  Image,
   Alert,
+  Dimensions,
   TextInput,
+  Modal,
+  TouchableWithoutFeedback,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Modal from 'react-native-modal';
-import { useAppContext } from '../../context/AppContext';
+import { Ionicons } from '@expo/vector-icons';
 import {
-  PRIMARY_GREEN,
   WHITE,
+  PRIMARY_GREEN,
   TEXT_PRIMARY,
   TEXT_SECONDARY,
   BACKGROUND,
   Fonts,
-  Colors,
 } from '../../constants';
+import { Header } from '../../components/Header';
+
+const { height } = Dimensions.get('window');
+
+const SettingsRow = ({ 
+  icon, 
+  title, 
+  value, 
+  onPress, 
+  showArrow = true, 
+  isLast = false,
+  subtitle
+}: { 
+  icon: string, 
+  title: string, 
+  value?: string, 
+  onPress?: () => void, 
+  showArrow?: boolean,
+  isLast?: boolean,
+  subtitle?: string
+}) => (
+  <TouchableOpacity 
+    style={[styles.row, isLast && styles.noBorder]} 
+    onPress={onPress}
+    disabled={!onPress}
+    activeOpacity={0.7}
+  >
+    <View style={styles.iconWrapper}>
+      <Ionicons name={icon as any} size={20} color={PRIMARY_GREEN} />
+    </View>
+    <View style={styles.rowMain}>
+      <Text style={styles.rowTitle}>{title}</Text>
+      {subtitle && <Text style={styles.rowSubtitle}>{subtitle}</Text>}
+    </View>
+    {value && <Text style={styles.rowValue}>{value}</Text>}
+    {showArrow && <Ionicons name="arrow-forward" size={18} color="#9CA3AF" />}
+  </TouchableOpacity>
+);
 
 export const ProfileSettingsScreen = () => {
   const router = useRouter();
-  const insets = useSafeAreaInsets();
-  const { user, clearAllData } = useAppContext();
-  
-  const [isEditSheetVisible, setIsEditSheetVisible] = useState(false);
-  const [editName, setEditName] = useState(user.name);
-  const [editEmail, setEditEmail] = useState(user.email);
-
-  const initials = user.name
-    .split(' ')
-    .map(n => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2);
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+  const [userName, setUserName] = useState('Adeyemo Taiwo M');
+  const [userEmail, setUserEmail] = useState('adeyemo@gmail.com');
 
   const handleLogout = () => {
     Alert.alert(
@@ -49,113 +78,77 @@ export const ProfileSettingsScreen = () => {
         { 
           text: 'Log Out', 
           style: 'destructive',
-          onPress: async () => {
-            // In a real app, clear tokens/session
-            // For prototype, we can just navigate to welcome
-            router.replace('/onboarding/welcome-1');
+          onPress: () => {
+            // In a real app, clear auth state here
+            router.replace('/(onboarding)/welcome-1');
           }
         }
       ]
     );
   };
 
-  const SettingRow = ({ 
-    icon, 
-    label, 
-    value, 
-    onPress, 
-    showArrow = true,
-    destructive = false 
-  }: { 
-    icon: keyof typeof Ionicons.glyphMap; 
-    label: string; 
-    value?: string; 
-    onPress?: () => void;
-    showArrow?: boolean;
-    destructive?: boolean;
-  }) => (
-    <TouchableOpacity 
-      style={styles.settingRow} 
-      onPress={onPress}
-      activeOpacity={0.7}
-    >
-      <View style={[styles.settingIconBox, destructive && styles.destructiveIconBox]}>
-        <Ionicons name={icon} size={20} color={destructive ? '#EF4444' : PRIMARY_GREEN} />
-      </View>
-      <Text style={[styles.settingLabel, destructive && styles.destructiveLabel]}>{label}</Text>
-      <View style={styles.settingRight}>
-        {value && <Text style={styles.settingValue}>{value}</Text>}
-        {showArrow && <Ionicons name="chevron-forward" size={18} color="#9CA3AF" />}
-      </View>
-    </TouchableOpacity>
-  );
+  const handleEditProfile = () => {
+    setIsEditModalVisible(false);
+    Alert.alert('Success', 'Profile updated successfully!');
+  };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
-      
-      {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
-        <TouchableOpacity 
-          style={styles.headerBtn} 
-          onPress={() => router.back()}
-        >
-          <Ionicons name="arrow-back" size={24} color={TEXT_PRIMARY} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Profile & Settings</Text>
-        <View style={{ width: 40 }} />
-      </View>
+      <Header title="Profile & Settings" showBack={false} />
 
-      <ScrollView 
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         {/* Profile Card */}
         <View style={styles.profileCard}>
-          <View style={styles.avatarCircle}>
-            <Text style={styles.avatarText}>{initials}</Text>
+          <Image 
+            source={require('../../../assets/images/avatar.jpeg')} 
+            style={styles.avatar} 
+          />
+          <View style={styles.profileInfo}>
+            <Text style={styles.userName}>{userName}</Text>
+            <Text style={styles.userEmail}>{userEmail}</Text>
+            <TouchableOpacity 
+              style={styles.editBtn}
+              onPress={() => setIsEditModalVisible(true)}
+            >
+              <Text style={styles.editBtnText}>Edit Profile</Text>
+            </TouchableOpacity>
           </View>
-          <Text style={styles.userName}>{user.name}</Text>
-          <Text style={styles.userEmail}>{user.email}</Text>
-          <TouchableOpacity 
-            style={styles.editBtn}
-            onPress={() => setIsEditSheetVisible(true)}
-          >
-            <Text style={styles.editBtnText}>Edit Profile</Text>
-          </TouchableOpacity>
         </View>
 
         {/* Account Preferences */}
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>Account Preferences</Text>
-          <View style={styles.rowsContainer}>
-            <SettingRow 
-              icon="cash-outline" 
-              label="Currency" 
-              value="₦ Nigerian Naira" 
-              onPress={() => Alert.alert('Currency', 'Multi-currency support coming soon!')}
+          <View style={styles.card}>
+            <SettingsRow
+              icon="cash-outline"
+              title="Currency"
+              value="₦ Nigerian Naira"
+              onPress={() => {
+                Alert.alert('Currency', 'Choose your preferred currency', [
+                  { text: '₦ Nigerian Naira', onPress: () => {} },
+                  { text: '$ US Dollar', onPress: () => {} },
+                  { text: 'Cancel', style: 'cancel' }
+                ]);
+              }}
             />
-            <SettingRow 
-              icon="language-outline" 
-              label="Language" 
-              value="English" 
+            <SettingsRow
+              icon="globe-outline"
+              title="Language"
+              value="English"
+              onPress={() => {}}
             />
-            <SettingRow 
-              icon="notifications-outline" 
-              label="Notifications" 
+            <SettingsRow
+              icon="notifications-outline"
+              title="Notifications"
               onPress={() => router.push('/profile/notifications')}
             />
-          </View>
-        </View>
-
-        {/* Security & Privacy */}
-        <View style={styles.section}>
-          <Text style={styles.sectionLabel}>Security & Privacy</Text>
-          <View style={styles.rowsContainer}>
-            <SettingRow 
-              icon="shield-checkmark-outline" 
-              label="Security & Privacy" 
+            <SettingsRow
+              icon="shield-lock-outline"
+              title="Security & Privacy"
+              subtitle="App lock, PIN, Biometric"
               onPress={() => router.push('/profile/security')}
+              isLast={true}
             />
           </View>
         </View>
@@ -163,16 +156,17 @@ export const ProfileSettingsScreen = () => {
         {/* Support & Help */}
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>Support & Help</Text>
-          <View style={styles.rowsContainer}>
-            <SettingRow 
-              icon="help-circle-outline" 
-              label="Help & FAQ" 
-              onPress={() => router.push('/profile/help')}
+          <View style={styles.card}>
+            <SettingsRow
+              icon="help-circle-outline"
+              title="Help & FAQ"
+              onPress={() => {}}
             />
-            <SettingRow 
-              icon="mail-outline" 
-              label="Contact Support" 
-              onPress={() => Alert.alert('Support', 'Email us at support@campuskobo.com')}
+            <SettingsRow
+              icon="call-outline"
+              title="Contact Support"
+              onPress={() => Alert.alert('Support', 'Contact us at support@campuskobo.com')}
+              isLast={true}
             />
           </View>
         </View>
@@ -180,258 +174,237 @@ export const ProfileSettingsScreen = () => {
         {/* About & Legal */}
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>About & Legal</Text>
-          <View style={styles.rowsContainer}>
-            <SettingRow 
-              icon="information-circle-outline" 
-              label="About CampusKobo" 
-              onPress={() => Alert.alert('About CampusKobo', 'CampusKobo is your all-in-one financial companion for student life.')}
+          <View style={styles.card}>
+            <SettingsRow
+              icon="information-circle-outline"
+              title="About CampusKobo"
+              onPress={() => Alert.alert('About', 'CampusKobo is your companion for financial literacy and student money management.')}
             />
-            <SettingRow 
-              icon="business-outline" 
-              label="About BOF OAU" 
-              onPress={() => Alert.alert('About BOF OAU', 'The Bureau of Finance (BOF) at OAU provides financial literacy and empowerment for students.')}
-            />
-            <SettingRow 
-              icon="code-working-outline" 
-              label="Version" 
-              value="1.0.0" 
-              showArrow={false}
+            <SettingsRow
+              icon="business-outline"
+              title="About BOF OAU"
+              onPress={() => Alert.alert('BOF OAU', 'The Bureau of Finance, OAU is dedicated to financial excellence among students.')}
+              isLast={true}
             />
           </View>
         </View>
 
-        {/* Log Out */}
-        <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
-          <Text style={styles.logoutBtnText}>Log Out</Text>
+        <Text style={styles.versionText}>Version 1.0</Text>
+
+        <TouchableOpacity 
+          style={styles.logoutBtn}
+          onPress={handleLogout}
+        >
+          <Text style={styles.logoutBtnText}>Log out</Text>
         </TouchableOpacity>
-        
-        <Text style={styles.footerNote}>Made with ❤️ for OAU Students</Text>
+
+        <View style={{ height: 40 }} />
       </ScrollView>
 
-      {/* Edit Profile Bottom Sheet */}
+      {/* Edit Profile Modal */}
       <Modal
-        isVisible={isEditSheetVisible}
-        onBackdropPress={() => setIsEditSheetVisible(false)}
-        onSwipeComplete={() => setIsEditSheetVisible(false)}
-        swipeDirection="down"
-        style={styles.modal}
-        avoidKeyboard
+        visible={isEditModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setIsEditModalVisible(false)}
       >
-        <View style={styles.sheetContent}>
-          <View style={styles.dragHandle} />
-          <Text style={styles.sheetTitle}>Edit Profile</Text>
-          
-          <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Full Name</Text>
-            <TextInput
-              style={styles.input}
-              value={editName}
-              onChangeText={setEditName}
-              placeholder="Your full name"
-            />
-          </View>
+        <TouchableWithoutFeedback onPress={() => setIsEditModalVisible(false)}>
+          <View style={styles.modalOverlay}>
+            <TouchableWithoutFeedback>
+              <View style={styles.sheetContainer}>
+                <View style={styles.dragHandle} />
+                <Text style={styles.modalTitle}>Edit Profile</Text>
+                
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>Full Name</Text>
+                  <TextInput 
+                    style={styles.modalInput}
+                    value={userName}
+                    onChangeText={setUserName}
+                    placeholder="Enter your name"
+                  />
+                </View>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Email Address</Text>
-            <TextInput
-              style={styles.input}
-              value={editEmail}
-              onChangeText={setEditEmail}
-              placeholder="Your email address"
-              keyboardType="email-address"
-              autoCapitalize="none"
-            />
-          </View>
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>Email Address</Text>
+                  <TextInput 
+                    style={styles.modalInput}
+                    value={userEmail}
+                    onChangeText={setUserEmail}
+                    placeholder="Enter your email"
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                  />
+                </View>
 
-          <TouchableOpacity 
-            style={styles.saveBtn}
-            onPress={() => {
-              // In real app: updateUser(editName, editEmail)
-              setIsEditSheetVisible(false);
-              Alert.alert('Profile Updated', 'Your changes have been saved.');
-            }}
-          >
-            <Text style={styles.saveBtnText}>Save Changes</Text>
-          </TouchableOpacity>
-        </View>
+                <TouchableOpacity 
+                  style={styles.saveBtn}
+                  onPress={handleEditProfile}
+                >
+                  <Text style={styles.saveBtnText}>Save Changes</Text>
+                </TouchableOpacity>
+              </View>
+            </TouchableWithoutFeedback>
+          </View>
+        </TouchableWithoutFeedback>
       </Modal>
-    </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: WHITE,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingBottom: 15,
-  },
-  headerBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#F9FAFB',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTitle: {
-    fontFamily: Fonts.bold,
-    fontSize: 18,
-    color: TEXT_PRIMARY,
+    backgroundColor: BACKGROUND,
   },
   scrollContent: {
-    paddingBottom: 40,
+    paddingHorizontal: 20,
+    paddingTop: 10,
   },
   profileCard: {
+    backgroundColor: WHITE,
+    borderRadius: 24,
+    padding: 20,
+    flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 30,
-    borderBottomWidth: 8,
-    borderBottomColor: '#F9FAFB',
+    marginBottom: 24,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
   },
-  avatarCircle: {
+  avatar: {
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: PRIMARY_GREEN,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 16,
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
+    marginRight: 20,
+    borderWidth: 2,
+    borderColor: PRIMARY_GREEN,
   },
-  avatarText: {
-    fontFamily: Fonts.bold,
-    fontSize: 32,
-    color: WHITE,
+  profileInfo: {
+    flex: 1,
   },
   userName: {
+    fontSize: 20,
     fontFamily: Fonts.bold,
-    fontSize: 22,
     color: TEXT_PRIMARY,
     marginBottom: 4,
   },
   userEmail: {
-    fontFamily: Fonts.medium,
     fontSize: 14,
     color: TEXT_SECONDARY,
-    marginBottom: 20,
+    fontFamily: Fonts.regular,
+    marginBottom: 12,
   },
   editBtn: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 20,
-    borderWidth: 1.5,
-    borderColor: '#E5E7EB',
+    backgroundColor: PRIMARY_GREEN,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    alignSelf: 'flex-start',
   },
   editBtnText: {
-    fontFamily: Fonts.bold,
+    color: WHITE,
     fontSize: 14,
-    color: TEXT_PRIMARY,
+    fontFamily: Fonts.bold,
   },
   section: {
-    marginTop: 24,
-    paddingHorizontal: 20,
+    marginBottom: 24,
   },
   sectionLabel: {
+    fontSize: 13,
+    color: '#9CA3AF',
     fontFamily: Fonts.bold,
-    fontSize: 14,
-    color: TEXT_SECONDARY,
-    textTransform: 'uppercase',
     marginBottom: 12,
-    paddingLeft: 4,
+    marginLeft: 4,
   },
-  rowsContainer: {
+  card: {
     backgroundColor: WHITE,
     borderRadius: 20,
     overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: '#F3F4F6',
   },
-  settingRow: {
+  row: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#F9FAFB',
   },
-  settingIconBox: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    backgroundColor: Colors.primary.P100,
+  noBorder: {
+    borderBottomWidth: 0,
+  },
+  iconWrapper: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: '#E7F5ED',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 16,
+    marginRight: 12,
   },
-  settingLabel: {
+  rowMain: {
     flex: 1,
-    fontFamily: Fonts.bold,
-    fontSize: 16,
+  },
+  rowTitle: {
+    fontSize: 15,
+    fontFamily: Fonts.medium,
     color: TEXT_PRIMARY,
   },
-  settingRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  settingValue: {
-    fontFamily: Fonts.medium,
-    fontSize: 14,
+  rowSubtitle: {
+    fontSize: 11,
     color: TEXT_SECONDARY,
+    fontFamily: Fonts.regular,
+    marginTop: 2,
   },
-  logoutBtn: {
-    margin: 20,
-    marginTop: 40,
-    height: 58,
-    borderRadius: 16,
-    borderWidth: 1.5,
-    borderColor: '#FEE2E2',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  logoutBtnText: {
-    fontFamily: Fonts.bold,
-    fontSize: 16,
-    color: '#EF4444',
-  },
-  footerNote: {
+  rowValue: {
+    fontSize: 13,
+    color: TEXT_SECONDARY,
     fontFamily: Fonts.medium,
+    marginRight: 8,
+  },
+  versionText: {
+    textAlign: 'center',
     fontSize: 12,
     color: '#9CA3AF',
-    textAlign: 'center',
-    marginTop: 10,
+    fontFamily: Fonts.regular,
+    marginBottom: 16,
   },
-  // Modal Sheet
-  modal: {
+  logoutBtn: {
+    backgroundColor: '#FEE2E2',
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  logoutBtnText: {
+    color: '#EF4444',
+    fontSize: 15,
+    fontFamily: Fonts.bold,
+  },
+  // Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'flex-end',
-    margin: 0,
   },
-  sheetContent: {
+  sheetContainer: {
     backgroundColor: WHITE,
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
     padding: 24,
     paddingBottom: 40,
   },
   dragHandle: {
     width: 40,
-    height: 5,
+    height: 4,
     backgroundColor: '#E5E7EB',
-    borderRadius: 3,
+    borderRadius: 2,
     alignSelf: 'center',
-    marginBottom: 20,
+    marginBottom: 24,
   },
-  sheetTitle: {
+  modalTitle: {
+    fontSize: 20,
     fontFamily: Fonts.bold,
-    fontSize: 22,
     color: TEXT_PRIMARY,
     marginBottom: 24,
   },
@@ -439,31 +412,31 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   inputLabel: {
-    fontFamily: Fonts.bold,
     fontSize: 14,
+    fontFamily: Fonts.bold,
     color: TEXT_PRIMARY,
     marginBottom: 8,
   },
-  input: {
-    backgroundColor: '#F3F4F6',
+  modalInput: {
+    backgroundColor: '#F9FAFB',
     borderRadius: 12,
-    paddingHorizontal: 16,
-    height: 54,
-    fontFamily: Fonts.medium,
+    padding: 12,
     fontSize: 15,
+    fontFamily: Fonts.regular,
     color: TEXT_PRIMARY,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
   },
   saveBtn: {
     backgroundColor: PRIMARY_GREEN,
-    height: 58,
-    borderRadius: 16,
+    paddingVertical: 16,
+    borderRadius: 12,
     alignItems: 'center',
-    justifyContent: 'center',
     marginTop: 10,
   },
   saveBtnText: {
-    fontFamily: Fonts.bold,
-    fontSize: 16,
     color: WHITE,
-  },
+    fontSize: 16,
+    fontFamily: Fonts.bold,
+  }
 });
