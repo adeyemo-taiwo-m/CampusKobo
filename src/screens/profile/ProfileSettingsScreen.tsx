@@ -167,7 +167,7 @@ export const ProfileSettingsScreen = () => {
             <SettingsRow
               icon="call-outline"
               title="Contact Support"
-              onPress={() => Alert.alert('Support', 'Contact us at support@campuskobo.com')}
+              onPress={() => router.push('/profile/help?tab=contact')}
               isLast={true}
             />
           </View>

@@ -13,7 +13,7 @@ import {
   UIManager,
   Linking,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import {
   WHITE,
@@ -139,9 +139,10 @@ const ExpandableFAQ = ({ item, isExpanded, onToggle }: { item: FAQItem, isExpand
 
 export const HelpFAQScreen = () => {
   const router = useRouter();
+  const { tab } = useLocalSearchParams<{ tab: string }>();
   const scrollViewRef = useRef<ScrollView>(null);
   
-  const [activeTab, setActiveTab] = useState<'FAQ' | 'Contact'>('FAQ');
+  const [activeTab, setActiveTab] = useState<'FAQ' | 'Contact'>(tab === 'contact' ? 'Contact' : 'FAQ');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<Category>('All');
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -410,12 +411,16 @@ export const HelpFAQScreen = () => {
           style={styles.submitBtn}
           onPress={() => {
             if (contactName && contactEmail && contactIssue) {
-              alert('Message sent successfully!');
+              Alert.alert(
+                'Message Sent',
+                'Your message has been sent. We will get back to you within 24 hours.',
+                [{ text: 'OK' }]
+              );
               setContactName('');
               setContactEmail('');
               setContactIssue('');
             } else {
-              alert('Please fill in all fields.');
+              Alert.alert('Error', 'Please fill in all fields.');
             }
           }}
         >
