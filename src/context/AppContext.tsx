@@ -45,6 +45,8 @@ interface AppContextType {
   deleteRecurringExpense: (id: string) => Promise<void>;
   pauseAllRecurring: () => Promise<void>;
   resumeAllRecurring: () => Promise<void>;
+  isBalanceHidden: boolean;
+  toggleBalanceVisibility: () => Promise<void>;
   updateUser: (data: Partial<User>) => Promise<void>;
   setUser: (user: User | null) => void;
 }
@@ -60,6 +62,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     RecurringExpense[]
   >([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isBalanceHidden, setIsBalanceHidden] = useState(false);
 
   const loadAllData = async () => {
     setIsLoading(true);
@@ -69,6 +72,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       const b = await StorageService.getBudgets();
       const s = await StorageService.getSavingsGoals();
       const r = await StorageService.getRecurringExpenses();
+
+      if (u) {
+        setIsBalanceHidden(!!u.hideBalance);
+      }
 
       // Sample data to ensure it matches the latest mockup
       const sampleTransactions: Transaction[] = [
@@ -371,6 +378,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     setRecurringExpenses(updated);
   };
 
+  const toggleBalanceVisibility = async () => {
+    const newValue = !isBalanceHidden;
+    setIsBalanceHidden(newValue);
+    if (user) {
+      await updateUser({ hideBalance: newValue });
+    }
+  };
+
   const updateUser = async (data: Partial<User>) => {
     if (user) {
       const updated = { ...user, ...data };
@@ -409,6 +424,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         deleteRecurringExpense,
         pauseAllRecurring,
         resumeAllRecurring,
+        isBalanceHidden,
+        toggleBalanceVisibility,
         updateUser,
         setUser,
       }}

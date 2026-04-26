@@ -61,6 +61,7 @@ export interface User {
   selectedCategories: string[];
   hasPIN: boolean;
   pin?: string;
+  hideBalance?: boolean;
   hasCompletedOnboarding: boolean;
 }
 

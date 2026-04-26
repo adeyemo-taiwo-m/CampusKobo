@@ -34,8 +34,7 @@ import { formatCurrency, getPercentage, getDaysLeftInMonth } from "../../utils/f
 
 export default function DashboardScreen() {
   const router = useRouter();
-  const { user, transactions, budgets, savingsGoals, isLoading } = useAppContext();
-  const [isBalanceVisible, setIsBalanceVisible] = useState(true);
+  const { user, transactions, budgets, savingsGoals, isLoading, isBalanceHidden, toggleBalanceVisibility } = useAppContext();
   const [isAddFundsVisible, setIsAddFundsVisible] = useState(false);
   const { toastProps, showToast } = useToast();
 
@@ -167,8 +166,8 @@ export default function DashboardScreen() {
                 amount={totalBalance}
                 income={totalIncome}
                 expenses={totalExpenses}
-                isBalanceVisible={isBalanceVisible}
-                onToggleVisibility={() => setIsBalanceVisible(!isBalanceVisible)}
+                isBalanceVisible={!isBalanceHidden}
+                onToggleVisibility={toggleBalanceVisibility}
                 style={styles.balanceCard}
               />
             </SafeAreaView>
@@ -360,6 +359,14 @@ export default function DashboardScreen() {
           }}
         />
       )}
+
+      <TouchableOpacity
+        style={styles.fab}
+        activeOpacity={0.85}
+        onPress={() => router.push("/add-transaction")}
+      >
+        <Ionicons name="add" size={32} color={WHITE} />
+      </TouchableOpacity>
 
       <Toast {...toastProps} />
     </View>

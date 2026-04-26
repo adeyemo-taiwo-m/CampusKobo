@@ -90,13 +90,13 @@ const SecurityRow = ({
 
 export const SecurityPrivacyScreen = () => {
   const router = useRouter();
+  const { isBalanceHidden, toggleBalanceVisibility } = useAppContext();
   
   const [appLock, setAppLock] = useState(false);
   const [biometricUnlock, setBiometricUnlock] = useState(true);
   const [pinLock, setPinLock] = useState(false);
   const [fingerprintLogin, setFingerprintLogin] = useState(true);
   const [faceId, setFaceId] = useState(true);
-  const [hideBalance, setHideBalance] = useState(false);
   const [dataAnalytics, setDataAnalytics] = useState(true);
 
   const handleDeleteAccount = () => {
@@ -207,9 +207,9 @@ export const SecurityPrivacyScreen = () => {
             <SecurityRow
               icon="eye-off-outline"
               title="Hide Balance"
-              description="Mask your balance on the home screen"
-              value={hideBalance}
-              onValueChange={setHideBalance}
+              description="Mask your account balance on the dashboard"
+              value={isBalanceHidden}
+              onValueChange={toggleBalanceVisibility}
             />
             <SecurityRow
               icon="stats-chart-outline"
