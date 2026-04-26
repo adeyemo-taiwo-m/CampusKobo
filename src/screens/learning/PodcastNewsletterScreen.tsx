@@ -22,6 +22,7 @@ import {
   Fonts,
 } from '../../constants';
 import { Header } from '../../components/Header';
+import { PodcastEpisodeCard } from '../../components/PodcastEpisodeCard';
 import { LEARNING_CONTENT } from '../../constants/learningData';
 
 const PodcastNewsletterScreen = () => {
@@ -77,33 +78,15 @@ const PodcastNewsletterScreen = () => {
         </View>
 
         {/* Featured Banner Card */}
-        <TouchableOpacity 
-          style={styles.featuredCard}
+        <PodcastEpisodeCard 
+          title="Market Pulse — EP 05: How to invest as a student"
+          duration="18 min"
+          image={require('../../../assets/images/podcast-banner.png')}
           onPress={() => router.push({
             pathname: '/learning/detail',
             params: { id: 'l-005', type: 'podcast' }
           })}
-        >
-          <Image 
-            source={require('../../../assets/images/podcast-banner.png')} 
-            style={styles.featuredImage} 
-            resizeMode="cover"
-          />
-          <View style={styles.featuredOverlay}>
-            <View style={styles.latestTag}>
-              <Text style={styles.latestTagText}>Latest Episode</Text>
-            </View>
-            <Text style={styles.featuredTitle}>Market Pulse — EP 05: How to invest as a student</Text>
-            <View style={styles.featuredMeta}>
-              <Ionicons name="headset-outline" size={14} color={WHITE} />
-              <Text style={styles.featuredMetaText}>Podcast • 18 min</Text>
-            </View>
-            <View style={styles.listenBtn}>
-              <Text style={styles.listenBtnText}>Listen now</Text>
-              <Ionicons name="arrow-forward" size={16} color={TEXT_PRIMARY} />
-            </View>
-          </View>
-        </TouchableOpacity>
+        />
 
         {/* Podcast Section */}
         <View style={styles.section}>
@@ -557,7 +540,7 @@ const styles = StyleSheet.create({
   },
   socialPillText: {
     fontSize: 13,
-    fontFamily: Fonts.bold,
+    fontFamily: Fonts.regular,
     color: PRIMARY_GREEN,
   },
   subscribeSection: {
