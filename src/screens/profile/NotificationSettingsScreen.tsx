@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   SafeAreaView,
   StatusBar,
-  Switch,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -32,10 +31,17 @@ const CustomToggle = ({ value, onValueChange, disabled = false }: { value: boole
         disabled && styles.toggleDisabled
       ]}
     >
-      <Text style={[styles.toggleText, value ? styles.toggleTextOn : styles.toggleTextOff]}>
-        {value ? 'ON' : 'OFF'}
-      </Text>
-      <View style={[styles.toggleCircle, value ? styles.toggleCircleOn : styles.toggleCircleOff]} />
+      {value ? (
+        <>
+          <Text style={styles.toggleText}>ON</Text>
+          <View style={styles.toggleCircle} />
+        </>
+      ) : (
+        <>
+          <View style={styles.toggleCircle} />
+          <Text style={styles.toggleText}>OFF</Text>
+        </>
+      )}
     </TouchableOpacity>
   );
 };
@@ -107,7 +113,7 @@ export const NotificationSettingsScreen = () => {
 
         {/* Money Alerts Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Money Alerts</Text>
+          <Text style={styles.sectionLabel}>Money Alerts</Text>
           <View style={styles.card}>
             <NotificationRow
               icon="wallet-outline"
@@ -139,7 +145,7 @@ export const NotificationSettingsScreen = () => {
 
         {/* Learning Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Learning</Text>
+          <Text style={styles.sectionLabel}>Learning</Text>
           <View style={styles.card}>
             <NotificationRow
               icon="book-outline"
@@ -171,7 +177,7 @@ export const NotificationSettingsScreen = () => {
 
         {/* General Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>General</Text>
+          <Text style={styles.sectionLabel}>General</Text>
           <View style={styles.card}>
             <NotificationRow
               icon="refresh-outline"
@@ -195,7 +201,7 @@ export const NotificationSettingsScreen = () => {
 
         {/* Quiet Hours Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Quiet Hours</Text>
+          <Text style={styles.sectionLabel}>Quiet Hours</Text>
           <View style={styles.card}>
             <NotificationRow
               icon="moon-outline"
@@ -207,17 +213,17 @@ export const NotificationSettingsScreen = () => {
               isLast={!doNotDisturb}
             />
             {doNotDisturb && (
-              <View style={styles.timePickerContainer}>
+              <View style={styles.timePickerRow}>
                 <View style={styles.timeField}>
                   <Text style={styles.timeLabel}>From:</Text>
                   <View style={styles.timeBox}>
-                    <Text style={styles.timeValue}>10:00 PM</Text>
+                    <Text style={styles.timeText}>10:00 PM</Text>
                   </View>
                 </View>
                 <View style={styles.timeField}>
                   <Text style={styles.timeLabel}>To:</Text>
                   <View style={styles.timeBox}>
-                    <Text style={styles.timeValue}>07:00 AM</Text>
+                    <Text style={styles.timeText}>07:00 AM</Text>
                   </View>
                 </View>
               </View>
@@ -247,14 +253,14 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   section: {
-    marginBottom: 24,
+    marginTop: 24,
   },
-  sectionTitle: {
+  sectionLabel: {
     fontSize: 13,
     color: '#9CA3AF',
-    fontFamily: Fonts.bold,
+    fontFamily: Fonts.medium,
     marginBottom: 12,
-    textTransform: 'capitalize',
+    marginLeft: 4,
   },
   card: {
     backgroundColor: WHITE,
@@ -265,7 +271,7 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 16,
+    paddingVertical: 20,
     borderBottomWidth: 1,
     borderBottomColor: '#F9FAFB',
   },
@@ -279,20 +285,20 @@ const styles = StyleSheet.create({
     backgroundColor: '#E7F5ED',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
+    marginRight: 16,
   },
   rowContent: {
     flex: 1,
     marginRight: 10,
   },
   rowTitle: {
-    fontSize: 15,
+    fontSize: 16,
     fontFamily: Fonts.bold,
     color: TEXT_PRIMARY,
-    marginBottom: 2,
+    marginBottom: 4,
   },
   rowDescription: {
-    fontSize: 12,
+    fontSize: 13,
     color: TEXT_SECONDARY,
     fontFamily: Fonts.regular,
   },
@@ -301,7 +307,7 @@ const styles = StyleSheet.create({
     width: 60,
     height: 32,
     borderRadius: 16,
-    paddingHorizontal: 4,
+    paddingHorizontal: 6,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -313,24 +319,17 @@ const styles = StyleSheet.create({
     backgroundColor: '#9CA3AF',
   },
   toggleDisabled: {
-    opacity: 0.5,
+    opacity: 0.4,
   },
   toggleText: {
     fontSize: 10,
     fontFamily: Fonts.bold,
     color: WHITE,
   },
-  toggleTextOn: {
-    marginLeft: 4,
-  },
-  toggleTextOff: {
-    marginRight: 4,
-    marginLeft: 'auto',
-  },
   toggleCircle: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
     backgroundColor: WHITE,
     elevation: 2,
     shadowColor: '#000',
@@ -338,41 +337,34 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 2,
   },
-  toggleCircleOn: {
-    // Circle stays on right
-  },
-  toggleCircleOff: {
-    order: -1, // Moves circle to left
-  },
-  // Quiet Hours Styles
-  timePickerContainer: {
+  // Quiet Hours
+  timePickerRow: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
     paddingVertical: 16,
-    paddingHorizontal: 4,
     borderTopWidth: 1,
     borderTopColor: '#F9FAFB',
   },
   timeField: {
     flexDirection: 'row',
     alignItems: 'center',
-    flex: 1,
   },
   timeLabel: {
     fontSize: 14,
-    color: TEXT_SECONDARY,
     fontFamily: Fonts.regular,
+    color: TEXT_SECONDARY,
     marginRight: 8,
   },
   timeBox: {
     backgroundColor: '#F3F4F6',
     borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
   },
-  timeValue: {
-    fontSize: 13,
+  timeText: {
+    fontSize: 14,
     fontFamily: Fonts.bold,
     color: TEXT_PRIMARY,
-  },
+  }
 });
