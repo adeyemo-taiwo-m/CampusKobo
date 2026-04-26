@@ -97,7 +97,11 @@ export const ProfileSettingsScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
-      <Header title="Profile & Settings" showBack={false} />
+      <Header 
+        title="Profile & Settings" 
+        showBack={true} 
+        onBack={() => router.back()} 
+      />
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         {/* Profile Card */}

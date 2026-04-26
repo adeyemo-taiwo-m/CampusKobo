@@ -7,66 +7,27 @@ import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { PRIMARY_GREEN, WHITE, Fonts } from '../constants';
 
 const { width } = Dimensions.get('window');
-const TAB_BAR_HEIGHT = 80;
+const TAB_BAR_HEIGHT = 65;
 
-// The 4 visible tabs in order
-const VISIBLE_TABS = ['index', 'expenses', 'savings', 'budget'] as const;
+const VISIBLE_TABS = ['index', 'expenses', 'budget', 'savings'] as const;
 const TAB_TITLES: Record<string, string> = {
   index: 'Home',
   expenses: 'Expenses',
-  savings: 'Savings',
   budget: 'Budget',
+  savings: 'Savings',
 };
 
 export const CustomTabBar = ({ state, descriptors, navigation }: BottomTabBarProps) => {
-  const router = useRouter();
-
-  // FAB action depends on which tab is focused
-  const handleFabPress = () => {
-    const currentRoute = state.routes[state.index]?.name;
-    switch (currentRoute) {
-      case 'savings':
-        router.push('/savings/create');
-        break;
-      case 'budget':
-        router.push('/budget/create');
-        break;
-      case 'expenses':
-      case 'index':
-      default:
-        router.push('/add-transaction');
-        break;
-    }
-  };
-
-  // Only render the 4 visible tabs
-  const visibleRoutes = state.routes.filter(r => VISIBLE_TABS.includes(r.name as any));
+  // Only render the 4 visible tabs in the requested order
+  const visibleRoutes = VISIBLE_TABS.map(name => 
+    state.routes.find(r => r.name === name)
+  ).filter(Boolean) as any[];
 
   return (
     <View style={styles.container}>
-      {/* Curved SVG background */}
-      <Svg width={width} height={TAB_BAR_HEIGHT} style={styles.svg}>
-        <Path
-          fill={WHITE}
-          d={`
-            M0,25 
-            C0,11.19 11.19,0 25,0 
-            L${width / 2 - 60},0 
-            C${width / 2 - 45},0 ${width / 2 - 40},40 ${width / 2},40
-            C${width / 2 + 40},40 ${width / 2 + 45},0 ${width / 2 + 60},0
-            L${width - 25},0 
-            C${width - 11.19},0 ${width},11.19 ${width},25 
-            L${width},${TAB_BAR_HEIGHT} 
-            L0,${TAB_BAR_HEIGHT} 
-            Z
-          `}
-        />
-      </Svg>
-
       <View style={styles.tabsContainer}>
-        {visibleRoutes.map((route, visibleIndex) => {
+        {visibleRoutes.map((route) => {
           const { options } = descriptors[route.key];
-          // isFocused: match by name since hidden tabs shift state.index
           const isFocused = state.routes[state.index]?.name === route.name;
 
           const onPress = () => {
@@ -88,54 +49,33 @@ export const CustomTabBar = ({ state, descriptors, navigation }: BottomTabBarPro
               iconName = isFocused ? 'home' : 'home-outline';
               break;
             case 'expenses':
-              iconName = isFocused ? 'list' : 'list-outline';
-              break;
-            case 'savings':
-              iconName = isFocused ? 'disc' : 'disc-outline';
+              iconName = isFocused ? 'receipt' : 'receipt-outline';
               break;
             case 'budget':
               iconName = isFocused ? 'bar-chart' : 'bar-chart-outline';
               break;
+            case 'savings':
+              iconName = isFocused ? 'wallet' : 'wallet-outline';
+              break;
           }
 
-          const tabItem = (
+          return (
             <TouchableOpacity
               key={route.key}
               onPress={onPress}
               style={styles.tabItem}
               activeOpacity={0.7}
             >
-              {isFocused && <View style={styles.activeIndicator} />}
               <Ionicons
                 name={iconName}
-                size={24}
-                color={isFocused ? PRIMARY_GREEN : '#9CA3AF'}
+                size={22}
+                color={isFocused ? PRIMARY_GREEN : '#6B7280'}
               />
-              <Text style={[styles.tabLabel, { color: isFocused ? PRIMARY_GREEN : '#9CA3AF' }]}>
+              <Text style={[styles.tabLabel, { color: isFocused ? PRIMARY_GREEN : '#6B7280' }]}>
                 {title}
               </Text>
             </TouchableOpacity>
           );
-
-          // Insert FAB between Expenses (index 1) and Savings (index 2)
-          if (visibleIndex === 2) {
-            return (
-              <React.Fragment key={`fab-${route.key}`}>
-                {/* FAB */}
-                <TouchableOpacity
-                  activeOpacity={0.85}
-                  onPress={handleFabPress}
-                  style={styles.fabButton}
-                >
-                  <Ionicons name="add" size={32} color={WHITE} />
-                </TouchableOpacity>
-                {/* Savings tab */}
-                {tabItem}
-              </React.Fragment>
-            );
-          }
-
-          return tabItem;
         })}
       </View>
     </View>
@@ -144,61 +84,34 @@ export const CustomTabBar = ({ state, descriptors, navigation }: BottomTabBarPro
 
 const styles = StyleSheet.create({
   container: {
-    position: 'absolute',
-    bottom: 0,
-    width: width,
+    backgroundColor: WHITE,
     height: TAB_BAR_HEIGHT,
-    backgroundColor: 'transparent',
-    elevation: 20,
+    width: width,
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB', // BORDER_GRAY
+    paddingBottom: 8,
+    elevation: 8,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.06,
-    shadowRadius: 12,
-  },
-  svg: {
-    position: 'absolute',
-    top: 0,
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
   },
   tabsContainer: {
     flexDirection: 'row',
-    height: TAB_BAR_HEIGHT,
+    height: '100%',
     width: '100%',
     justifyContent: 'space-around',
     alignItems: 'center',
-    paddingHorizontal: 10,
   },
   tabItem: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    height: '100%',
-    paddingTop: 10,
-  },
-  activeIndicator: {
-    position: 'absolute',
-    top: 10,
-    width: 40,
-    height: 4,
-    backgroundColor: PRIMARY_GREEN,
-    borderRadius: 2,
+    paddingTop: 8,
   },
   tabLabel: {
-    fontSize: 11,
+    fontSize: 10,
     marginTop: 4,
-    fontFamily: Fonts.regular,
-  },
-  fabButton: {
-    width: 58,
-    height: 58,
-    borderRadius: 29,
-    backgroundColor: PRIMARY_GREEN,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: -30,
-    elevation: 12,
-    shadowColor: PRIMARY_GREEN,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.35,
-    shadowRadius: 10,
+    fontFamily: Fonts.medium,
   },
 });
