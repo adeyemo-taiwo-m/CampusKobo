@@ -1,237 +1,273 @@
 import React, { useState, useMemo, useRef } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  ScrollView, 
-  TouchableOpacity, 
-  TextInput, 
-  Dimensions, 
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  TextInput,
+  Dimensions,
   SafeAreaView,
   StatusBar,
-  FlatList,
   Modal,
-  Pressable
+  TouchableWithoutFeedback,
+  FlatList,
+  Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { 
-  PRIMARY_GREEN, 
-  WHITE, 
-  TEXT_PRIMARY, 
-  TEXT_SECONDARY, 
-  BG_LIGHT, 
+import {
+  WHITE,
+  PRIMARY_GREEN,
+  TEXT_PRIMARY,
+  TEXT_SECONDARY,
+  BACKGROUND,
   Fonts,
-  DARK_GREEN 
 } from '../../constants';
+import { Header } from '../../components/Header';
 import { GLOSSARY_TERMS } from '../../constants/learningData';
 import { GlossaryTerm } from '../../types';
 
 const { width, height } = Dimensions.get('window');
 
-const ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+
+const GOOD_TO_KNOW = [
+  { id: 'budget', name: 'Budget', color: '#E7F5ED', icon: 'wallet-outline', iconColor: PRIMARY_GREEN },
+  { id: 'interest', name: 'Interest', color: '#E0F2FE', icon: 'flash-outline', iconColor: '#0EA5E9' },
+  { id: 'credit_score', name: 'Credit Score', color: '#F3E8FF', icon: 'speedometer-outline', iconColor: '#8B5CF6' },
+];
 
 const GlossaryScreen = () => {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLetter, setSelectedLetter] = useState('A');
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
   const [selectedTerm, setSelectedTerm] = useState<GlossaryTerm | null>(null);
-  const [expandedLetters, setExpandedLetters] = useState<string[]>([]);
-  const [showDetail, setShowDetail] = useState(false);
+  const [isTermModalVisible, setIsTermModalVisible] = useState(false);
+  const [isSuggestModalVisible, setIsSuggestModalVisible] = useState(false);
+  const [suggestedTerm, setSuggestedTerm] = useState('');
+  const [suggestedDef, setSuggestedDef] = useState('');
 
-  const termOfTheDay = useMemo(() => {
-    const day = new Date().getDay();
-    return GLOSSARY_TERMS[day % GLOSSARY_TERMS.length];
-  }, []);
+  const [sectionLayouts, setSectionLayouts] = useState<Record<string, number>>({});
 
   const filteredTerms = useMemo(() => {
-    let terms = GLOSSARY_TERMS;
-    if (searchQuery) {
-      terms = terms.filter(t => 
-        t.term.toLowerCase().includes(searchQuery.toLowerCase()) || 
-        t.definition.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-    
-    // Group by first letter
-    const groups: { [key: string]: GlossaryTerm[] } = {};
-    terms.forEach(term => {
-      const firstLetter = term.term[0].toUpperCase();
+    return GLOSSARY_TERMS.filter(term => 
+      term.term.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      term.definition.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [searchQuery]);
+
+  const termsByLetter = useMemo(() => {
+    const groups: Record<string, GlossaryTerm[]> = {};
+    filteredTerms.sort((a, b) => a.term.localeCompare(b.term)).forEach(term => {
+      const firstLetter = term.term.charAt(0).toUpperCase();
       if (!groups[firstLetter]) groups[firstLetter] = [];
       groups[firstLetter].push(term);
     });
-    
     return groups;
-  }, [searchQuery]);
+  }, [filteredTerms]);
 
-  const toggleExpand = (letter: string) => {
-    if (expandedLetters.includes(letter)) {
-      setExpandedLetters(expandedLetters.filter(l => l !== letter));
-    } else {
-      setExpandedLetters([...expandedLetters, letter]);
+  const scrollToLetter = (letter: string) => {
+    setSelectedLetter(letter);
+    if (sectionLayouts[letter] !== undefined) {
+      scrollRef.current?.scrollTo({
+        y: sectionLayouts[letter],
+        animated: true,
+      });
     }
   };
 
-  const openDetail = (term: GlossaryTerm) => {
+  const termOfTheDay = useMemo(() => {
+    const dayOfYear = Math.floor((new Date().getTime() - new Date(new Date().getFullYear(), 0, 0).getTime()) / (1000 * 60 * 60 * 24));
+    return GLOSSARY_TERMS[dayOfYear % GLOSSARY_TERMS.length];
+  }, []);
+
+  const toggleSection = (letter: string) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [letter]: !prev[letter]
+    }));
+  };
+
+  const handleOpenTerm = (term: GlossaryTerm) => {
     setSelectedTerm(term);
-    setShowDetail(true);
+    setIsTermModalVisible(true);
+  };
+
+  const handleSuggest = () => {
+    if (!suggestedTerm.trim()) {
+      Alert.alert('Error', 'Please enter a term name');
+      return;
+    }
+    Alert.alert('Thank You!', `Your suggestion for "${suggestedTerm}" has been submitted for review.`, [
+      { text: 'OK', onPress: () => {
+        setIsSuggestModalVisible(false);
+        setSuggestedTerm('');
+        setSuggestedDef('');
+      }}
+    ]);
   };
 
   const renderTermRow = (term: GlossaryTerm) => (
     <TouchableOpacity 
       key={term.id} 
       style={styles.termRow}
-      onPress={() => openDetail(term)}
+      onPress={() => handleOpenTerm(term)}
     >
       <View style={styles.termInfo}>
         <Text style={styles.termName}>{term.term}</Text>
-        <Text style={styles.termShortDef} numberOfLines={1}>{term.definition}</Text>
+        <Text style={styles.termSnippet} numberOfLines={1}>{term.definition}</Text>
       </View>
-      <Ionicons name="chevron-forward" size={20} color="#D1D5DB" />
+      <Ionicons name="chevron-forward" size={18} color="#D1D5DB" />
     </TouchableOpacity>
   );
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
-      
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.headerBtn}>
-          <Ionicons name="arrow-back" size={24} color={TEXT_PRIMARY} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Financial Glossary</Text>
-        <TouchableOpacity style={styles.headerBtn}>
-          <Ionicons name="search" size={24} color={TEXT_PRIMARY} />
-        </TouchableOpacity>
-      </View>
+      <Header 
+        title="Financial Glossary" 
+        showBack={true} 
+        onBack={() => router.back()}
+        showSearch={true}
+        onSearch={() => {}}
+      />
 
-      <ScrollView showsVerticalScrollIndicator={false} stickyHeaderIndices={[2]}>
+      <ScrollView 
+        ref={scrollRef}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
         {/* Search Bar */}
         <View style={styles.searchContainer}>
           <View style={styles.searchBar}>
-            <Ionicons name="search" size={20} color={TEXT_SECONDARY} style={styles.searchIcon} />
-            <TextInput 
-              style={styles.searchInput}
+            <Ionicons name="search-outline" size={20} color={TEXT_SECONDARY} style={styles.searchIcon} />
+            <TextInput
               placeholder="Search a financial term..."
+              style={styles.searchInput}
               value={searchQuery}
               onChangeText={setSearchQuery}
               placeholderTextColor={TEXT_SECONDARY}
             />
-            {searchQuery.length > 0 && (
-              <TouchableOpacity onPress={() => setSearchQuery('')}>
-                <Ionicons name="close-circle" size={18} color={TEXT_SECONDARY} />
-              </TouchableOpacity>
-            )}
           </View>
         </View>
 
         {/* Term of the Day */}
-        {!searchQuery && (
-          <TouchableOpacity 
-            style={styles.todCard}
-            onPress={() => openDetail(termOfTheDay)}
-          >
-            <View style={styles.todBadge}>
-              <Text style={styles.todBadgeText}>📅 Term of the Day</Text>
-            </View>
+        <TouchableOpacity 
+          style={styles.todCard}
+          onPress={() => handleOpenTerm(termOfTheDay)}
+        >
+          <Text style={styles.todLabel}>📅 Term of the Day</Text>
+          <View style={styles.todHeader}>
             <Text style={styles.todTerm}>{termOfTheDay.term}</Text>
-            <Text style={styles.todPOS}>{termOfTheDay.partOfSpeech}</Text>
-            <Text style={styles.todDef} numberOfLines={2}>{termOfTheDay.definition}</Text>
-          </TouchableOpacity>
-        )}
+            <Text style={styles.todPos}>noun</Text>
+          </View>
+          <Text style={styles.todDef} numberOfLines={2}>{termOfTheDay.definition}</Text>
+        </TouchableOpacity>
 
         {/* Alphabet Filter */}
-        <View style={styles.alphabetContainer}>
-          <ScrollView 
-            horizontal 
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.alphabetScroll}
-          >
-            {ALPHABET.map(letter => (
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false} 
+          style={styles.alphabetScroll}
+          contentContainerStyle={styles.alphabetContent}
+        >
+          {ALPHABET.map(letter => {
+            const hasTerms = !!termsByLetter[letter];
+            return (
               <TouchableOpacity 
-                key={letter}
+                key={letter} 
                 style={[
                   styles.letterCircle,
-                  selectedLetter === letter && styles.letterCircleActive
+                  selectedLetter === letter && styles.letterCircleActive,
+                  !hasTerms && styles.letterCircleDisabled
                 ]}
-                onPress={() => setSelectedLetter(letter)}
+                onPress={() => scrollToLetter(letter)}
               >
                 <Text style={[
                   styles.letterText,
                   selectedLetter === letter && styles.letterTextActive
                 ]}>{letter}</Text>
               </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
+            );
+          })}
+        </ScrollView>
 
         {/* Good to Know */}
-        {!searchQuery && (
-          <View style={styles.gtmSection}>
-            <Text style={styles.sectionTitle}>Good to Know</Text>
-            <ScrollView 
-              horizontal 
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.gtmScroll}
-            >
-              {[
-                { name: 'Budget', color: '#E6F7ED', icon: 'wallet', termId: 'gt-005' },
-                { name: 'Interest', color: '#E3F2FD', icon: 'trending-up', termId: 'gt-017' },
-                { name: 'Credit Score', color: '#F3E5F5', icon: 'card', termId: 'gt-011' }
-              ].map((item, idx) => (
-                <TouchableOpacity 
-                  key={idx} 
-                  style={[styles.gtmCard, { backgroundColor: item.color }]}
-                  onPress={() => {
-                    const term = GLOSSARY_TERMS.find(t => t.id === item.termId);
-                    if (term) openDetail(term);
-                  }}
-                >
-                  <Ionicons name={item.icon as any} size={24} color={TEXT_PRIMARY} style={{ marginBottom: 12 }} />
-                  <Text style={styles.gtmCardName}>{item.name}</Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Good to know</Text>
+          <View style={styles.goodToKnowGrid}>
+            {GOOD_TO_KNOW.map(item => (
+              <TouchableOpacity 
+                key={item.id} 
+                style={styles.gtkCard}
+                onPress={() => {
+                  const term = GLOSSARY_TERMS.find(t => t.term.toLowerCase() === item.name.toLowerCase());
+                  if (term) handleOpenTerm(term);
+                }}
+              >
+                <View style={[styles.gtkIconWrapper, { backgroundColor: item.color }]}>
+                  <Ionicons name={item.icon as any} size={20} color={item.iconColor} />
+                </View>
+                <Text style={styles.gtkText}>{item.name}</Text>
+              </TouchableOpacity>
+            ))}
           </View>
-        )}
+        </View>
 
         {/* Terms List */}
-        <View style={styles.termsList}>
-          {Object.keys(filteredTerms).sort().map(letter => {
-            const terms = filteredTerms[letter];
-            const isExpanded = expandedLetters.includes(letter);
-            const displayedTerms = isExpanded ? terms : terms.slice(0, 2);
+        <View style={styles.listSection}>
+          {Object.keys(termsByLetter).sort().map(letter => {
+            const terms = termsByLetter[letter];
+            const isExpanded = expandedSections[letter];
+            const displayTerms = isExpanded ? terms : terms.slice(0, 2);
+            const remainingCount = terms.length - 2;
 
             return (
-              <View key={letter} style={styles.letterGroup}>
+              <View 
+                key={letter} 
+                style={styles.letterGroup}
+                onLayout={(e) => {
+                  const y = e.nativeEvent.layout.y;
+                  setSectionLayouts(prev => ({ ...prev, [letter]: y }));
+                }}
+              >
                 <View style={styles.letterHeader}>
                   <Text style={styles.letterHeaderText}>{letter}</Text>
                 </View>
-                {displayedTerms.map(renderTermRow)}
-                {terms.length > 2 && (
-                  <TouchableOpacity 
-                    style={styles.seeMoreBtn}
-                    onPress={() => toggleExpand(letter)}
-                  >
-                    <Text style={styles.seeMoreText}>
-                      {isExpanded ? 'See less ↑' : `See more (${terms.length - 2}) →`}
-                    </Text>
-                  </TouchableOpacity>
-                )}
+                <View style={styles.termsContainer}>
+                  {displayTerms.map(renderTermRow)}
+                  {terms.length > 2 && (
+                    <TouchableOpacity 
+                      style={styles.seeMoreBtn}
+                      onPress={() => toggleSection(letter)}
+                    >
+                      <Text style={styles.seeMoreText}>
+                        {isExpanded ? 'See less ↑' : `See more (${remainingCount}) →`}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
               </View>
             );
           })}
 
-          {Object.keys(filteredTerms).length === 0 && (
+          {filteredTerms.length === 0 && (
             <View style={styles.emptyState}>
-              <View style={styles.emptyIconBox}>
-                <Ionicons name="search-outline" size={60} color="#D1D5DB" />
+              <View style={styles.emptyIconCircle}>
+                <Ionicons name="search" size={40} color={TEXT_SECONDARY} />
               </View>
               <Text style={styles.emptyTitle}>No results found</Text>
-              <Text style={styles.emptySubtitle}>Try different keywords or suggest this term to our team.</Text>
-              <TouchableOpacity style={styles.suggestBtn}>
-                <Text style={styles.suggestBtnText}>Suggest this term →</Text>
+              <Text style={styles.emptySubtitle}>Try different keywords or suggest this term</Text>
+              <TouchableOpacity 
+                style={styles.suggestCta}
+                onPress={() => {
+                  setSuggestedTerm(searchQuery);
+                  setIsSuggestModalVisible(true);
+                }}
+              >
+                <Text style={styles.suggestCtaText}>Suggest this term →</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -242,58 +278,106 @@ const GlossaryScreen = () => {
 
       {/* Term Detail Modal */}
       <Modal
-        visible={showDetail}
+        visible={isTermModalVisible}
         transparent
         animationType="slide"
-        onRequestClose={() => setShowDetail(false)}
+        onRequestClose={() => setIsTermModalVisible(false)}
       >
-        <View style={styles.modalOverlay}>
-          <Pressable style={styles.modalBackdrop} onPress={() => setShowDetail(false)} />
-          <View style={styles.modalContent}>
-            <View style={styles.dragHandle} />
-            {selectedTerm && (
-              <ScrollView style={styles.modalScroll}>
-                <Text style={styles.modalTerm}>{selectedTerm.term}</Text>
-                <Text style={styles.modalPOS}>{selectedTerm.partOfSpeech}</Text>
+        <TouchableWithoutFeedback onPress={() => setIsTermModalVisible(false)}>
+          <View style={styles.modalOverlay}>
+            <TouchableWithoutFeedback>
+              <View style={styles.sheetContainer}>
+                <View style={styles.dragHandle} />
+                {selectedTerm && (
+                  <>
+                    <Text style={styles.modalTerm}>{selectedTerm.term}</Text>
+                    <Text style={styles.modalPos}>{selectedTerm.partOfSpeech || 'noun'}</Text>
+                    
+                    <View style={styles.modalSection}>
+                      <Text style={styles.modalLabel}>Simple Definition:</Text>
+                      <Text style={styles.modalDef}>{selectedTerm.definition}</Text>
+                    </View>
+
+                    {selectedTerm.example && (
+                      <View style={styles.modalSection}>
+                        <Text style={styles.modalLabel}>Example:</Text>
+                        <Text style={styles.modalExample}>{selectedTerm.example}</Text>
+                      </View>
+                    )}
+
+                    {selectedTerm.relatedTerms && selectedTerm.relatedTerms.length > 0 && (
+                      <View style={styles.modalSection}>
+                        <Text style={styles.modalLabel}>Related terms:</Text>
+                        <View style={styles.tagContainer}>
+                          {selectedTerm.relatedTerms.map(tag => (
+                            <TouchableOpacity 
+                              key={tag} 
+                              style={styles.tag}
+                              onPress={() => {
+                                const nextTerm = GLOSSARY_TERMS.find(t => t.term.toLowerCase() === tag.toLowerCase());
+                                if (nextTerm) setSelectedTerm(nextTerm);
+                              }}
+                            >
+                              <Text style={styles.tagText}>{tag}</Text>
+                            </TouchableOpacity>
+                          ))}
+                        </View>
+                      </View>
+                    )}
+                  </>
+                )}
+              </View>
+            </TouchableWithoutFeedback>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
+
+      {/* Suggest Term Modal */}
+      <Modal
+        visible={isSuggestModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setIsSuggestModalVisible(false)}
+      >
+        <TouchableWithoutFeedback onPress={() => setIsSuggestModalVisible(false)}>
+          <View style={styles.modalOverlay}>
+            <TouchableWithoutFeedback>
+              <View style={styles.sheetContainer}>
+                <View style={styles.dragHandle} />
+                <Text style={styles.modalTerm}>Suggest a Term</Text>
+                <Text style={styles.modalSubtitle}>Help us grow our glossary for students</Text>
                 
-                <View style={styles.modalSection}>
-                  <Text style={styles.modalLabel}>Simple Definition:</Text>
-                  <Text style={styles.modalText}>{selectedTerm.definition}</Text>
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>Term Name</Text>
+                  <TextInput 
+                    style={styles.modalInput}
+                    placeholder="Enter term..."
+                    value={suggestedTerm}
+                    onChangeText={setSuggestedTerm}
+                  />
                 </View>
 
-                {selectedTerm.example && (
-                  <View style={styles.modalSection}>
-                    <Text style={styles.modalLabel}>Example:</Text>
-                    <View style={styles.exampleBox}>
-                       <Text style={styles.exampleText}>{selectedTerm.example}</Text>
-                    </View>
-                  </View>
-                )}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>Definition (Optional)</Text>
+                  <TextInput 
+                    style={[styles.modalInput, { height: 100, textAlignVertical: 'top' }]}
+                    placeholder="Tell us what it means..."
+                    multiline
+                    value={suggestedDef}
+                    onChangeText={setSuggestedDef}
+                  />
+                </View>
 
-                {selectedTerm.relatedTerms && (
-                  <View style={styles.modalSection}>
-                    <Text style={styles.modalLabel}>Related terms:</Text>
-                    <View style={styles.relatedChips}>
-                      {selectedTerm.relatedTerms.map((t, i) => (
-                        <TouchableOpacity key={i} style={styles.chip}>
-                          <Text style={styles.chipText}>{t}</Text>
-                        </TouchableOpacity>
-                      ))}
-                    </View>
-                  </View>
-                )}
-                
-                <View style={{ height: 40 }} />
                 <TouchableOpacity 
-                  style={styles.closeModalBtn}
-                  onPress={() => setShowDetail(false)}
+                  style={styles.submitBtn}
+                  onPress={handleSuggest}
                 >
-                  <Text style={styles.closeModalBtnText}>Got it!</Text>
+                  <Text style={styles.submitBtnText}>Submit Suggestion</Text>
                 </TouchableOpacity>
-              </ScrollView>
-            )}
+              </View>
+            </TouchableWithoutFeedback>
           </View>
-        </View>
+        </TouchableWithoutFeedback>
       </Modal>
     </SafeAreaView>
   );
@@ -302,320 +386,350 @@ const GlossaryScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: BG_LIGHT,
+    backgroundColor: BACKGROUND,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    height: 60,
-    backgroundColor: WHITE,
-  },
-  headerBtn: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTitle: {
-    fontFamily: Fonts.bold,
-    fontSize: 18,
-    color: TEXT_PRIMARY,
+  scrollContent: {
+    paddingTop: 10,
   },
   searchContainer: {
-    padding: 20,
-    backgroundColor: WHITE,
+    paddingHorizontal: 20,
+    marginBottom: 20,
   },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F3F4F6',
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    height: 48,
+    backgroundColor: WHITE,
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    height: 56,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
   },
   searchIcon: {
     marginRight: 10,
   },
   searchInput: {
     flex: 1,
-    fontFamily: Fonts.medium,
-    fontSize: 14,
+    height: '100%',
+    fontSize: 15,
+    fontFamily: Fonts.regular,
     color: TEXT_PRIMARY,
   },
   todCard: {
-    backgroundColor: '#064E3B',
-    margin: 20,
+    backgroundColor: PRIMARY_GREEN,
+    marginHorizontal: 20,
     borderRadius: 20,
-    padding: 24,
+    padding: 20,
+    marginBottom: 24,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
   },
-  todBadge: {
-    alignSelf: 'flex-start',
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 6,
-    marginBottom: 16,
-  },
-  todBadgeText: {
-    fontFamily: Fonts.bold,
+  todLabel: {
     fontSize: 12,
-    color: '#D1FAE5',
-  },
-  todTerm: {
-    fontFamily: Fonts.bold,
-    fontSize: 28,
-    color: WHITE,
-    marginBottom: 4,
-  },
-  todPOS: {
-    fontFamily: Fonts.italic,
-    fontSize: 14,
-    color: '#D1FAE5',
-    opacity: 0.7,
+    fontFamily: Fonts.medium,
+    color: 'rgba(255,255,255,0.8)',
     marginBottom: 12,
   },
-  todDef: {
-    fontFamily: Fonts.medium,
-    fontSize: 15,
-    color: WHITE,
-    lineHeight: 22,
+  todHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+    marginBottom: 8,
   },
-  alphabetContainer: {
-    backgroundColor: WHITE,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+  todTerm: {
+    fontSize: 24,
+    fontFamily: Fonts.bold,
+    color: WHITE,
+  },
+  todPos: {
+    fontSize: 12,
+    fontFamily: Fonts.italic,
+    color: 'rgba(255,255,255,0.6)',
+    marginBottom: 4,
+  },
+  todDef: {
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.9)',
+    fontFamily: Fonts.regular,
+    lineHeight: 20,
   },
   alphabetScroll: {
-    paddingHorizontal: 16,
-    gap: 8,
+    marginBottom: 24,
+  },
+  alphabetContent: {
+    paddingHorizontal: 20,
+    gap: 12,
   },
   letterCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#D1D5DB',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#F3F4F6',
     alignItems: 'center',
     justifyContent: 'center',
   },
   letterCircleActive: {
     backgroundColor: PRIMARY_GREEN,
-    borderColor: PRIMARY_GREEN,
+  },
+  letterCircleDisabled: {
+    opacity: 0.4,
   },
   letterText: {
+    fontSize: 15,
     fontFamily: Fonts.bold,
-    fontSize: 14,
-    color: TEXT_SECONDARY,
+    color: '#9CA3AF',
   },
   letterTextActive: {
     color: WHITE,
   },
-  gtmSection: {
-    paddingVertical: 20,
+  section: {
+    paddingHorizontal: 20,
+    marginBottom: 28,
   },
   sectionTitle: {
-    fontFamily: Fonts.bold,
     fontSize: 18,
+    fontFamily: Fonts.bold,
     color: TEXT_PRIMARY,
-    paddingHorizontal: 20,
     marginBottom: 16,
   },
-  gtmScroll: {
-    paddingHorizontal: 20,
+  goodToKnowGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     gap: 12,
   },
-  gtmCard: {
-    width: 140,
+  gtkCard: {
+    flex: 1,
+    borderRadius: 20,
+    backgroundColor: WHITE,
     padding: 16,
-    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 110,
+    borderWidth: 1,
+    borderColor: '#F3F4F6',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 5,
   },
-  gtmCardName: {
+  gtkIconWrapper: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 10,
+  },
+  gtkText: {
+    fontSize: 13,
     fontFamily: Fonts.bold,
-    fontSize: 16,
     color: TEXT_PRIMARY,
   },
-  termsList: {
-    paddingHorizontal: 20,
+  listSection: {
+    paddingBottom: 40,
   },
   letterGroup: {
-    marginBottom: 24,
+    marginBottom: 16,
   },
   letterHeader: {
-    height: 40,
-    justifyContent: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    backgroundColor: '#F3F4F6',
+    paddingHorizontal: 20,
+    paddingVertical: 6,
+    width: '100%',
     marginBottom: 8,
   },
   letterHeaderText: {
+    fontSize: 14,
     fontFamily: Fonts.bold,
-    fontSize: 16,
-    color: TEXT_SECONDARY,
+    color: PRIMARY_GREEN,
+  },
+  termsContainer: {
+    paddingHorizontal: 20,
   },
   termRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 0.5,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
     borderBottomColor: '#F3F4F6',
   },
   termInfo: {
     flex: 1,
   },
   termName: {
-    fontFamily: Fonts.bold,
     fontSize: 16,
-    color: TEXT_PRIMARY,
-    marginBottom: 2,
-  },
-  termShortDef: {
-    fontFamily: Fonts.medium,
-    fontSize: 13,
-    color: TEXT_SECONDARY,
-  },
-  seeMoreBtn: {
-    paddingVertical: 12,
-    alignItems: 'center',
-  },
-  seeMoreText: {
     fontFamily: Fonts.bold,
-    fontSize: 14,
-    color: PRIMARY_GREEN,
-  },
-  modalOverlay: {
-    flex: 1,
-    justifyContent: 'flex-end',
-  },
-  modalBackdrop: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-  },
-  modalContent: {
-    backgroundColor: WHITE,
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
-    maxHeight: height * 0.8,
-    padding: 24,
-  },
-  dragHandle: {
-    width: 40,
-    height: 5,
-    borderRadius: 3,
-    backgroundColor: '#E5E7EB',
-    alignSelf: 'center',
-    marginBottom: 20,
-  },
-  modalScroll: {},
-  modalTerm: {
-    fontFamily: Fonts.bold,
-    fontSize: 32,
     color: TEXT_PRIMARY,
     marginBottom: 4,
   },
-  modalPOS: {
-    fontFamily: Fonts.italic,
-    fontSize: 16,
+  termSnippet: {
+    fontSize: 13,
     color: TEXT_SECONDARY,
-    marginBottom: 24,
+    fontFamily: Fonts.regular,
   },
-  modalSection: {
-    marginBottom: 24,
-  },
-  modalLabel: {
-    fontFamily: Fonts.bold,
-    fontSize: 14,
-    color: TEXT_SECONDARY,
-    textTransform: 'uppercase',
-    marginBottom: 8,
-  },
-  modalText: {
-    fontFamily: Fonts.medium,
-    fontSize: 16,
-    color: TEXT_PRIMARY,
-    lineHeight: 24,
-  },
-  exampleBox: {
-    backgroundColor: '#F9FAFB',
-    borderRadius: 12,
-    padding: 16,
-    borderLeftWidth: 4,
-    borderLeftColor: PRIMARY_GREEN,
-  },
-  exampleText: {
-    fontFamily: Fonts.medium,
-    fontSize: 14,
-    color: TEXT_PRIMARY,
-    fontStyle: 'italic',
-    lineHeight: 20,
-  },
-  relatedChips: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  chip: {
-    backgroundColor: '#E6F7ED',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-  },
-  chipText: {
-    fontFamily: Fonts.bold,
-    fontSize: 12,
-    color: PRIMARY_GREEN,
-  },
-  closeModalBtn: {
-    backgroundColor: PRIMARY_GREEN,
-    paddingVertical: 16,
-    borderRadius: 16,
+  seeMoreBtn: {
+    padding: 12,
     alignItems: 'center',
   },
-  closeModalBtnText: {
+  seeMoreText: {
+    fontSize: 13,
     fontFamily: Fonts.bold,
-    fontSize: 16,
-    color: WHITE,
+    color: TEXT_SECONDARY,
   },
   emptyState: {
     alignItems: 'center',
     paddingVertical: 40,
   },
-  emptyIconBox: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+  emptyIconCircle: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     backgroundColor: '#F3F4F6',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 20,
+    marginBottom: 16,
   },
   emptyTitle: {
-    fontFamily: Fonts.bold,
     fontSize: 18,
+    fontFamily: Fonts.bold,
     color: TEXT_PRIMARY,
     marginBottom: 8,
   },
   emptySubtitle: {
-    fontFamily: Fonts.medium,
     fontSize: 14,
     color: TEXT_SECONDARY,
+    fontFamily: Fonts.regular,
     textAlign: 'center',
     marginBottom: 24,
-    paddingHorizontal: 40,
   },
-  suggestBtn: {
+  suggestCta: {
     backgroundColor: PRIMARY_GREEN,
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 12,
   },
-  suggestBtnText: {
-    fontFamily: Fonts.bold,
-    fontSize: 14,
+  suggestCtaText: {
     color: WHITE,
+    fontSize: 14,
+    fontFamily: Fonts.bold,
   },
+
+  // Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  sheetContainer: {
+    backgroundColor: WHITE,
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    padding: 24,
+    paddingBottom: 40,
+    maxHeight: height * 0.8,
+  },
+  dragHandle: {
+    width: 40,
+    height: 4,
+    backgroundColor: '#E5E7EB',
+    borderRadius: 2,
+    alignSelf: 'center',
+    marginBottom: 24,
+  },
+  modalTerm: {
+    fontSize: 24,
+    fontFamily: Fonts.bold,
+    color: TEXT_PRIMARY,
+    marginBottom: 4,
+  },
+  modalPos: {
+    fontSize: 14,
+    fontFamily: Fonts.italic,
+    color: '#9CA3AF',
+    marginBottom: 24,
+  },
+  modalSection: {
+    marginBottom: 20,
+  },
+  modalLabel: {
+    fontSize: 14,
+    fontFamily: Fonts.bold,
+    color: TEXT_PRIMARY,
+    marginBottom: 8,
+  },
+  modalDef: {
+    fontSize: 15,
+    color: '#4B5563',
+    lineHeight: 22,
+    fontFamily: Fonts.regular,
+  },
+  modalExample: {
+    fontSize: 15,
+    color: '#4B5563',
+    lineHeight: 22,
+    fontFamily: Fonts.regular,
+    fontStyle: 'italic',
+    backgroundColor: '#F9FAFB',
+    padding: 12,
+    borderRadius: 12,
+  },
+  tagContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  tag: {
+    backgroundColor: '#E7F5ED',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  tagText: {
+    fontSize: 13,
+    fontFamily: Fonts.medium,
+    color: PRIMARY_GREEN,
+  },
+  modalSubtitle: {
+    fontSize: 14,
+    color: TEXT_SECONDARY,
+    fontFamily: Fonts.regular,
+    marginBottom: 24,
+  },
+  inputGroup: {
+    marginBottom: 20,
+  },
+  inputLabel: {
+    fontSize: 14,
+    fontFamily: Fonts.bold,
+    color: TEXT_PRIMARY,
+    marginBottom: 8,
+  },
+  modalInput: {
+    backgroundColor: '#F9FAFB',
+    borderRadius: 12,
+    padding: 12,
+    fontSize: 15,
+    fontFamily: Fonts.regular,
+    color: TEXT_PRIMARY,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+  },
+  submitBtn: {
+    backgroundColor: PRIMARY_GREEN,
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  submitBtnText: {
+    color: WHITE,
+    fontSize: 16,
+    fontFamily: Fonts.bold,
+  }
 });
 
 export default GlossaryScreen;

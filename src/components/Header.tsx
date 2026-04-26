@@ -1,7 +1,20 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { TEXT_PRIMARY, WHITE, SPACING, FONT_SIZE, BORDER_GRAY, Fonts } from '../constants';
+import React from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  SafeAreaView,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import {
+  TEXT_PRIMARY,
+  WHITE,
+  SPACING,
+  FONT_SIZE,
+  BORDER_GRAY,
+  Fonts,
+} from "../constants";
 
 interface HeaderProps {
   title: string;
@@ -45,7 +58,9 @@ export const Header = ({
   tintColor = TEXT_PRIMARY,
 }: HeaderProps) => {
   return (
-    <SafeAreaView style={[styles.safeArea, transparent && styles.transparentHeader]}>
+    <SafeAreaView
+      style={[styles.safeArea, transparent && styles.transparentHeader]}
+    >
       <View style={styles.container}>
         <View style={styles.leftContainer}>
           {showBack && (
@@ -63,16 +78,21 @@ export const Header = ({
         </View>
 
         <View style={styles.titleContainer}>
-          <Text style={[styles.title, { color: tintColor }]} numberOfLines={1}>{title}</Text>
+          <Text style={[styles.title, { color: tintColor }]} numberOfLines={1}>
+            {title}
+          </Text>
         </View>
 
         <View style={styles.rightContainer}>
           {showBookmark && (
-            <TouchableOpacity onPress={onBookmark} style={[styles.iconButton, isBookmarked && styles.bookmarkActive]}>
-              <Ionicons 
-                name={isBookmarked ? "bookmark" : "bookmark-outline"} 
-                size={22} 
-                color={isBookmarked ? WHITE : tintColor} 
+            <TouchableOpacity
+              onPress={onBookmark}
+              style={[styles.iconButton, isBookmarked && styles.bookmarkActive]}
+            >
+              <Ionicons
+                name={isBookmarked ? "bookmark" : "bookmark-outline"}
+                size={22}
+                color={isBookmarked ? WHITE : tintColor}
               />
             </TouchableOpacity>
           )}
@@ -83,7 +103,11 @@ export const Header = ({
           )}
           {showBell && (
             <TouchableOpacity onPress={onBell} style={styles.iconButton}>
-              <Ionicons name="notifications-outline" size={24} color={tintColor} />
+              <Ionicons
+                name="notifications-outline"
+                size={24}
+                color={tintColor}
+              />
             </TouchableOpacity>
           )}
           {showSearch && (
@@ -109,34 +133,34 @@ const styles = StyleSheet.create({
     borderBottomColor: BORDER_GRAY,
   },
   transparentHeader: {
-    backgroundColor: 'transparent',
+    backgroundColor: "transparent",
     borderBottomWidth: 0,
   },
   container: {
     height: 60,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: SPACING.MD,
   },
   leftContainer: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   titleContainer: {
     flex: 3,
-    alignItems: 'center',
+    alignItems: "center",
   },
   rightContainer: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'flex-end',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-end",
   },
   title: {
     fontSize: 20,
-    fontWeight: '700',
+    fontWeight: "700",
     color: TEXT_PRIMARY,
     fontFamily: Fonts.semiBold,
   },
@@ -150,17 +174,17 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#9CA3AF',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "#9CA3AF",
+    alignItems: "center",
+    justifyContent: "center",
   },
   editText: {
     fontSize: FONT_SIZE.MD,
     color: TEXT_PRIMARY,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   bookmarkActive: {
-    backgroundColor: '#3CB96A',
+    backgroundColor: "#3CB96A",
     borderRadius: 8,
     padding: 6,
   },
@@ -168,9 +192,9 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#E7F5ED',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "#E7F5ED",
+    alignItems: "center",
+    justifyContent: "center",
     marginLeft: 8,
   },
 });

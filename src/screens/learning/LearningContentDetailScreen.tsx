@@ -324,7 +324,10 @@ const LearningContentDetailScreen = () => {
           ].map((item) => (
             <TouchableOpacity key={item.id} style={styles.episodeItem}>
               <View style={styles.episodeCover}>
-                <Ionicons name="mic-outline" size={16} color={WHITE} />
+                <Image 
+                  source={require('../../../assets/images/market-pulse.png')} 
+                  style={styles.episodeLogo} 
+                />
               </View>
               <View style={styles.episodeInfo}>
                 <Text style={styles.episodeTitle}>{item.title}</Text>
@@ -731,6 +734,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
+    overflow: 'hidden',
+  },
+  episodeLogo: {
+    width: '100%',
+    height: '100%',
   },
   episodeInfo: {
     flex: 1,

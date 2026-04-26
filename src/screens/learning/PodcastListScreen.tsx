@@ -56,7 +56,10 @@ export const PodcastListScreen = () => {
             >
               <View style={styles.episodeLeft}>
                  <View style={styles.thumb}>
-                    <Ionicons name="mic" size={20} color={PRIMARY_GREEN} />
+                    <Image 
+                      source={require('../../../assets/images/market-pulse.png')} 
+                      style={styles.thumbLogo} 
+                    />
                  </View>
                  <View style={styles.info}>
                     <Text style={styles.epTitle}>{item.title}</Text>
@@ -188,6 +191,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#F3F4F6',
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  thumbLogo: {
+    width: '100%',
+    height: '100%',
   },
   info: {
     flex: 1,
