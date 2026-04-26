@@ -15,6 +15,7 @@ import {
   Modal,
   Animated,
   TextInput,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -152,6 +153,7 @@ export const CreateSavingsGoalScreen = () => {
   );
   const [initialDeposit, setInitialDeposit] = useState('');
   const [notes, setNotes] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
   const isFormValid = name.trim().length > 0 && targetAmount.length > 0;
@@ -161,8 +163,13 @@ export const CreateSavingsGoalScreen = () => {
     if (!digits) return '';
     return parseInt(digits, 10).toLocaleString();
   };
+
+  const parseAmount = (val: string) => parseFloat(val.replace(/[^0-9.]/g, '')) || 0;
+
   const handleSave = async () => {
-    if (!isFormValid) return;
+    if (!isFormValid || isProcessing) return;
+    
+    setIsProcessing(true);
     const deposit = parseAmount(initialDeposit);
     const emoji = editingGoal?.emoji || getGoalEmoji(name);
 
@@ -193,6 +200,8 @@ export const CreateSavingsGoalScreen = () => {
       }
     } catch (error) {
       showToast("Failed to save savings goal. Please try again.", "error");
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -310,12 +319,16 @@ export const CreateSavingsGoalScreen = () => {
         <TouchableOpacity
           style={[styles.createBtn, isFormValid ? styles.createBtnActive : styles.createBtnDisabled]}
           onPress={handleSave}
-          disabled={!isFormValid}
+          disabled={!isFormValid || isProcessing}
           activeOpacity={0.85}
         >
-          <Text style={styles.createBtnText}>
-            {isEditing ? 'Save Changes' : 'Create Goal'}
-          </Text>
+          {isProcessing ? (
+            <ActivityIndicator color={WHITE} />
+          ) : (
+            <Text style={styles.createBtnText}>
+              {isEditing ? 'Save Changes' : 'Create Goal'}
+            </Text>
+          )}
         </TouchableOpacity>
       </View>
 

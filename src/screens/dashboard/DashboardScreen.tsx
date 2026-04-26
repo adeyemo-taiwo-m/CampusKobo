@@ -29,6 +29,7 @@ import { EmptyState } from "../../components/EmptyState";
 import { AddFundsBottomSheet } from "../../components/AddFundsBottomSheet";
 import { Toast } from "../../components/Toast";
 import { useToast } from "../../hooks/useToast";
+import { Skeleton } from "../../components/Skeleton";
 import { formatCurrency, getPercentage, getDaysLeftInMonth } from "../../utils/formatters";
 
 export default function DashboardScreen() {
@@ -37,7 +38,29 @@ export default function DashboardScreen() {
   const [isBalanceVisible, setIsBalanceVisible] = useState(true);
   const [isAddFundsVisible, setIsAddFundsVisible] = useState(false);
   const { toastProps, showToast } = useToast();
-  console.log(transactions);
+
+  const renderSkeletons = () => (
+    <View style={styles.skeletonContainer}>
+      <View style={styles.skeletonHeader}>
+        <Skeleton width={120} height={40} borderRadius={20} />
+        <View style={styles.headerActions}>
+          <Skeleton width={40} height={40} borderRadius={20} />
+          <Skeleton width={40} height={40} borderRadius={20} style={{ marginLeft: 12 }} />
+        </View>
+      </View>
+      <Skeleton width="100%" height={180} borderRadius={24} style={{ marginTop: 24 }} />
+      <View style={styles.statsRow}>
+        <Skeleton width="48%" height={120} borderRadius={20} />
+        <Skeleton width="48%" height={120} borderRadius={20} />
+      </View>
+      <View style={styles.recentSection}>
+        <Skeleton width={150} height={24} borderRadius={4} style={{ marginBottom: 16 }} />
+        {[1, 2, 3].map(i => (
+          <Skeleton key={i} width="100%" height={70} borderRadius={16} style={{ marginBottom: 12 }} />
+        ))}
+      </View>
+    </View>
+  );
 
   // Helper Functions
   const currentMonth = new Date().getMonth();
@@ -91,61 +114,71 @@ export default function DashboardScreen() {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
 
-      {/* Custom Header Area */}
-      <View style={styles.headerBackground}>
-        <SafeAreaView>
-          <View style={styles.headerContent}>
-            <TouchableOpacity
-              style={styles.profileSection}
-              onPress={() => router.push("/profile")}
-            >
-              <View style={styles.avatar}>
-                <Image
-                  source={require("../../../assets/images/avatar.jpeg")}
-                  style={styles.avatarImage}
-                />
-              </View>
-              <Text style={styles.welcomeText}>Hi, Taiwo</Text>
-            </TouchableOpacity>
-
-            <View style={styles.headerActions}>
-              <TouchableOpacity
-                style={styles.iconButton}
-                onPress={() => router.push("/learning")}
-              >
-                <Ionicons name="school-outline" size={24} color={WHITE} />
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.iconButton}
-                onPress={() => router.push("/profile/notifications")}
-              >
-                <Ionicons
-                  name="notifications-outline"
-                  size={24}
-                  color={WHITE}
-                />
-              </TouchableOpacity>
+      {isLoading ? (
+        <View style={styles.headerBackground}>
+          <SafeAreaView>
+            <View style={{ paddingHorizontal: 20 }}>
+              {renderSkeletons()}
             </View>
+          </SafeAreaView>
+        </View>
+      ) : (
+        <>
+          {/* Custom Header Area */}
+          <View style={styles.headerBackground}>
+            <SafeAreaView>
+              <View style={styles.headerContent}>
+                <TouchableOpacity
+                  style={styles.profileSection}
+                  onPress={() => router.push("/profile")}
+                >
+                  <View style={styles.avatar}>
+                    <Image
+                      source={require("../../../assets/images/avatar.jpeg")}
+                      style={styles.avatarImage}
+                    />
+                  </View>
+                  <Text style={styles.welcomeText}>Hi, Taiwo</Text>
+                </TouchableOpacity>
+
+                <View style={styles.headerActions}>
+                  <TouchableOpacity
+                    style={styles.iconButton}
+                    onPress={() => router.push("/learning")}
+                  >
+                    <Ionicons name="school-outline" size={24} color={WHITE} />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.iconButton}
+                    onPress={() => router.push("/profile/notifications")}
+                  >
+                    <Ionicons
+                      name="notifications-outline"
+                      size={24}
+                      color={WHITE}
+                    />
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              {/* Balance Card Section */}
+              <DarkCard
+                type="balance"
+                amount={totalBalance}
+                income={totalIncome}
+                expenses={totalExpenses}
+                isBalanceVisible={isBalanceVisible}
+                onToggleVisibility={() => setIsBalanceVisible(!isBalanceVisible)}
+                style={styles.balanceCard}
+              />
+            </SafeAreaView>
           </View>
 
-          {/* Balance Card Section */}
-          <DarkCard
-            type="balance"
-            amount={totalBalance}
-            income={totalIncome}
-            expenses={totalExpenses}
-            isBalanceVisible={isBalanceVisible}
-            onToggleVisibility={() => setIsBalanceVisible(!isBalanceVisible)}
-            style={styles.balanceCard}
-          />
-        </SafeAreaView>
-      </View>
-
-      <View style={styles.mainContentWrapper}>
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-        >
+          <View style={styles.mainContentWrapper}>
+            <ScrollView
+              contentContainerStyle={styles.scrollContent}
+              showsVerticalScrollIndicator={false}
+            >
         {/* Date Filter Bar */}
         <View style={styles.dateFilter}>
           <TouchableOpacity style={styles.dateSelector}>
@@ -306,13 +339,16 @@ export default function DashboardScreen() {
         <View style={{ height: 100 }} />
       </ScrollView>
     </View>
+        </>
+      )}
 
-      {transactions.length === 0 && (
+      {transactions.length === 0 && !isLoading && (
         <View style={styles.fabTooltip}>
           <Text style={styles.tooltipText}>Add your first expense</Text>
           <View style={styles.tooltipArrow} />
         </View>
       )}
+
       {/* Add Funds Bottom Sheet */}
       {primaryGoal && (
         <AddFundsBottomSheet
@@ -325,13 +361,6 @@ export default function DashboardScreen() {
         />
       )}
 
-      {/* Loading Overlay */}
-      {isLoading && (
-        <View style={styles.loadingOverlay}>
-          <ActivityIndicator size="large" color={PRIMARY_GREEN} />
-        </View>
-      )}
-
       <Toast {...toastProps} />
     </View>
   );
@@ -341,6 +370,30 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: PRIMARY_GREEN,
+  },
+  skeletonContainer: {
+    paddingTop: SPACING.MD,
+  },
+  skeletonHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 24,
+  },
+  recentSection: {
+    marginTop: 32,
+  },
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
   },
   headerBackground: {
     backgroundColor: PRIMARY_GREEN,

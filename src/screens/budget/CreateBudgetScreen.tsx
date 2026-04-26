@@ -59,6 +59,7 @@ export const CreateBudgetScreen = () => {
   );
   const [startsOn] = useState('October 2025');
   const [note, setNote] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
   const [showCategorySheet, setShowCategorySheet] = useState(false);
   const [showPeriodSheet, setShowPeriodSheet] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -66,8 +67,9 @@ export const CreateBudgetScreen = () => {
   const isFormValid = category.length > 0 && amount.length > 0;
 
   const handleSave = async () => {
-    if (!isFormValid) return;
+    if (!isFormValid || isProcessing) return;
 
+    setIsProcessing(true);
     const budgetData: Budget = {
       id: editingBudget?.id || Math.random().toString(36).substr(2, 9),
       category,
@@ -89,6 +91,8 @@ export const CreateBudgetScreen = () => {
       }
     } catch (error) {
       showToast("Failed to save budget. Please try again.", "error");
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -189,6 +193,7 @@ export const CreateBudgetScreen = () => {
         <Button
           title={isEditing ? "Save Changes" : "Create Budget"}
           onPress={handleSave}
+          loading={isProcessing}
           disabled={!isFormValid}
           variant="primary"
           fullWidth={true}

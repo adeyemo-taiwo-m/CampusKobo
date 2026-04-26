@@ -54,11 +54,14 @@ export default function AddTransactionScreen() {
   const [description, setDescription] = useState(editTransaction?.description || '');  const [customCategoryName, setCustomCategoryName] = useState('');
   
   // UI & Validation State
+  const [isProcessing, setIsProcessing] = useState(false);
   const [isCategorySheetVisible, setIsCategorySheetVisible] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [validationErrors, setValidationErrors] = useState<Record<string, boolean>>({});
 
   const handleSave = async () => {
+    if (isProcessing) return;
+
     // Basic validation
     const errors: Record<string, boolean> = {};
     if (!amount || parseFloat(amount) <= 0) errors.amount = true;
@@ -70,20 +73,21 @@ export default function AddTransactionScreen() {
       return;
     }
 
-    const transactionData: Transaction = {
-      id: isEditMode ? editTransaction.id : Math.random().toString(36).substring(7),
-      amount: parseFloat(amount),
-      type: type,
-      category: category?.name === 'Others' ? customCategoryName : category!.name,
-      categoryIcon: category!.icon,
-      categoryColor: category!.color,
-      description: description || (category?.name === 'Others' ? customCategoryName : category!.name),
-      note: description,
-      date: isEditMode ? editTransaction.date : new Date().toISOString(),
-      isRecurring: isEditMode ? editTransaction.isRecurring : false,
-    };
-
+    setIsProcessing(true);
     try {
+      const transactionData: Transaction = {
+        id: isEditMode ? editTransaction.id : Math.random().toString(36).substring(7),
+        amount: parseFloat(amount),
+        type: type,
+        category: category?.name === 'Others' ? customCategoryName : category!.name,
+        categoryIcon: category!.icon,
+        categoryColor: category!.color,
+        description: description || (category?.name === 'Others' ? customCategoryName : category!.name),
+        note: description,
+        date: isEditMode ? editTransaction.date : new Date().toISOString(),
+        isRecurring: isEditMode ? editTransaction.isRecurring : false,
+      };
+
       if (isEditMode) {
         await updateTransaction(editTransaction.id, transactionData);
         setShowSuccess(true);
@@ -93,6 +97,8 @@ export default function AddTransactionScreen() {
       }
     } catch (error) {
       showToast("Failed to save transaction. Please try again.", "error");
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -248,6 +254,7 @@ export default function AddTransactionScreen() {
           title={isEditMode ? 'Save Changes' : `Save ${type === 'expense' ? 'Expense' : 'Income'}`}
           onPress={handleSave}
           variant="primary"
+          loading={isProcessing}
           style={styles.saveButton}
         />
       </View>
