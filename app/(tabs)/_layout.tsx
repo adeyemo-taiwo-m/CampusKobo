@@ -33,20 +33,6 @@ export default function TabLayout() {
           title: 'Recurring Expenses' 
         }}
       />
-      <Tabs.Screen
-        name="profile"
-        options={{ 
-          href: null,
-          title: 'Profile' 
-        }}
-      />
-      <Tabs.Screen
-        name="learning"
-        options={{ 
-          href: null,
-          title: 'Learning' 
-        }}
-      />
     </Tabs>
   );
 }

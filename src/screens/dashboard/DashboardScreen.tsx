@@ -97,7 +97,7 @@ export default function DashboardScreen() {
           <View style={styles.headerContent}>
             <TouchableOpacity
               style={styles.profileSection}
-              onPress={() => router.push("/(tabs)/profile")}
+              onPress={() => router.push("/profile")}
             >
               <View style={styles.avatar}>
                 <Image
@@ -111,7 +111,7 @@ export default function DashboardScreen() {
             <View style={styles.headerActions}>
               <TouchableOpacity
                 style={styles.iconButton}
-                onPress={() => router.push("/(tabs)/learning")}
+                onPress={() => router.push("/learning")}
               >
                 <Ionicons name="school-outline" size={24} color={WHITE} />
               </TouchableOpacity>

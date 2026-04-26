@@ -146,7 +146,7 @@ export const SavingsScreen = () => {
         <View style={styles.headerRow}>
           <TouchableOpacity
             style={styles.profileSection}
-            onPress={() => router.push("/(tabs)/profile")}
+            onPress={() => router.push("/profile")}
           >
             <View style={styles.avatar}>
               <Image
@@ -162,7 +162,7 @@ export const SavingsScreen = () => {
           <View style={styles.headerActions}>
             <TouchableOpacity
               style={styles.iconButton}
-              onPress={() => router.push("/(tabs)/learning")}
+              onPress={() => router.push("/learning")}
             >
               <Ionicons name="school-outline" size={20} color={WHITE} />
             </TouchableOpacity>

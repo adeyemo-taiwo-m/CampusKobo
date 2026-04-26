@@ -69,6 +69,8 @@ export const ProfileSettingsScreen = () => {
   const [userName, setUserName] = useState('Adeyemo Taiwo M');
   const [userEmail, setUserEmail] = useState('adeyemo@gmail.com');
 
+  const [userPhone, setUserPhone] = useState('+234 7012345678');
+
   const handleLogout = () => {
     Alert.alert(
       'Log Out',
@@ -144,7 +146,7 @@ export const ProfileSettingsScreen = () => {
               onPress={() => router.push('/profile/notifications')}
             />
             <SettingsRow
-              icon="shield-lock-outline"
+              icon="shield-checkmark-outline"
               title="Security & Privacy"
               subtitle="App lock, PIN, Biometric"
               onPress={() => router.push('/profile/security')}
@@ -210,32 +212,65 @@ export const ProfileSettingsScreen = () => {
       >
         <TouchableWithoutFeedback onPress={() => setIsEditModalVisible(false)}>
           <View style={styles.modalOverlay}>
-            <TouchableWithoutFeedback>
+            <TouchableWithoutFeedback onPress={(e) => e.stopPropagation()}>
               <View style={styles.sheetContainer}>
-                <View style={styles.dragHandle} />
-                <Text style={styles.modalTitle}>Edit Profile</Text>
-                
-                <View style={styles.inputGroup}>
-                  <Text style={styles.inputLabel}>Full Name</Text>
-                  <TextInput 
-                    style={styles.modalInput}
-                    value={userName}
-                    onChangeText={setUserName}
-                    placeholder="Enter your name"
-                  />
+                {/* Modal Header */}
+                <View style={styles.modalHeader}>
+                  <TouchableOpacity 
+                    style={styles.modalBackBtn}
+                    onPress={() => setIsEditModalVisible(false)}
+                  >
+                    <Ionicons name="chevron-back" size={24} color={TEXT_PRIMARY} />
+                  </TouchableOpacity>
+                  <Text style={styles.modalTitleText}>Edit Profile</Text>
+                  <View style={{ width: 40 }} />
                 </View>
 
-                <View style={styles.inputGroup}>
-                  <Text style={styles.inputLabel}>Email Address</Text>
-                  <TextInput 
-                    style={styles.modalInput}
-                    value={userEmail}
-                    onChangeText={setUserEmail}
-                    placeholder="Enter your email"
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                  />
-                </View>
+                <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.modalScroll}>
+                  {/* Modal Avatar */}
+                  <View style={styles.modalAvatarContainer}>
+                    <View style={styles.modalAvatarWrapper}>
+                      <Image 
+                        source={require('../../../assets/images/avatar.jpeg')} 
+                        style={styles.modalAvatar} 
+                      />
+                      <TouchableOpacity style={styles.avatarEditBadge}>
+                        <Ionicons name="image-outline" size={16} color={WHITE} />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.inputLabel}>Name</Text>
+                    <TextInput 
+                      style={styles.modalInput}
+                      value={userName}
+                      onChangeText={setUserName}
+                      placeholder="Enter your name"
+                    />
+                  </View>
+
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.inputLabel}>Email address</Text>
+                    <TextInput 
+                      style={[styles.modalInput, styles.disabledInput]}
+                      value={userEmail}
+                      editable={false}
+                      placeholder="Enter your email"
+                    />
+                  </View>
+
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.inputLabel}>Phone number (Optional)</Text>
+                    <TextInput 
+                      style={styles.modalInput}
+                      value={userPhone}
+                      onChangeText={setUserPhone}
+                      placeholder="+234 0000000000"
+                      keyboardType="phone-pad"
+                    />
+                  </View>
+                </ScrollView>
 
                 <TouchableOpacity 
                   style={styles.saveBtn}
@@ -392,47 +427,87 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 32,
     borderTopRightRadius: 32,
     padding: 24,
-    paddingBottom: 40,
+    height: '90%', // Almost full height
   },
-  dragHandle: {
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 32,
+  },
+  modalBackBtn: {
     width: 40,
-    height: 4,
-    backgroundColor: '#E5E7EB',
-    borderRadius: 2,
-    alignSelf: 'center',
-    marginBottom: 24,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#F9FAFB',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  modalTitle: {
-    fontSize: 20,
+  modalTitleText: {
+    fontSize: 18,
     fontFamily: Fonts.bold,
     color: TEXT_PRIMARY,
-    marginBottom: 24,
+  },
+  modalScroll: {
+    paddingBottom: 20,
+  },
+  modalAvatarContainer: {
+    alignItems: 'center',
+    marginBottom: 32,
+  },
+  modalAvatarWrapper: {
+    position: 'relative',
+  },
+  modalAvatar: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    borderWidth: 2,
+    borderColor: PRIMARY_GREEN,
+  },
+  avatarEditBadge: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    backgroundColor: PRIMARY_GREEN,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    borderWidth: 3,
+    borderColor: WHITE,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   inputGroup: {
     marginBottom: 20,
   },
   inputLabel: {
     fontSize: 14,
-    fontFamily: Fonts.bold,
-    color: TEXT_PRIMARY,
+    fontFamily: Fonts.medium,
+    color: '#374151',
     marginBottom: 8,
   },
   modalInput: {
-    backgroundColor: '#F9FAFB',
+    backgroundColor: WHITE,
     borderRadius: 12,
-    padding: 12,
+    padding: 16,
     fontSize: 15,
     fontFamily: Fonts.regular,
     color: TEXT_PRIMARY,
     borderWidth: 1,
     borderColor: '#E5E7EB',
   },
+  disabledInput: {
+    backgroundColor: '#F9FAFB',
+    color: '#9CA3AF',
+  },
   saveBtn: {
     backgroundColor: PRIMARY_GREEN,
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: 'center',
-    marginTop: 10,
+    marginTop: 'auto',
+    marginBottom: 20,
   },
   saveBtnText: {
     color: WHITE,

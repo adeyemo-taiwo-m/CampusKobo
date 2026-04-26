@@ -131,7 +131,7 @@ export const BudgetScreen = () => {
           <View style={styles.headerContent}>
             <TouchableOpacity 
               style={styles.profileSection}
-              onPress={() => router.push("/(tabs)/profile")}
+              onPress={() => router.push("/profile")}
             >
               <View style={styles.avatar}>
                 <Image source={require("../../../assets/images/avatar.jpeg")} style={styles.avatarImage} />
@@ -139,7 +139,7 @@ export const BudgetScreen = () => {
               <Text style={styles.welcomeText}>Hi, Taiwo</Text>
             </TouchableOpacity>
             <View style={styles.headerActions}>
-              <TouchableOpacity style={styles.iconButton} onPress={() => router.push("/(tabs)/learning")}>
+              <TouchableOpacity style={styles.iconButton} onPress={() => router.push("/learning")}>
                 <Ionicons name="school-outline" size={22} color={WHITE} />
               </TouchableOpacity>
               <TouchableOpacity style={styles.iconButton} onPress={() => router.push("/profile/notifications")}>

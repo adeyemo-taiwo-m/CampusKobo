@@ -8,7 +8,6 @@ import {
   SafeAreaView,
   StatusBar,
   Switch,
-  Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
