@@ -1,19 +1,19 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import 'react-native-gesture-handler';
+import 'react-native-reanimated';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 import { AppProvider } from '@/src/context/AppContext';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { 
   useFonts, 
-  Poppins_400Regular, 
-  Poppins_500Medium, 
-  Poppins_600SemiBold,
-  Poppins_700Bold
-} from '@expo-google-fonts/poppins';
+  Inter_400Regular, 
+  Inter_500Medium, 
+  Inter_600SemiBold,
+  Inter_700Bold
+} from '@expo-google-fonts/inter';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
-
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
@@ -23,13 +23,11 @@ export const unstable_settings = {
 };
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
-  
   const [loaded, error] = useFonts({
-    Poppins_400Regular,
-    Poppins_500Medium,
-    Poppins_600SemiBold,
-    Poppins_700Bold,
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_600SemiBold,
+    Inter_700Bold,
   });
 
   useEffect(() => {
@@ -43,24 +41,22 @@ export default function RootLayout() {
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <AppProvider>
-        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+    <SafeAreaProvider>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <AppProvider>
           <Stack>
             <Stack.Screen name="index" options={{ headerShown: false }} />
             <Stack.Screen name="onboarding" options={{ headerShown: false }} />
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            {/* UPDATE 2026-04-25: Registered sub-route groups so the default native
-                header is hidden — each screen renders its own custom header */}
             <Stack.Screen name="budget" options={{ headerShown: false }} />
             <Stack.Screen name="savings" options={{ headerShown: false }} />
             <Stack.Screen name="learning" options={{ headerShown: false }} />
             <Stack.Screen name="profile" options={{ headerShown: false }} />
             <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
           </Stack>
-          <StatusBar style="auto" />
-        </ThemeProvider>
-      </AppProvider>
-    </GestureHandlerRootView>
+          <StatusBar style="dark" />
+        </AppProvider>
+      </GestureHandlerRootView>
+    </SafeAreaProvider>
   );
 }
