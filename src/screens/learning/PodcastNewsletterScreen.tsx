@@ -161,51 +161,64 @@ const PodcastNewsletterScreen = () => {
             </TouchableOpacity>
           </View>
 
-          <View style={styles.newsletterGrid}>
-            <TouchableOpacity style={styles.newsletterCard}>
-              <View style={styles.newsDate}>
-                <Text style={styles.newsDateText}>April 2026</Text>
+          <View style={styles.podcastList}>
+            <TouchableOpacity style={styles.podcastItem}>
+              <View style={[styles.podcastThumb, { backgroundColor: '#E7F5ED', alignItems: 'center', justifyContent: 'center' }]}>
+                <Ionicons name="mail-outline" size={24} color={PRIMARY_GREEN} />
               </View>
-              <Text style={styles.newsTitle}>Monthly Finance Digest</Text>
-              <View style={styles.newsMeta}>
-                 <Text style={styles.newsMetaText}>📰 5 min read</Text>
+              <View style={styles.podcastInfo}>
+                <Text style={styles.podcastEp}>April 2026</Text>
+                <Text style={styles.podcastTitle}>Monthly Finance Digest</Text>
+                <Text style={styles.podcastMetaText}>5 min read</Text>
               </View>
-              <View style={styles.readBtn}>
-                <Text style={styles.readBtnText}>Read</Text>
-                <Ionicons name="arrow-forward" size={14} color={PRIMARY_GREEN} />
+              <View style={[styles.playIconWrapper, { backgroundColor: PRIMARY_GREEN }]}>
+                <Ionicons name="book-outline" size={18} color={WHITE} />
               </View>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.newsletterCard}>
-              <View style={styles.newsDate}>
-                <Text style={styles.newsDateText}>March 2026</Text>
+            <TouchableOpacity style={styles.podcastItem}>
+              <View style={[styles.podcastThumb, { backgroundColor: '#E7F5ED', alignItems: 'center', justifyContent: 'center' }]}>
+                <Ionicons name="mail-outline" size={24} color={PRIMARY_GREEN} />
               </View>
-              <Text style={styles.newsTitle}>Student Money Report</Text>
-              <View style={styles.newsMeta}>
-                 <Text style={styles.newsMetaText}>📰 4 min read</Text>
+              <View style={styles.podcastInfo}>
+                <Text style={styles.podcastEp}>March 2026</Text>
+                <Text style={styles.podcastTitle}>Student Money Report</Text>
+                <Text style={styles.podcastMetaText}>4 min read</Text>
               </View>
-              <View style={styles.readBtn}>
-                <Text style={styles.readBtnText}>Read</Text>
-                <Ionicons name="arrow-forward" size={14} color={PRIMARY_GREEN} />
+              <View style={[styles.playIconWrapper, { backgroundColor: PRIMARY_GREEN }]}>
+                <Ionicons name="book-outline" size={18} color={WHITE} />
               </View>
             </TouchableOpacity>
           </View>
         </View>
 
         {/* About Section */}
-        <View style={styles.aboutCard}>
-          <Text style={styles.aboutTitle}>About BOF OAU</Text>
+        <View style={styles.aboutSection}>
+          <Text style={styles.sectionTitle}>About BOF OAU</Text>
+          <View style={styles.logoContainer}>
+            <Image 
+              source={require('../../../assets/images/bof-logo.png')} 
+              style={styles.bofLogo}
+              resizeMode="contain"
+            />
+          </View>
           <Text style={styles.aboutDesc}>
-            The Bureau of Finance, OAU is a student-led organization dedicated to promoting financial literacy and responsible money management within the university community.
+            The Students' Professional Bureau of Finance started in 2011 at Obafemi Awolowo University as a response to the gap between academic learning and real-world finance skills.{"\n\n"}
+            Founded in the Dept. of Management and Accounting, it aimed to give students hands-on experience, operating like a real financial institution.{"\n\n"}
+            Now, it's a leading finance ecosystem, producing top talents and empowering future African financial leaders.
           </Text>
           <View style={styles.socialLinks}>
-            <TouchableOpacity style={styles.socialBtn}>
-              <Ionicons name="globe-outline" size={20} color={TEXT_PRIMARY} />
-              <Text style={styles.socialBtnText}>Website</Text>
+            <TouchableOpacity style={styles.socialPill}>
+              <Ionicons name="globe-outline" size={16} color={PRIMARY_GREEN} />
+              <Text style={styles.socialPillText}>Website</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.socialBtn}>
-              <Ionicons name="logo-instagram" size={20} color={TEXT_PRIMARY} />
-              <Text style={styles.socialBtnText}>Instagram</Text>
+            <TouchableOpacity style={styles.socialPill}>
+              <Ionicons name="logo-instagram" size={16} color={PRIMARY_GREEN} />
+              <Text style={styles.socialPillText}>Instagram</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.socialPill}>
+              <Ionicons name="logo-linkedin" size={16} color={PRIMARY_GREEN} />
+              <Text style={styles.socialPillText}>LinkedIn</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -266,8 +279,8 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.bold,
   },
   mainTitle: {
-    fontSize: 24,
-    fontFamily: Fonts.bold,
+    fontSize: 22,
+    fontFamily: Fonts.semiBold,
     color: TEXT_PRIMARY,
     marginBottom: 8,
   },
@@ -507,19 +520,19 @@ const styles = StyleSheet.create({
     color: PRIMARY_GREEN,
     marginRight: 4,
   },
-  aboutCard: {
-    backgroundColor: WHITE,
-    borderRadius: 24,
-    padding: 24,
+  aboutSection: {
     marginBottom: 32,
-    borderWidth: 1,
-    borderColor: '#F3F4F6',
+    borderTopWidth: 1,
+    borderTopColor: '#F3F4F6',
+    paddingTop: 24,
   },
-  aboutTitle: {
-    fontSize: 18,
-    fontFamily: Fonts.bold,
-    color: TEXT_PRIMARY,
-    marginBottom: 12,
+  logoContainer: {
+    marginVertical: 16,
+    alignItems: 'flex-start',
+  },
+  bofLogo: {
+    width: 60,
+    height: 60,
   },
   aboutDesc: {
     fontSize: 14,
@@ -530,22 +543,22 @@ const styles = StyleSheet.create({
   },
   socialLinks: {
     flexDirection: 'row',
-    gap: 12,
+    flexWrap: 'wrap',
+    gap: 10,
   },
-  socialBtn: {
-    flex: 1,
+  socialPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#F9FAFB',
-    borderRadius: 12,
-    paddingVertical: 12,
-    gap: 8,
+    backgroundColor: '#E7F5ED',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    gap: 6,
   },
-  socialBtnText: {
-    fontSize: 14,
+  socialPillText: {
+    fontSize: 13,
     fontFamily: Fonts.bold,
-    color: TEXT_PRIMARY,
+    color: PRIMARY_GREEN,
   },
   subscribeSection: {
     backgroundColor: '#E7F5ED',
