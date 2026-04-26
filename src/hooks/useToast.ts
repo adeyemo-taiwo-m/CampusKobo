@@ -1,6 +1,5 @@
 import { useState, useCallback } from 'react';
-
-export type ToastType = 'success' | 'error' | 'info';
+import { ToastType } from '../components/Toast';
 
 export const useToast = () => {
   const [visible, setVisible] = useState(false);
@@ -13,18 +12,17 @@ export const useToast = () => {
     setVisible(true);
   }, []);
 
-  const hideToast = useCallback(() => {
+  const onHide = useCallback(() => {
     setVisible(false);
   }, []);
 
   return {
+    showToast,
     toastProps: {
       visible,
       message,
       type,
-      onHide: hideToast,
+      onHide,
     },
-    showToast,
-    hideToast,
   };
 };
