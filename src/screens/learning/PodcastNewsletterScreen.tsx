@@ -1,155 +1,237 @@
-import React, { useState, useMemo } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  ScrollView, 
-  TouchableOpacity, 
-  Dimensions, 
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
   SafeAreaView,
-  StatusBar
+  StatusBar,
+  Image,
+  TextInput,
+  Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { Image } from 'expo-image';
-import { 
-  PRIMARY_GREEN, 
-  WHITE, 
-  TEXT_PRIMARY, 
-  TEXT_SECONDARY, 
-  BG_LIGHT, 
+import { Ionicons } from '@expo/vector-icons';
+import {
+  WHITE,
+  PRIMARY_GREEN,
+  TEXT_PRIMARY,
+  TEXT_SECONDARY,
+  BACKGROUND,
   Fonts,
-  DARK_GREEN 
 } from '../../constants';
+import { Header } from '../../components/Header';
 import { LEARNING_CONTENT } from '../../constants/learningData';
-
-const { width } = Dimensions.get('window');
 
 const PodcastNewsletterScreen = () => {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<'all' | 'podcasts' | 'newsletters'>('all');
+  const [email, setEmail] = useState('');
+  const [selectedTopic, setSelectedTopic] = useState('All');
 
-  const podcasts = useMemo(() => 
-    LEARNING_CONTENT.filter(item => item.type === 'podcast'), []
-  );
+  const topics = ['All', 'Budgeting', 'Saving', 'Investing', 'Loans', 'Taxes'];
+  const podcasts = LEARNING_CONTENT.filter(c => c.type === 'podcast').slice(0, 3);
 
-  const displayedContent = useMemo(() => {
-    if (activeTab === 'podcasts') return podcasts;
-    // For now newsletters are mock articles or similar, we'll just show podcasts if no newsletters defined
-    return podcasts; 
-  }, [activeTab, podcasts]);
+  const handleSubscribe = () => {
+    if (!email.trim() || !email.includes('@')) {
+      Alert.alert('Error', 'Please enter a valid email address');
+      return;
+    }
+    Alert.alert('Subscribed!', 'You will receive updates from BOF OAU.');
+    setEmail('');
+  };
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
-      
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.headerBtn}>
-          <Ionicons name="arrow-back" size={24} color={TEXT_PRIMARY} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>From BOF OAU</Text>
-        <View style={{ width: 40 }} />
-      </View>
+      <Header title="From BOF OAU" showBack={true} onBack={() => router.back()} />
 
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         {/* Header Section */}
-        <View style={styles.heroSection}>
-          <View style={styles.bofChip}>
-            <Text style={styles.bofChipText}>BOF OAU</Text>
+        <View style={styles.headerSection}>
+          <View style={styles.tag}>
+            <Text style={styles.tagText}>BOF OAU</Text>
           </View>
-          <Text style={styles.heroTitle}>Stay Informed & Keep Learning</Text>
-          <Text style={styles.heroSubtitle}>Fresh financial content from the Bureau of Finance, OAU</Text>
+          <Text style={styles.mainTitle}>Stay informed & keep learning</Text>
+          <Text style={styles.subtitle}>
+            Fresh financial content from the Bureau of Finance, OAU
+          </Text>
         </View>
 
-        {/* Tabs */}
-        <View style={styles.tabsContainer}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabsScroll}>
-            {[
-              { id: 'all', label: 'All Content' },
-              { id: 'podcasts', label: 'Podcasts' },
-              { id: 'newsletters', label: 'Newsletters' }
-            ].map(tab => (
-              <TouchableOpacity 
-                key={tab.id}
-                style={[
-                  styles.tab,
-                  activeTab === tab.id && styles.tabActive
-                ]}
-                onPress={() => setActiveTab(tab.id as any)}
+        {/* Topics Filter */}
+        <View style={styles.topicsSection}>
+          <Text style={styles.sectionLabel}>Browse by topic</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.topicsList}>
+            {topics.map(topic => (
+              <TouchableOpacity
+                key={topic}
+                style={[styles.topicChip, selectedTopic === topic && styles.topicChipActive]}
+                onPress={() => setSelectedTopic(topic)}
               >
-                <Text style={[
-                  styles.tabText,
-                  activeTab === tab.id && styles.tabTextActive
-                ]}>{tab.label}</Text>
+                <Text style={[styles.topicText, selectedTopic === topic && styles.topicTextActive]}>
+                  {topic}
+                </Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
         </View>
 
-        {/* Featured Podcast Card */}
-        {activeTab !== 'newsletters' && (
-          <View style={styles.featuredSection}>
-            <Text style={styles.sectionLabel}>Latest Episode</Text>
-            <TouchableOpacity 
-              style={styles.featuredPodcast}
-              onPress={() => router.push({
-                pathname: '/learning/detail' as any,
-                params: { id: podcasts[0].id }
-              })}
-            >
-              <Image 
-                source={require('../../../assets/images/Market Pulse.svg')} 
-                style={styles.featuredCover}
-                contentFit="contain"
-              />
-              <View style={styles.featuredInfo}>
-                <View style={styles.liveBadge}>
-                   <View style={styles.liveDot} />
-                   <Text style={styles.liveText}>NEW RELEASE</Text>
+        {/* Featured Banner Card */}
+        <TouchableOpacity 
+          style={styles.featuredCard}
+          onPress={() => router.push({
+            pathname: '/learning/detail',
+            params: { id: 'l-005', type: 'podcast' }
+          })}
+        >
+          <Image 
+            source={require('../../../assets/images/podcast-banner.png')} 
+            style={styles.featuredImage} 
+            resizeMode="cover"
+          />
+          <View style={styles.featuredOverlay}>
+            <View style={styles.latestTag}>
+              <Text style={styles.latestTagText}>Latest Episode</Text>
+            </View>
+            <Text style={styles.featuredTitle}>Market Pulse — EP 05: How to invest as a student</Text>
+            <View style={styles.featuredMeta}>
+              <Ionicons name="headset-outline" size={14} color={WHITE} />
+              <Text style={styles.featuredMetaText}>Podcast • 18 min</Text>
+            </View>
+            <View style={styles.listenBtn}>
+              <Text style={styles.listenBtnText}>Listen now</Text>
+              <Ionicons name="arrow-forward" size={16} color={TEXT_PRIMARY} />
+            </View>
+          </View>
+        </TouchableOpacity>
+
+        {/* Podcast Section */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <View style={styles.sectionTitleGroup}>
+              <Text style={styles.sectionTitle}>Market Pulse Podcast</Text>
+              <Text style={styles.sectionSubTitle}>By BOF OAU Research Division</Text>
+            </View>
+            <TouchableOpacity onPress={() => {}}>
+              <Text style={styles.seeAllText}>See all</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.podcastList}>
+            {podcasts.map((item, index) => (
+              <TouchableOpacity 
+                key={item.id} 
+                style={styles.podcastItem}
+                onPress={() => router.push({
+                  pathname: '/learning/detail',
+                  params: { id: item.id, type: 'podcast' }
+                })}
+              >
+                <View style={styles.podcastThumb}>
+                  <Image 
+                    source={require('../../../assets/images/market-pulse.png')} 
+                    style={styles.podcastLogo} 
+                  />
                 </View>
-                <Text style={styles.featuredTitle}>{podcasts[0].title}</Text>
-                <Text style={styles.featuredMeta}>EP 0{podcasts[0].episodeNumber} • {podcasts[0].duration}</Text>
-                <View style={styles.listenBtn}>
-                  <Ionicons name="play" size={16} color={WHITE} />
-                  <Text style={styles.listenBtnText}>Listen Now</Text>
+                <View style={styles.podcastInfo}>
+                  <Text style={styles.podcastEp}>EP 0{5 - index}</Text>
+                  <Text style={styles.podcastTitle} numberOfLines={1}>{item.title}</Text>
+                  <View style={styles.podcastMeta}>
+                    <Ionicons name="headset-outline" size={12} color={TEXT_SECONDARY} />
+                    <Text style={styles.podcastMetaText}>{item.duration}</Text>
+                  </View>
                 </View>
+                <View style={styles.playIconWrapper}>
+                  <Ionicons name="play" size={18} color={WHITE} />
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        {/* Newsletter Section */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <View style={styles.sectionTitleGroup}>
+              <Text style={styles.sectionTitle}>BOF Newsletter</Text>
+              <Text style={styles.sectionSubTitle}>Stay updated with financial news and tips</Text>
+            </View>
+            <TouchableOpacity onPress={() => {}}>
+              <Text style={styles.seeAllText}>See all</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.newsletterGrid}>
+            <TouchableOpacity style={styles.newsletterCard}>
+              <View style={styles.newsDate}>
+                <Text style={styles.newsDateText}>April 2026</Text>
+              </View>
+              <Text style={styles.newsTitle}>Monthly Finance Digest</Text>
+              <View style={styles.newsMeta}>
+                 <Text style={styles.newsMetaText}>📰 5 min read</Text>
+              </View>
+              <View style={styles.readBtn}>
+                <Text style={styles.readBtnText}>Read</Text>
+                <Ionicons name="arrow-forward" size={14} color={PRIMARY_GREEN} />
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.newsletterCard}>
+              <View style={styles.newsDate}>
+                <Text style={styles.newsDateText}>March 2026</Text>
+              </View>
+              <Text style={styles.newsTitle}>Student Money Report</Text>
+              <View style={styles.newsMeta}>
+                 <Text style={styles.newsMetaText}>📰 4 min read</Text>
+              </View>
+              <View style={styles.readBtn}>
+                <Text style={styles.readBtnText}>Read</Text>
+                <Ionicons name="arrow-forward" size={14} color={PRIMARY_GREEN} />
               </View>
             </TouchableOpacity>
           </View>
-        )}
+        </View>
 
-        {/* List Items */}
-        <View style={styles.listSection}>
-          <Text style={styles.sectionLabel}>Past Episodes</Text>
-          {displayedContent.map((item, index) => (
-            <TouchableOpacity 
-              key={item.id} 
-              style={styles.itemRow}
-              onPress={() => router.push({
-                pathname: '/learning/detail' as any,
-                params: { id: item.id }
-              })}
-            >
-              <View style={styles.itemIconBox}>
-                <Image 
-                  source={require('../../../assets/images/Market Pulse.svg')} 
-                  style={styles.itemThumb}
-                  contentFit="contain"
-                />
-                <View style={styles.itemPlayOverlay}>
-                  <Ionicons name="play" size={12} color={WHITE} />
-                </View>
-              </View>
-              <View style={styles.itemInfo}>
-                <Text style={styles.itemTitle} numberOfLines={1}>{item.title}</Text>
-                <Text style={styles.itemMeta}>EP 0{item.episodeNumber} • {item.duration} • 2 days ago</Text>
-              </View>
-              <TouchableOpacity style={styles.downloadBtn}>
-                <Ionicons name="download-outline" size={20} color={TEXT_SECONDARY} />
-              </TouchableOpacity>
+        {/* About Section */}
+        <View style={styles.aboutCard}>
+          <Text style={styles.aboutTitle}>About BOF OAU</Text>
+          <Text style={styles.aboutDesc}>
+            The Bureau of Finance, OAU is a student-led organization dedicated to promoting financial literacy and responsible money management within the university community.
+          </Text>
+          <View style={styles.socialLinks}>
+            <TouchableOpacity style={styles.socialBtn}>
+              <Ionicons name="globe-outline" size={20} color={TEXT_PRIMARY} />
+              <Text style={styles.socialBtnText}>Website</Text>
             </TouchableOpacity>
-          ))}
+            <TouchableOpacity style={styles.socialBtn}>
+              <Ionicons name="logo-instagram" size={20} color={TEXT_PRIMARY} />
+              <Text style={styles.socialBtnText}>Instagram</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Subscribe Section */}
+        <View style={styles.subscribeSection}>
+          <View style={styles.subscribeIcon}>
+            <Ionicons name="mail-open-outline" size={32} color={PRIMARY_GREEN} />
+          </View>
+          <Text style={styles.subscribeTitle}>Never Miss an Update</Text>
+          <Text style={styles.subscribeSubtitle}>
+            Get the latest financial tips and news delivered straight to your inbox.
+          </Text>
+          <View style={styles.subscribeInputWrapper}>
+            <TextInput
+              placeholder="Enter your email"
+              style={styles.subscribeInput}
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
+            <TouchableOpacity style={styles.subscribeBtn} onPress={handleSubscribe}>
+              <Text style={styles.subscribeBtnText}>Subscribe</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         <View style={{ height: 40 }} />
@@ -161,214 +243,365 @@ const PodcastNewsletterScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: BG_LIGHT,
+    backgroundColor: BACKGROUND,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    height: 60,
-    backgroundColor: WHITE,
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingTop: 10,
   },
-  headerBtn: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
+  headerSection: {
+    marginBottom: 24,
   },
-  headerTitle: {
-    fontFamily: Fonts.bold,
-    fontSize: 18,
-    color: TEXT_PRIMARY,
-  },
-  heroSection: {
-    padding: 20,
-    backgroundColor: WHITE,
-  },
-  bofChip: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#E6F7ED',
+  tag: {
+    backgroundColor: '#E7F5ED',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 6,
+    alignSelf: 'flex-start',
     marginBottom: 12,
   },
-  bofChipText: {
-    fontFamily: Fonts.bold,
-    fontSize: 12,
+  tagText: {
     color: PRIMARY_GREEN,
-  },
-  heroTitle: {
+    fontSize: 12,
     fontFamily: Fonts.bold,
-    fontSize: 26,
+  },
+  mainTitle: {
+    fontSize: 24,
+    fontFamily: Fonts.bold,
     color: TEXT_PRIMARY,
     marginBottom: 8,
-    lineHeight: 32,
   },
-  heroSubtitle: {
-    fontFamily: Fonts.medium,
+  subtitle: {
     fontSize: 15,
     color: TEXT_SECONDARY,
+    fontFamily: Fonts.regular,
     lineHeight: 22,
   },
-  tabsContainer: {
-    backgroundColor: WHITE,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
-  },
-  tabsScroll: {
-    paddingHorizontal: 20,
-    gap: 12,
-  },
-  tab: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: '#F3F4F6',
-  },
-  tabActive: {
-    backgroundColor: PRIMARY_GREEN,
-  },
-  tabText: {
-    fontFamily: Fonts.bold,
-    fontSize: 14,
-    color: TEXT_SECONDARY,
-  },
-  tabTextActive: {
-    color: WHITE,
-  },
-  featuredSection: {
-    padding: 20,
+  topicsSection: {
+    marginBottom: 24,
   },
   sectionLabel: {
+    fontSize: 16,
     fontFamily: Fonts.bold,
-    fontSize: 18,
     color: TEXT_PRIMARY,
     marginBottom: 16,
   },
-  featuredPodcast: {
-    flexDirection: 'row',
-    backgroundColor: '#111827', // Dark Card
+  topicsList: {
+    gap: 12,
+  },
+  topicChip: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
     borderRadius: 20,
-    overflow: 'hidden',
-    padding: 16,
+    backgroundColor: WHITE,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
   },
-  featuredCover: {
-    width: 100,
-    height: 100,
-    borderRadius: 12,
+  topicChipActive: {
+    backgroundColor: PRIMARY_GREEN,
+    borderColor: PRIMARY_GREEN,
   },
-  featuredInfo: {
-    flex: 1,
-    marginLeft: 16,
-    justifyContent: 'center',
-  },
-  liveBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(16, 185, 129, 0.2)',
-    alignSelf: 'flex-start',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
-    marginBottom: 8,
-  },
-  liveDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#10B981',
-    marginRight: 6,
-  },
-  liveText: {
-    fontFamily: Fonts.bold,
-    fontSize: 10,
-    color: '#10B981',
-  },
-  featuredTitle: {
-    fontFamily: Fonts.bold,
-    fontSize: 16,
-    color: WHITE,
-    marginBottom: 4,
-  },
-  featuredMeta: {
+  topicText: {
+    fontSize: 14,
     fontFamily: Fonts.medium,
-    fontSize: 12,
-    color: 'rgba(255,255,255,0.6)',
+    color: TEXT_PRIMARY,
+  },
+  topicTextActive: {
+    color: WHITE,
+    fontFamily: Fonts.bold,
+  },
+  featuredCard: {
+    height: 280,
+    borderRadius: 24,
+    overflow: 'hidden',
+    marginBottom: 32,
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+  },
+  featuredImage: {
+    width: '100%',
+    height: '100%',
+  },
+  featuredOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    padding: 24,
+    justifyContent: 'flex-end',
+  },
+  latestTag: {
+    backgroundColor: WHITE,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 6,
+    alignSelf: 'flex-start',
     marginBottom: 12,
   },
-  listenBtn: {
+  latestTagText: {
+    color: TEXT_PRIMARY,
+    fontSize: 12,
+    fontFamily: Fonts.bold,
+  },
+  featuredTitle: {
+    color: WHITE,
+    fontSize: 20,
+    fontFamily: Fonts.bold,
+    marginBottom: 8,
+    lineHeight: 28,
+  },
+  featuredMeta: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: PRIMARY_GREEN,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-    alignSelf: 'flex-start',
+    marginBottom: 20,
   },
-  listenBtnText: {
-    fontFamily: Fonts.bold,
-    fontSize: 12,
+  featuredMetaText: {
     color: WHITE,
+    fontSize: 14,
+    fontFamily: Fonts.medium,
     marginLeft: 6,
   },
-  listSection: {
-    paddingHorizontal: 20,
+  listenBtn: {
+    backgroundColor: WHITE,
+    borderRadius: 12,
+    paddingVertical: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  itemRow: {
+  listenBtnText: {
+    color: TEXT_PRIMARY,
+    fontSize: 15,
+    fontFamily: Fonts.bold,
+    marginRight: 8,
+  },
+  section: {
+    marginBottom: 32,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 16,
+  },
+  sectionTitleGroup: {
+    flex: 1,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontFamily: Fonts.bold,
+    color: TEXT_PRIMARY,
+    marginBottom: 4,
+  },
+  sectionSubTitle: {
+    fontSize: 13,
+    color: TEXT_SECONDARY,
+    fontFamily: Fonts.regular,
+  },
+  seeAllText: {
+    fontSize: 14,
+    fontFamily: Fonts.medium,
+    color: TEXT_SECONDARY,
+  },
+  podcastList: {
+    gap: 16,
+  },
+  podcastItem: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: WHITE,
-    padding: 12,
     borderRadius: 16,
-    marginBottom: 12,
+    padding: 12,
     borderWidth: 1,
     borderColor: '#F3F4F6',
   },
-  itemIconBox: {
-    width: 50,
-    height: 50,
-    borderRadius: 10,
-    position: 'relative',
+  podcastThumb: {
+    width: 60,
+    height: 60,
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginRight: 12,
   },
-  itemThumb: {
+  podcastLogo: {
     width: '100%',
     height: '100%',
-    borderRadius: 10,
   },
-  itemPlayOverlay: {
-    position: 'absolute',
-    bottom: -4,
-    right: -4,
-    width: 20,
-    height: 20,
-    borderRadius: 10,
+  podcastInfo: {
+    flex: 1,
+  },
+  podcastEp: {
+    fontSize: 10,
+    fontFamily: Fonts.bold,
+    color: TEXT_SECONDARY,
+    marginBottom: 2,
+    textTransform: 'uppercase',
+  },
+  podcastTitle: {
+    fontSize: 15,
+    fontFamily: Fonts.bold,
+    color: TEXT_PRIMARY,
+    marginBottom: 4,
+  },
+  podcastMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  podcastMetaText: {
+    fontSize: 12,
+    color: TEXT_SECONDARY,
+    fontFamily: Fonts.medium,
+    marginLeft: 4,
+  },
+  playIconWrapper: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: PRIMARY_GREEN,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: WHITE,
   },
-  itemInfo: {
+  newsletterGrid: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  newsletterCard: {
     flex: 1,
-    marginLeft: 12,
+    backgroundColor: WHITE,
+    borderRadius: 20,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#F3F4F6',
   },
-  itemTitle: {
+  newsDate: {
+    marginBottom: 8,
+  },
+  newsDateText: {
+    fontSize: 11,
     fontFamily: Fonts.bold,
-    fontSize: 14,
-    color: TEXT_PRIMARY,
-    marginBottom: 2,
+    color: TEXT_SECONDARY,
+    textTransform: 'uppercase',
   },
-  itemMeta: {
-    fontFamily: Fonts.medium,
+  newsTitle: {
+    fontSize: 14,
+    fontFamily: Fonts.bold,
+    color: TEXT_PRIMARY,
+    marginBottom: 12,
+    height: 40,
+  },
+  newsMeta: {
+    marginBottom: 16,
+  },
+  newsMetaText: {
     fontSize: 12,
     color: TEXT_SECONDARY,
+    fontFamily: Fonts.medium,
   },
-  downloadBtn: {
-    padding: 8,
+  readBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
+  readBtnText: {
+    fontSize: 14,
+    fontFamily: Fonts.bold,
+    color: PRIMARY_GREEN,
+    marginRight: 4,
+  },
+  aboutCard: {
+    backgroundColor: WHITE,
+    borderRadius: 24,
+    padding: 24,
+    marginBottom: 32,
+    borderWidth: 1,
+    borderColor: '#F3F4F6',
+  },
+  aboutTitle: {
+    fontSize: 18,
+    fontFamily: Fonts.bold,
+    color: TEXT_PRIMARY,
+    marginBottom: 12,
+  },
+  aboutDesc: {
+    fontSize: 14,
+    color: '#4B5563',
+    fontFamily: Fonts.regular,
+    lineHeight: 22,
+    marginBottom: 20,
+  },
+  socialLinks: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  socialBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F9FAFB',
+    borderRadius: 12,
+    paddingVertical: 12,
+    gap: 8,
+  },
+  socialBtnText: {
+    fontSize: 14,
+    fontFamily: Fonts.bold,
+    color: TEXT_PRIMARY,
+  },
+  subscribeSection: {
+    backgroundColor: '#E7F5ED',
+    borderRadius: 24,
+    padding: 24,
+    alignItems: 'center',
+  },
+  subscribeIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: WHITE,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  subscribeTitle: {
+    fontSize: 20,
+    fontFamily: Fonts.bold,
+    color: TEXT_PRIMARY,
+    marginBottom: 8,
+  },
+  subscribeSubtitle: {
+    fontSize: 14,
+    color: TEXT_SECONDARY,
+    fontFamily: Fonts.regular,
+    textAlign: 'center',
+    marginBottom: 24,
+    lineHeight: 20,
+  },
+  subscribeInputWrapper: {
+    width: '100%',
+    flexDirection: 'row',
+    backgroundColor: WHITE,
+    borderRadius: 16,
+    padding: 6,
+    borderWidth: 1,
+    borderColor: '#D1FAE5',
+  },
+  subscribeInput: {
+    flex: 1,
+    paddingHorizontal: 12,
+    fontSize: 15,
+    fontFamily: Fonts.regular,
+  },
+  subscribeBtn: {
+    backgroundColor: PRIMARY_GREEN,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 12,
+  },
+  subscribeBtnText: {
+    color: WHITE,
+    fontSize: 14,
+    fontFamily: Fonts.bold,
+  }
 });
 
 export default PodcastNewsletterScreen;
