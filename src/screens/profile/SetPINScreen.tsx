@@ -4,232 +4,206 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  StatusBar,
   SafeAreaView,
+  StatusBar,
   Dimensions,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import {
-  PRIMARY_GREEN,
   WHITE,
+  PRIMARY_GREEN,
   TEXT_PRIMARY,
   TEXT_SECONDARY,
+  BACKGROUND,
   Fonts,
 } from '../../constants';
+import { Header } from '../../components/Header';
 
 const { width } = Dimensions.get('window');
 
+const PIN_LENGTH = 4;
+
+const KeypadButton = ({ value, letters, onPress }: { value: string, letters?: string, onPress: (v: string) => void }) => (
+  <TouchableOpacity 
+    style={styles.key} 
+    onPress={() => onPress(value)}
+    activeOpacity={0.7}
+  >
+    <Text style={styles.keyText}>{value}</Text>
+    {letters && <Text style={styles.keyLetters}>{letters}</Text>}
+  </TouchableOpacity>
+);
+
 export const SetPINScreen = () => {
   const router = useRouter();
-  const insets = useSafeAreaInsets();
   const [pin, setPin] = useState('');
 
-  const handlePress = (num: string) => {
-    if (pin.length < 4) {
-      setPin(pin + num);
+  const handlePress = (value: string) => {
+    if (pin.length < PIN_LENGTH) {
+      setPin(prev => prev + value);
     }
   };
 
   const handleBackspace = () => {
-    setPin(pin.slice(0, -1));
+    setPin(prev => prev.slice(0, -1));
   };
 
   useEffect(() => {
-    if (pin.length === 4) {
-      // Auto-navigate to confirm screen after a brief delay
+    if (pin.length === PIN_LENGTH) {
+      // Small delay for visual feedback before navigating
       const timer = setTimeout(() => {
         router.push({
-          pathname: '/profile/confirm-pin' as any,
+          pathname: '/profile/confirm-pin',
           params: { pin }
         });
-      }, 300);
+      }, 200);
       return () => clearTimeout(timer);
     }
   }, [pin]);
 
-  const Key = ({ value, subText }: { value: string; subText?: string }) => (
-    <TouchableOpacity 
-      style={styles.key} 
-      onPress={() => handlePress(value)}
-      activeOpacity={0.7}
-    >
-      <Text style={styles.keyText}>{value}</Text>
-      {subText && <Text style={styles.keySubText}>{subText}</Text>}
-    </TouchableOpacity>
-  );
-
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
-      
-      {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top + 10 }]}>
-        <TouchableOpacity 
-          style={styles.headerBtn} 
-          onPress={() => router.back()}
-        >
-          <Ionicons name="arrow-back" size={24} color={TEXT_PRIMARY} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Set PIN</Text>
-        <View style={{ width: 40 }} />
-      </View>
+      <Header title="Set PIN" showBack={true} onBack={() => router.back()} />
 
       <View style={styles.content}>
-        {/* Step Indicator */}
-        <View style={styles.stepIndicator}>
-          <View style={[styles.stepDot, styles.stepDotActive]} />
-          <View style={styles.stepDot} />
+        {/* Progress Dots */}
+        <View style={styles.progressContainer}>
+          <View style={[styles.progressDot, styles.activeDot]} />
+          <View style={styles.progressDot} />
         </View>
 
-        <View style={styles.iconContainer}>
-          <View style={styles.iconCircle}>
+        {/* Center Content */}
+        <View style={styles.centerSection}>
+          <View style={styles.iconContainer}>
             <Ionicons name="lock-closed" size={40} color={PRIMARY_GREEN} />
           </View>
-        </View>
+          <Text style={styles.title}>Create your PIN</Text>
+          <Text style={styles.subtitle}>Choose a 4-digit PIN to secure your CampusKobo account</Text>
 
-        <Text style={styles.title}>Create your PIN</Text>
-        <Text style={styles.subtitle}>Choose a 4-digit PIN to secure your CampusKobo account</Text>
-
-        {/* PIN Indicators */}
-        <View style={styles.pinRow}>
-          {[1, 2, 3, 4].map((i) => (
-            <View 
-              key={i} 
-              style={[
-                styles.pinDot, 
-                pin.length >= i && styles.pinDotFilled
-              ]} 
-            />
-          ))}
+          {/* PIN Indicators */}
+          <View style={styles.indicatorContainer}>
+            {[...Array(PIN_LENGTH)].map((_, i) => (
+              <View 
+                key={i} 
+                style={[
+                  styles.indicator, 
+                  i < pin.length && styles.indicatorFilled
+                ]} 
+              />
+            ))}
+          </View>
         </View>
 
         {/* Keypad */}
-        <View style={styles.keypad}>
+        <View style={styles.keypadContainer}>
           <View style={styles.keypadRow}>
-            <Key value="1" />
-            <Key value="2" subText="ABC" />
-            <Key value="3" subText="DEF" />
+            <KeypadButton value="1" onPress={handlePress} />
+            <KeypadButton value="2" letters="ABC" onPress={handlePress} />
+            <KeypadButton value="3" letters="DEF" onPress={handlePress} />
           </View>
           <View style={styles.keypadRow}>
-            <Key value="4" subText="GHI" />
-            <Key value="5" subText="JKL" />
-            <Key value="6" subText="MNO" />
+            <KeypadButton value="4" letters="GHI" onPress={handlePress} />
+            <KeypadButton value="5" letters="JKL" onPress={handlePress} />
+            <KeypadButton value="6" letters="MNO" onPress={handlePress} />
           </View>
           <View style={styles.keypadRow}>
-            <Key value="7" subText="PQRS" />
-            <Key value="8" subText="TUV" />
-            <Key value="9" subText="WXYZ" />
+            <KeypadButton value="7" letters="PQRS" onPress={handlePress} />
+            <KeypadButton value="8" letters="TUV" onPress={handlePress} />
+            <KeypadButton value="9" letters="WXYZ" onPress={handlePress} />
           </View>
           <View style={styles.keypadRow}>
             <View style={styles.key} />
-            <Key value="0" />
+            <KeypadButton value="0" onPress={handlePress} />
             <TouchableOpacity style={styles.key} onPress={handleBackspace}>
               <Ionicons name="backspace-outline" size={28} color={TEXT_PRIMARY} />
             </TouchableOpacity>
           </View>
         </View>
 
-        <Text style={styles.securityNote}>
-          🔒 Your PIN is encrypted and stored securely
-        </Text>
+        <View style={styles.footer}>
+          <Ionicons name="lock-closed-outline" size={14} color={TEXT_SECONDARY} />
+          <Text style={styles.footerText}>Your PIN is encrypted and stored securely</Text>
+        </View>
       </View>
-    </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: WHITE,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingBottom: 15,
-  },
-  headerBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#F9FAFB',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTitle: {
-    fontFamily: Fonts.bold,
-    fontSize: 18,
-    color: TEXT_PRIMARY,
+    backgroundColor: BACKGROUND,
   },
   content: {
     flex: 1,
     alignItems: 'center',
-    paddingTop: 20,
+    paddingHorizontal: 30,
   },
-  stepIndicator: {
+  progressContainer: {
     flexDirection: 'row',
+    marginTop: 20,
     gap: 8,
-    marginBottom: 30,
   },
-  stepDot: {
+  progressDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#E5E7EB',
+    backgroundColor: '#D1D5DB',
   },
-  stepDotActive: {
+  activeDot: {
     backgroundColor: PRIMARY_GREEN,
-    width: 20,
+  },
+  centerSection: {
+    alignItems: 'center',
+    marginTop: 40,
   },
   iconContainer: {
-    marginBottom: 24,
-  },
-  iconCircle: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#E8F5E9',
+    backgroundColor: '#E7F5ED',
     alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: 24,
   },
   title: {
-    fontFamily: Fonts.bold,
     fontSize: 24,
+    fontFamily: Fonts.bold,
     color: TEXT_PRIMARY,
     marginBottom: 12,
   },
   subtitle: {
-    fontFamily: Fonts.medium,
     fontSize: 15,
+    fontFamily: Fonts.regular,
     color: TEXT_SECONDARY,
     textAlign: 'center',
-    paddingHorizontal: 40,
     lineHeight: 22,
-    marginBottom: 40,
+    paddingHorizontal: 20,
   },
-  pinRow: {
+  indicatorContainer: {
     flexDirection: 'row',
     gap: 20,
-    marginBottom: 60,
+    marginTop: 40,
   },
-  pinDot: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
+  indicator: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
     borderWidth: 2,
     borderColor: '#E5E7EB',
     backgroundColor: 'transparent',
   },
-  pinDotFilled: {
+  indicatorFilled: {
     backgroundColor: PRIMARY_GREEN,
     borderColor: PRIMARY_GREEN,
   },
-  keypad: {
+  keypadContainer: {
+    marginTop: 'auto',
+    marginBottom: 40,
     width: '100%',
-    paddingHorizontal: 30,
+    maxWidth: 320,
   },
   keypadRow: {
     flexDirection: 'row',
@@ -237,27 +211,38 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   key: {
-    width: (width - 60) / 3 - 20,
+    width: 70,
     height: 70,
+    borderRadius: 35,
+    backgroundColor: WHITE,
     alignItems: 'center',
     justifyContent: 'center',
+    elevation: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
   },
   keyText: {
-    fontFamily: Fonts.bold,
     fontSize: 24,
+    fontFamily: Fonts.bold,
     color: TEXT_PRIMARY,
   },
-  keySubText: {
-    fontFamily: Fonts.bold,
+  keyLetters: {
     fontSize: 10,
-    color: TEXT_SECONDARY,
-    letterSpacing: 1,
-  },
-  securityNote: {
-    marginTop: 'auto',
-    marginBottom: 30,
     fontFamily: Fonts.medium,
-    fontSize: 13,
+    color: TEXT_SECONDARY,
+    marginTop: -2,
+  },
+  footer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 20,
+  },
+  footerText: {
+    fontSize: 12,
+    fontFamily: Fonts.regular,
     color: TEXT_SECONDARY,
   },
 });
