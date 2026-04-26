@@ -49,6 +49,7 @@ const GlossaryScreen = () => {
   const [suggestedTerm, setSuggestedTerm] = useState('');
   const [suggestedDef, setSuggestedDef] = useState('');
 
+  const scrollRef = useRef<ScrollView>(null);
   const [sectionLayouts, setSectionLayouts] = useState<Record<string, number>>({});
 
   const filteredTerms = useMemo(() => {
@@ -508,8 +509,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: 110,
-    borderWidth: 1,
-    borderColor: '#F3F4F6',
     elevation: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -533,7 +532,7 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   letterGroup: {
-    marginBottom: 16,
+    marginBottom: 24,
   },
   letterHeader: {
     backgroundColor: '#F3F4F6',
@@ -553,7 +552,7 @@ const styles = StyleSheet.create({
   termRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 16,
+    paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#F3F4F6',
   },
@@ -572,11 +571,11 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.regular,
   },
   seeMoreBtn: {
-    padding: 12,
+    paddingVertical: 12,
     alignItems: 'center',
   },
   seeMoreText: {
-    fontSize: 13,
+    fontSize: 12,
     fontFamily: Fonts.bold,
     color: TEXT_SECONDARY,
   },
