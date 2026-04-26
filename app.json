@@ -36,8 +36,7 @@
           "backgroundColor": "#ffffff"
         }
       ],
-      "expo-font",
-      "@react-native-async-storage/async-storage"
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true,
