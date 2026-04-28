@@ -33,6 +33,7 @@ import { useToast } from '../../hooks/useToast';
 import { Confetti } from '../../components/Confetti';
 import { useAppContext } from '../../context/AppContext';
 import { SavingsGoal } from '../../types';
+import { InputField } from '../../components/InputField';
 
 // ── Emoji auto-detection from goal name ──────────────────────────────────────
 const getGoalEmoji = (name: string): string => {
@@ -238,79 +239,64 @@ export const CreateSavingsGoalScreen = () => {
           keyboardShouldPersistTaps="handled"
         >
           {/* Goal Name */}
-          <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>Goal Name</Text>
-            <TextInput
-              style={[styles.input, fieldState(name) && styles.inputActive]}
-              placeholder="e.g. Laptop"
-              placeholderTextColor="#BDBDBD"
-              value={name}
-              onChangeText={setName}
-            />
-          </View>
+          <InputField
+            label="Goal Name"
+            placeholder="e.g. Laptop"
+            value={name}
+            onChangeText={setName}
+            state={fieldState(name) ? 'active' : 'default'}
+          />
 
           {/* Target Amount */}
-          <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>Target Amount</Text>
-            <TextInput
-              style={[styles.input, fieldState(targetAmount) && styles.inputActive]}
-              placeholder="₦0"
-              placeholderTextColor="#BDBDBD"
-              value={targetAmount ? `₦${targetAmount}` : ''}
-              onChangeText={(t) => setTargetAmount(formatAmount(t.replace('₦', '')))}
-              keyboardType="numeric"
-            />
-          </View>
+          <InputField
+            label="Target Amount"
+            placeholder="₦0"
+            value={targetAmount ? `₦${targetAmount}` : ''}
+            onChangeText={(t) => setTargetAmount(formatAmount(t.replace('₦', '')))}
+            keyboardType="numeric"
+            state={fieldState(targetAmount) ? 'active' : 'default'}
+          />
 
           {/* Target Date */}
-          <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>
-              Target Date{targetDate ? ' (optional)' : ''}
-            </Text>
-            <TouchableOpacity
-              style={[styles.input, styles.inputRow, fieldState(targetDate) && styles.inputActive]}
-              activeOpacity={0.7}
-            >
-              <Text style={targetDate ? styles.inputText : styles.inputPlaceholder}>
-                {targetDate || 'Select a date'}
-              </Text>
+          <InputField
+            label="Target Date (optional)"
+            placeholder="DD/MM/YYYY"
+            value={targetDate}
+            onChangeText={setTargetDate}
+            state={fieldState(targetDate) ? 'active' : 'default'}
+            rightIcon={
               <Ionicons
                 name="calendar-outline"
                 size={18}
                 color={targetDate ? PRIMARY_GREEN : '#BDBDBD'}
               />
-            </TouchableOpacity>
-          </View>
+            }
+          />
 
           {/* Initial Deposit (create mode only) */}
           {!isEditing && (
-            <View style={styles.fieldGroup}>
-              <Text style={styles.fieldLabel}>Initial Deposit</Text>
-              <TextInput
-                style={[styles.input, fieldState(initialDeposit) && styles.inputActive]}
-                placeholder="₦0"
-                placeholderTextColor="#BDBDBD"
-                value={initialDeposit ? `₦${initialDeposit}` : ''}
-                onChangeText={(t) => setInitialDeposit(formatAmount(t.replace('₦', '')))}
-                keyboardType="numeric"
-              />
-            </View>
+            <InputField
+              label="Initial Deposit"
+              placeholder="₦0"
+              value={initialDeposit ? `₦${initialDeposit}` : ''}
+              onChangeText={(t) => setInitialDeposit(formatAmount(t.replace('₦', '')))}
+              keyboardType="numeric"
+              state={fieldState(initialDeposit) ? 'active' : 'default'}
+            />
           )}
 
           {/* Note */}
-          <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>Note (optional)</Text>
-            <TextInput
-              style={[styles.input, styles.inputMultiline, fieldState(notes) && styles.inputActive]}
-              placeholder=""
-              placeholderTextColor="#BDBDBD"
-              value={notes}
-              onChangeText={setNotes}
-              multiline
-              numberOfLines={3}
-              textAlignVertical="top"
-            />
-          </View>
+          <InputField
+            label="Note (optional)"
+            placeholder=""
+            value={notes}
+            onChangeText={setNotes}
+            state={fieldState(notes) ? 'active' : 'default'}
+            multiline
+            numberOfLines={3}
+            containerStyle={{ height: 88, alignItems: 'flex-start' }}
+            style={{ paddingTop: 14, textAlignVertical: 'top', minHeight: 60 }}
+          />
         </ScrollView>
       </KeyboardAvoidingView>
 
