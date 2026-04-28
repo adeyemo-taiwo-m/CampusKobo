@@ -49,6 +49,7 @@ interface AppContextType {
   toggleBalanceVisibility: () => Promise<void>;
   updateUser: (data: Partial<User>) => Promise<void>;
   setUser: (user: User | null) => void;
+  logout: () => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -399,6 +400,22 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     if (u) StorageService.saveUser(u);
   };
 
+  const logout = async () => {
+    setIsLoading(true);
+    try {
+      await StorageService.clearAllData();
+      setUserState(null);
+      setTransactions([]);
+      setBudgets([]);
+      setSavingsGoals([]);
+      setRecurringExpenses([]);
+    } catch (error) {
+      console.error("Error logging out:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -428,6 +445,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         toggleBalanceVisibility,
         updateUser,
         setUser,
+        logout,
       }}
     >
       {children}

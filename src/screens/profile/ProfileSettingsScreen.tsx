@@ -25,6 +25,7 @@ import {
   Fonts,
 } from '../../constants';
 import { Header } from '../../components/Header';
+import { useAppContext } from '../../context/AppContext';
 
 const { height } = Dimensions.get('window');
 
@@ -65,11 +66,21 @@ const SettingsRow = ({
 
 export const ProfileSettingsScreen = () => {
   const router = useRouter();
+  const { logout, user, updateUser, isLoading } = useAppContext();
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
-  const [userName, setUserName] = useState('Adeyemo Taiwo M');
-  const [userEmail, setUserEmail] = useState('adeyemo@gmail.com');
+  const [userName, setUserName] = useState(user?.fullName || 'Adeyemo Taiwo M');
+  const [userEmail, setUserEmail] = useState(user?.email || 'adeyemo@gmail.com');
+  const [userPhone, setUserPhone] = useState(user?.phone || '+234 7012345678');
 
-  const [userPhone, setUserPhone] = useState('+234 7012345678');
+  React.useEffect(() => {
+    if (user) {
+      setUserName(user.fullName || 'Adeyemo Taiwo M');
+      setUserEmail(user.email || 'adeyemo@gmail.com');
+      setUserPhone(user.phone || '+234 7012345678');
+    }
+  }, [user]);
+
+  if (isLoading) return null;
 
   const handleLogout = () => {
     Alert.alert(
@@ -80,16 +91,17 @@ export const ProfileSettingsScreen = () => {
         { 
           text: 'Log Out', 
           style: 'destructive',
-          onPress: () => {
-            // In a real app, clear auth state here
-            router.replace('/(onboarding)/welcome-1');
+          onPress: async () => {
+            await logout();
+            router.replace('/onboarding/welcome1');
           }
         }
       ]
     );
   };
 
-  const handleEditProfile = () => {
+  const handleEditProfile = async () => {
+    await updateUser({ fullName: userName, phone: userPhone });
     setIsEditModalVisible(false);
     Alert.alert('Success', 'Profile updated successfully!');
   };

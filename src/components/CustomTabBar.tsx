@@ -18,15 +18,35 @@ const TAB_TITLES: Record<string, string> = {
 };
 
 export const CustomTabBar = ({ state, descriptors, navigation }: BottomTabBarProps) => {
+  const router = useRouter();
+  const currentRouteName = state.routes[state.index]?.name;
+
   // Only render the 4 visible tabs in the requested order
   const visibleRoutes = VISIBLE_TABS.map(name => 
     state.routes.find(r => r.name === name)
   ).filter(Boolean) as any[];
 
+  const handleFabPress = () => {
+    switch (currentRouteName) {
+      case 'index':
+      case 'expenses':
+        router.push('/add-transaction');
+        break;
+      case 'budget':
+        router.push('/budget/create');
+        break;
+      case 'savings':
+        router.push('/savings/create');
+        break;
+      default:
+        router.push('/add-transaction');
+    }
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.tabsContainer}>
-        {visibleRoutes.map((route) => {
+        {visibleRoutes.map((route, index) => {
           const { options } = descriptors[route.key];
           const isFocused = state.routes[state.index]?.name === route.name;
 
@@ -59,7 +79,7 @@ export const CustomTabBar = ({ state, descriptors, navigation }: BottomTabBarPro
               break;
           }
 
-          return (
+          const tabItem = (
             <TouchableOpacity
               key={route.key}
               onPress={onPress}
@@ -76,6 +96,26 @@ export const CustomTabBar = ({ state, descriptors, navigation }: BottomTabBarPro
               </Text>
             </TouchableOpacity>
           );
+
+          // Insert FAB after the second tab (Expenses)
+          if (index === 2) {
+            return (
+              <React.Fragment key="fab-fragment">
+                <View style={styles.fabContainer}>
+                  <TouchableOpacity
+                    style={styles.fabButton}
+                    activeOpacity={0.8}
+                    onPress={handleFabPress}
+                  >
+                    <Ionicons name="add" size={32} color={WHITE} />
+                  </TouchableOpacity>
+                </View>
+                {tabItem}
+              </React.Fragment>
+            );
+          }
+
+          return tabItem;
         })}
       </View>
     </View>
@@ -95,6 +135,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.05,
     shadowRadius: 4,
+    overflow: 'visible',
   },
   tabsContainer: {
     flexDirection: 'row',
@@ -102,6 +143,7 @@ const styles = StyleSheet.create({
     width: '100%',
     justifyContent: 'space-around',
     alignItems: 'center',
+    overflow: 'visible',
   },
   tabItem: {
     flex: 1,
@@ -113,5 +155,27 @@ const styles = StyleSheet.create({
     fontSize: 10,
     marginTop: 4,
     fontFamily: Fonts.medium,
+  },
+  fabContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1,
+  },
+  fabButton: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: PRIMARY_GREEN,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: -35, // Lift it up
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    borderWidth: 4,
+    borderColor: WHITE,
   },
 });
