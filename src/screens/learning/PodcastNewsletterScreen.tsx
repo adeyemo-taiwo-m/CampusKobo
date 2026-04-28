@@ -24,6 +24,7 @@ import {
 import { Header } from '../../components/Header';
 import { PodcastEpisodeCard } from '../../components/PodcastEpisodeCard';
 import { LEARNING_CONTENT } from '../../constants/learningData';
+import { InputField } from '../../components/InputField';
 
 const PodcastNewsletterScreen = () => {
   const router = useRouter();
@@ -215,19 +216,19 @@ const PodcastNewsletterScreen = () => {
           <Text style={styles.subscribeSubtitle}>
             Get the latest financial tips and news delivered straight to your inbox.
           </Text>
-          <View style={styles.subscribeInputWrapper}>
-            <TextInput
-              placeholder="Enter your email"
-              style={styles.subscribeInput}
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-            />
-            <TouchableOpacity style={styles.subscribeBtn} onPress={handleSubscribe}>
-              <Text style={styles.subscribeBtnText}>Subscribe</Text>
-            </TouchableOpacity>
-          </View>
+          <InputField
+            placeholder="Enter your email"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            containerStyle={{ paddingRight: 4, paddingLeft: 4, borderColor: '#D1FAE5' }}
+            rightIcon={
+              <TouchableOpacity style={styles.subscribeBtn} onPress={handleSubscribe}>
+                <Text style={styles.subscribeBtnText}>Subscribe</Text>
+              </TouchableOpacity>
+            }
+          />
         </View>
 
         <View style={{ height: 40 }} />

@@ -26,6 +26,7 @@ import {
 } from '../../constants';
 import { Header } from '../../components/Header';
 import { useAppContext } from '../../context/AppContext';
+import { InputField } from '../../components/InputField';
 
 const { height } = Dimensions.get('window');
 
@@ -256,36 +257,29 @@ export const ProfileSettingsScreen = () => {
                     </View>
                   </View>
 
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.inputLabel}>Name</Text>
-                    <TextInput 
-                      style={styles.modalInput}
-                      value={userName}
-                      onChangeText={setUserName}
-                      placeholder="Enter your name"
-                    />
-                  </View>
+                  <InputField
+                    label="Name"
+                    placeholder="Enter your name"
+                    value={userName}
+                    onChangeText={setUserName}
+                  />
 
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.inputLabel}>Email address</Text>
-                    <TextInput 
-                      style={[styles.modalInput, styles.disabledInput]}
-                      value={userEmail}
-                      editable={false}
-                      placeholder="Enter your email"
-                    />
-                  </View>
+                  <InputField
+                    label="Email address"
+                    placeholder="Enter your email"
+                    value={userEmail}
+                    onChangeText={() => {}}
+                    editable={false}
+                    state="disabled"
+                  />
 
-                  <View style={styles.inputGroup}>
-                    <Text style={styles.inputLabel}>Phone number (Optional)</Text>
-                    <TextInput 
-                      style={styles.modalInput}
-                      value={userPhone}
-                      onChangeText={setUserPhone}
-                      placeholder="+234 0000000000"
-                      keyboardType="phone-pad"
-                    />
-                  </View>
+                  <InputField
+                    label="Phone number (Optional)"
+                    placeholder="+234 0000000000"
+                    value={userPhone}
+                    onChangeText={setUserPhone}
+                    keyboardType="phone-pad"
+                  />
                 </ScrollView>
 
                 <TouchableOpacity 

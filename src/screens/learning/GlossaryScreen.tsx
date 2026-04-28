@@ -27,6 +27,7 @@ import {
 import { Header } from '../../components/Header';
 import { GLOSSARY_TERMS } from '../../constants/learningData';
 import { GlossaryTerm } from '../../types';
+import { InputField } from '../../components/InputField';
 
 const { width, height } = Dimensions.get('window');
 
@@ -142,16 +143,13 @@ const GlossaryScreen = () => {
       >
         {/* Search Bar */}
         <View style={styles.searchContainer}>
-          <View style={styles.searchBar}>
-            <Ionicons name="search-outline" size={20} color={TEXT_SECONDARY} style={styles.searchIcon} />
-            <TextInput
-              placeholder="Search a financial term..."
-              style={styles.searchInput}
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              placeholderTextColor={TEXT_SECONDARY}
-            />
-          </View>
+          <InputField
+            placeholder="Search a financial term..."
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            leftIcon={<Ionicons name="search-outline" size={20} color={TEXT_SECONDARY} />}
+            containerStyle={{ height: 56, borderRadius: 16, borderColor: '#E5E7EB' }}
+          />
         </View>
 
         {/* Term of the Day */}
@@ -348,26 +346,22 @@ const GlossaryScreen = () => {
                 <Text style={styles.modalTerm}>Suggest a Term</Text>
                 <Text style={styles.modalSubtitle}>Help us grow our glossary for students</Text>
                 
-                <View style={styles.inputGroup}>
-                  <Text style={styles.inputLabel}>Term Name</Text>
-                  <TextInput 
-                    style={styles.modalInput}
-                    placeholder="Enter term..."
-                    value={suggestedTerm}
-                    onChangeText={setSuggestedTerm}
-                  />
-                </View>
+                <InputField
+                  label="Term Name"
+                  placeholder="Enter term..."
+                  value={suggestedTerm}
+                  onChangeText={setSuggestedTerm}
+                />
 
-                <View style={styles.inputGroup}>
-                  <Text style={styles.inputLabel}>Definition (Optional)</Text>
-                  <TextInput 
-                    style={[styles.modalInput, { height: 100, textAlignVertical: 'top' }]}
-                    placeholder="Tell us what it means..."
-                    multiline
-                    value={suggestedDef}
-                    onChangeText={setSuggestedDef}
-                  />
-                </View>
+                <InputField
+                  label="Definition (Optional)"
+                  placeholder="Tell us what it means..."
+                  multiline
+                  value={suggestedDef}
+                  onChangeText={setSuggestedDef}
+                  containerStyle={{ height: 100, alignItems: 'flex-start' }}
+                  style={{ paddingTop: 14, textAlignVertical: 'top', minHeight: 70 }}
+                />
 
                 <TouchableOpacity 
                   style={styles.submitBtn}
