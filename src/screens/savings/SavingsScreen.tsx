@@ -60,7 +60,7 @@ const getGoalEmoji = (name: string): string => {
 export const SavingsScreen = () => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { savingsGoals, isLoading } = useAppContext();
+  const { savingsGoals, isLoading, user } = useAppContext();
   const { toastProps, showToast } = useToast();
   const hasGoals = savingsGoals.length > 0;
   const totalSaved = savingsGoals.reduce((sum, g) => sum + g.savedAmount, 0);
@@ -154,7 +154,7 @@ export const SavingsScreen = () => {
                 style={styles.avatarImage}
               />
             </View>
-            <Text style={styles.welcomeText}>Hi, Taiwo</Text>
+            <Text style={styles.welcomeText}>Hi, {user?.name?.split(' ')[0] || 'there'}</Text>
           </TouchableOpacity>
 
           <Text style={styles.headerTitle}>Savings</Text>

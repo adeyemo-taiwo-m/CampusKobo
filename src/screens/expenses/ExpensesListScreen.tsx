@@ -40,7 +40,7 @@ type FilterType = 'This Month' | 'Last Month' | 'This Week' | 'All';
 
 export default function ExpensesListScreen() {
   const router = useRouter();
-  const { transactions, budgets, isLoading } = useAppContext();
+  const { transactions, budgets, isLoading, user } = useAppContext();
   const [activeFilter, setActiveFilter] = useState<FilterType>('This Month');
   const [searchQuery, setSearchQuery] = useState('');
   const [isExportVisible, setIsExportVisible] = useState(false);
@@ -124,7 +124,7 @@ export default function ExpensesListScreen() {
               <View style={styles.avatar}>
                 <Image source={require("../../../assets/images/avatar.jpeg")} style={styles.avatarImage} />
               </View>
-              <Text style={styles.welcomeText}>Hi, Taiwo</Text>
+              <Text style={styles.welcomeText}>Hi, {user?.name?.split(' ')[0] || 'there'}</Text>
             </TouchableOpacity>
             
             <Text style={styles.headerTitle}>Expenses</Text>

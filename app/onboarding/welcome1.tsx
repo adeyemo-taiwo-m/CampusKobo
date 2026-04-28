@@ -37,7 +37,7 @@ export default function WelcomeScreen1() {
           <Button 
             title="Login" 
             onPress={() => router.push('/onboarding/login')} 
-            variant="tertiary"
+            variant="outline"
             style={styles.topButton}
           />
           <Button 

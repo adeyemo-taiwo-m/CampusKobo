@@ -26,6 +26,7 @@ import {
 } from '../../constants';
 import { ProgressBar } from '../../components/ProgressBar';
 import { DarkCard } from '../../components/DarkCard';
+import { EmptyState } from '../../components/EmptyState';
 import { useAppContext } from '../../context/AppContext';
 import { Toast } from '../../components/Toast';
 import { useToast } from '../../hooks/useToast';
@@ -91,7 +92,7 @@ const BudgetCard = ({ budget, onPress }: { budget: Budget; onPress: () => void }
 
 export const BudgetScreen = () => {
   const router = useRouter();
-  const { budgets, isLoading } = useAppContext();
+  const { budgets, isLoading, user } = useAppContext();
   const { toastProps, showToast } = useToast();
   const hasBudgets = budgets.length > 0;
   
@@ -114,7 +115,7 @@ export const BudgetScreen = () => {
   const totalSpent = budgets.reduce((sum, b) => sum + b.spentAmount, 0);
   const totalRemaining = totalBudget - totalSpent;
   const totalProgress = totalBudget > 0 ? totalSpent / totalBudget : 0;
-  const currentMonth = "OCTOBER 2025";
+  const currentMonth = new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }).toUpperCase();
 
   // Motivational logic
   let motivationalMessage = "You are doing well 👍";
@@ -136,7 +137,7 @@ export const BudgetScreen = () => {
               <View style={styles.avatar}>
                 <Image source={require("../../../assets/images/avatar.jpeg")} style={styles.avatarImage} />
               </View>
-              <Text style={styles.welcomeText}>Hi, Taiwo</Text>
+              <Text style={styles.welcomeText}>Hi, {user?.name?.split(' ')[0] || 'there'}</Text>
             </TouchableOpacity>
             <View style={styles.headerActions}>
               <TouchableOpacity style={styles.iconButton} onPress={() => router.push("/learning")}>
@@ -201,16 +202,12 @@ export const BudgetScreen = () => {
             </View>
           ) : (
             <View style={styles.emptyContainer}>
-               <View style={styles.emptyImgCircle}>
-                  <Image 
-                    source={require("../../../assets/images/no-recurring.svg")} 
-                    style={styles.illustrationImage}
-                    resizeMode="contain"
-                  />
-               </View>
-               <Text style={styles.emptyStateMainText}>No budget set yet</Text>
-               <Text style={styles.emptyStateSubText}>Set a budget to track and control your spending</Text>
-            </View>
+            <EmptyState
+              icon="wallet-outline"
+              title="No budget set yet"
+              subtitle="Set a budget to track and control your spending"
+            />
+          </View>
           )}
           <View style={{ height: 120 }} />
         </ScrollView>

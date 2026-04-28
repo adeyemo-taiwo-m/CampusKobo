@@ -137,7 +137,7 @@ export default function DashboardScreen() {
                       style={styles.avatarImage}
                     />
                   </View>
-                  <Text style={styles.welcomeText}>Hi, Taiwo</Text>
+                  <Text style={styles.welcomeText}>Hi, {user?.name?.split(' ')[0] || 'there'}</Text>
                 </TouchableOpacity>
 
                 <View style={styles.headerActions}>
@@ -181,7 +181,7 @@ export default function DashboardScreen() {
         {/* Date Filter Bar */}
         <View style={styles.dateFilter}>
           <TouchableOpacity style={styles.dateSelector}>
-            <Text style={styles.dateText}>OCTOBER 2025</Text>
+            <Text style={styles.dateText}>{new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }).toUpperCase()}</Text>
             <Ionicons
               name="calendar-outline"
               size={16}
