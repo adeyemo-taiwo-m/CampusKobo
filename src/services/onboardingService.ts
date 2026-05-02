@@ -50,3 +50,10 @@ export const setupBudget = async (data: BudgetSetupRequest): Promise<any> => {
 export const setupCategories = async (data: CategorySetupRequest): Promise<any> => {
   return await apiClient.post(API_ENDPOINTS.ONBOARDING_CATEGORIES, data);
 };
+
+export const onboardingService = {
+  getProgress,
+  selectGoal,
+  setupBudget,
+  setupCategories,
+};

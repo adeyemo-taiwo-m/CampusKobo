@@ -73,3 +73,11 @@ export const listSessions = async (): Promise<any[]> => {
 export const revokeSession = async (sessionId: string): Promise<any> => {
   return await apiClient.delete(API_ENDPOINTS.REVOKE_SESSION(sessionId));
 };
+
+export const userService = {
+  getMe,
+  updateProfile,
+  uploadAvatar,
+  listSessions,
+  revokeSession,
+};

@@ -135,3 +135,16 @@ export const logout = async (): Promise<void> => {
     await clearTokens();
   }
 };
+
+export const authService = {
+  register,
+  login,
+  googleAuth,
+  verifyEmail,
+  resendVerification,
+  refreshToken,
+  changePassword,
+  changeEmail,
+  createPin,
+  logout,
+};

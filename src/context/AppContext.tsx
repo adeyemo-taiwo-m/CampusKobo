@@ -13,6 +13,10 @@ import {
   RecurringExpense,
 } from "../types";
 import { StorageService } from "../storage/StorageService";
+import { UserProfileResponse, userService } from "../services/userService";
+import { authService } from "../services/authService";
+import { hasValidTokens, clearTokens } from "../storage/TokenStorage";
+import { authEvents, AUTH_EVENTS } from "../utils/authEvents";
 
 interface AppContextType {
   user: User | null;
@@ -21,7 +25,12 @@ interface AppContextType {
   savingsGoals: SavingsGoal[];
   recurringExpenses: RecurringExpense[];
   isLoading: boolean;
+  apiUser: UserProfileResponse | null;
+  isAuthenticated: boolean;
+  authLoading: boolean;
+  networkError: boolean;
   loadAllData: () => Promise<void>;
+  checkAuthStatus: () => Promise<void>;
   addTransaction: (transaction: Transaction) => Promise<void>;
   updateTransaction: (id: string, data: Partial<Transaction>) => Promise<void>;
   deleteTransaction: (id: string) => Promise<void>;
@@ -50,6 +59,9 @@ interface AppContextType {
   updateUser: (data: Partial<User>) => Promise<void>;
   setUser: (user: User | null) => void;
   logout: () => Promise<void>;
+  loginWithApi: (email: string, password: string) => Promise<void>;
+  registerWithApi: (full_name: string, email: string, password: string) => Promise<any>;
+  logoutFromApi: () => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -64,6 +76,89 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   >([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isBalanceHidden, setIsBalanceHidden] = useState(false);
+
+  // API Auth State
+  const [apiUser, setApiUser] = useState<UserProfileResponse | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [authLoading, setAuthLoading] = useState<boolean>(true);
+  const [networkError, setNetworkError] = useState<boolean>(false);
+
+  const checkAuthStatus = async () => {
+    setAuthLoading(true);
+    try {
+      const hasTokens = await hasValidTokens();
+      if (hasTokens) {
+        try {
+          const profile = await userService.getMe();
+          setApiUser(profile);
+          setIsAuthenticated(true);
+          
+          // Sync API user with local user if needed
+          if (user && user.email === profile.email) {
+            const updatedLocal = { ...user, name: profile.full_name };
+            setUserState(updatedLocal);
+            StorageService.saveUser(updatedLocal);
+          }
+        } catch (error: any) {
+          if (error.message && (error.message.includes('401') || error.message.includes('Unauthorized'))) {
+            await clearTokens();
+            setIsAuthenticated(false);
+          } else {
+            // Likely a network error, assume authenticated but set network error flag
+            setIsAuthenticated(true);
+            setNetworkError(true);
+            console.warn('Network error while checking auth, assuming session is valid');
+          }
+        }
+      } else {
+        setIsAuthenticated(false);
+      }
+    } catch (error) {
+      console.error('Error checking auth status:', error);
+      setIsAuthenticated(false);
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const loginWithApi = async (email: string, password: string) => {
+    try {
+      await authService.login({ email, password });
+      setIsAuthenticated(true);
+      const profile = await userService.getMe();
+      setApiUser(profile);
+      
+      // Load all local data alongside
+      await loadAllData();
+      
+      authEvents.emit(AUTH_EVENTS.LOGGED_IN);
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  const registerWithApi = async (full_name: string, email: string, password: string) => {
+    try {
+      const result = await authService.register({ full_name, email, password });
+      return result;
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  const logoutFromApi = async () => {
+    try {
+      await authService.logout();
+    } catch (error) {
+      console.warn('API logout failed:', error);
+    } finally {
+      setIsAuthenticated(false);
+      setApiUser(null);
+      await clearTokens();
+      await loadAllData(); // Reset local state
+      authEvents.emit(AUTH_EVENTS.LOGGED_OUT);
+    }
+  };
 
   const loadAllData = async () => {
     setIsLoading(true);
@@ -279,7 +374,22 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   };
 
   useEffect(() => {
+    // Run auth check and data load in parallel
+    checkAuthStatus();
     loadAllData();
+
+    // Listen for auth events
+    const onExpired = () => {
+      logoutFromApi();
+      // Toast notification would be called here
+      console.warn('Session expired. Please log in again.');
+    };
+
+    authEvents.on(AUTH_EVENTS.TOKEN_EXPIRED, onExpired);
+
+    return () => {
+      authEvents.off(AUTH_EVENTS.TOKEN_EXPIRED, onExpired);
+    };
   }, []);
 
   const addTransaction = async (transaction: Transaction) => {
@@ -415,6 +525,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       setBudgets([]);
       setSavingsGoals([]);
       setRecurringExpenses([]);
+      
+      // Also logout from API if needed
+      await logoutFromApi();
     } catch (error) {
       console.error("Error logging out:", error);
     } finally {
@@ -431,7 +544,12 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         savingsGoals,
         recurringExpenses,
         isLoading,
+        apiUser,
+        isAuthenticated,
+        authLoading,
+        networkError,
         loadAllData,
+        checkAuthStatus,
         addTransaction,
         updateTransaction,
         deleteTransaction,
@@ -452,6 +570,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         updateUser,
         setUser,
         logout,
+        loginWithApi,
+        registerWithApi,
+        logoutFromApi,
       }}
     >
       {children}
