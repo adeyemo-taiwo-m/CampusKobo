@@ -6,6 +6,7 @@ import {
   SafeAreaView,
   TouchableOpacity,
   ScrollView,
+  ActivityIndicator,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -22,6 +23,7 @@ import {
 import { Button } from "../../src/components/Button";
 import { OnboardingHeader } from "../../src/components/OnboardingHeader";
 import { useAppContext } from "../../src/context/AppContext";
+import { onboardingService } from "../../src/services/onboardingService";
 
 interface CategoryOption {
   id: string;
@@ -29,11 +31,20 @@ interface CategoryOption {
   icon: keyof typeof Ionicons.glyphMap;
 }
 
+const CATEGORY_API_IDS: Record<string, string> = {
+  Food: "food",
+  Transport: "transport",
+  "Data/Internet": "data_internet",
+  Entertainment: "entertainment",
+  Shopping: "shopping",
+  Health: "health",
+};
+
 const CATEGORIES: CategoryOption[] = [
-  { id: "food", name: "Food", icon: "fast-food-outline" },
-  { id: "transport", name: "Transport", icon: "bus-outline" },
-  { id: "data", name: "Data", icon: "wifi-outline" },
-  { id: "entertainment", name: "Entertainment", icon: "game-controller-outline" },
+  { id: "Food", name: "Food", icon: "fast-food-outline" },
+  { id: "Transport", name: "Transport", icon: "bus-outline" },
+  { id: "Data/Internet", name: "Data/Internet", icon: "wifi-outline" },
+  { id: "Entertainment", name: "Entertainment", icon: "game-controller-outline" },
 ];
 
 export default function QuickCategorySetupScreen() {
@@ -42,6 +53,7 @@ export default function QuickCategorySetupScreen() {
   const [selectedCategories, setSelectedCategories] = useState<string[]>(
     CATEGORIES.map((cat) => cat.id)
   );
+  const [isLoading, setIsLoading] = useState(false);
 
   const toggleCategory = (id: string) => {
     if (selectedCategories.includes(id)) {
@@ -51,9 +63,22 @@ export default function QuickCategorySetupScreen() {
     }
   };
 
-  const handleFinish = () => {
-    updateUser({ selectedCategories });
-    router.push("/onboarding/first-expense");
+  const handleFinish = async () => {
+    setIsLoading(true);
+    try {
+      // Map selected category names to API IDs
+      const mappedIds = selectedCategories.map(name => CATEGORY_API_IDS[name]).filter(Boolean);
+      
+      // Sync categories with API
+      await onboardingService.setupCategories({ category_ids: mappedIds });
+    } catch (error) {
+      console.warn("API Category Setup failed, continuing locally:", error);
+    } finally {
+      // Always sync locally and move forward
+      updateUser({ selectedCategories, hasCompletedOnboarding: true });
+      setIsLoading(false);
+      router.push("/onboarding/first-expense");
+    }
   };
 
   return (
@@ -82,6 +107,7 @@ export default function QuickCategorySetupScreen() {
                   style={[styles.categoryCard, isSelected && styles.selectedCard]}
                   onPress={() => toggleCategory(category.id)}
                   activeOpacity={0.8}
+                  disabled={isLoading}
                 >
                   <View style={styles.iconContainer}>
                     <Ionicons
@@ -104,11 +130,13 @@ export default function QuickCategorySetupScreen() {
 
         <View style={styles.footer}>
           <Button
-            title="Continue"
+            title={isLoading ? "" : "Continue"}
             onPress={handleFinish}
-            disabled={selectedCategories.length === 0}
+            disabled={selectedCategories.length === 0 || isLoading}
             variant="primary"
-          />
+          >
+            {isLoading && <ActivityIndicator size="small" color={WHITE} />}
+          </Button>
         </View>
       </View>
     </SafeAreaView>

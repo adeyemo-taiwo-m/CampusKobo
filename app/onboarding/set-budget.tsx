@@ -8,6 +8,7 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -25,6 +26,7 @@ import { Button } from "../../src/components/Button";
 import { InputField } from "../../src/components/InputField";
 import { OnboardingHeader } from "../../src/components/OnboardingHeader";
 import { useAppContext } from "../../src/context/AppContext";
+import { onboardingService } from "../../src/services/onboardingService";
 
 const BUDGET_SUGGESTIONS = [
   { label: "₦20,000", value: 20000 },
@@ -37,11 +39,26 @@ export default function SetMonthlyBudgetScreen() {
   const router = useRouter();
   const { updateUser } = useAppContext();
   const [budget, setBudget] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     const amount = parseFloat(budget.replace(/[^0-9]/g, "")) || 0;
-    updateUser({ monthlyBudget: amount });
-    router.push("/onboarding/quick-setup");
+    
+    setIsLoading(true);
+    try {
+      // Sync with API
+      await onboardingService.setupBudget({
+        monthly_income: amount,
+        currency: 'NGN'
+      });
+    } catch (error) {
+      console.warn("API Budget Setup failed, continuing locally:", error);
+    } finally {
+      // Always sync locally and move forward
+      updateUser({ monthlyBudget: amount });
+      setIsLoading(false);
+      router.push("/onboarding/quick-setup");
+    }
   };
 
   const selectSuggestion = (value: number) => {
@@ -94,6 +111,7 @@ export default function SetMonthlyBudgetScreen() {
                 onChangeText={handleInputChange}
                 keyboardType="numeric"
                 autoFocus
+                editable={!isLoading}
               />
             </View>
 
@@ -103,6 +121,7 @@ export default function SetMonthlyBudgetScreen() {
                   key={item.value}
                   style={styles.suggestionChip}
                   onPress={() => selectSuggestion(item.value)}
+                  disabled={isLoading}
                 >
                   <Text style={styles.suggestionText}>{item.label}</Text>
                 </TouchableOpacity>
@@ -116,10 +135,13 @@ export default function SetMonthlyBudgetScreen() {
 
           <View style={styles.footer}>
             <Button
-              title="Continue"
+              title={isLoading ? "" : "Continue"}
               onPress={handleContinue}
               variant="primary"
-            />
+              disabled={isLoading || !budget}
+            >
+              {isLoading && <ActivityIndicator size="small" color={WHITE} />}
+            </Button>
           </View>
         </View>
       </KeyboardAvoidingView>
