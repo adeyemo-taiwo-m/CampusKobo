@@ -1,5 +1,4 @@
 import { AppProvider } from "@/src/context/AppContext";
-import { DebugAuth } from "@/src/components/DebugAuth";
 import {
   Poppins_400Regular,
   Poppins_500Medium,
@@ -82,7 +81,6 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <GestureHandlerRootView style={{ flex: 1 }}>
         <AppProvider>
-          <DebugAuth />
           <InnerLayout />
           <StatusBar style="dark" />
         </AppProvider>

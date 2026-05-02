@@ -266,7 +266,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: SPACING.LG,
-    paddingTop: SPACING.MD,
+    paddingTop: SPACING.XXL,
     marginBottom: SPACING.LG,
   },
   profileSection: {

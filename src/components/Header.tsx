@@ -137,7 +137,8 @@ const styles = StyleSheet.create({
     borderBottomWidth: 0,
   },
   container: {
-    height: 60,
+    paddingTop: SPACING.XXL,
+    height: 100,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
