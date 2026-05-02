@@ -27,11 +27,13 @@ The frontend was built as a fully **offline-first** app using AsyncStorage and a
 ### What Will Change vs. What Stays the Same
 
 **What changes:**
+
 - Auth (register, login, logout, token refresh) → now hits the real API
 - Onboarding (goal, budget, categories) → now hits the real API
 - User profile data → loaded from the API, not just local storage
 
 **What stays the same (for now — future phases):**
+
 - Transactions, budgets, savings → still local (API endpoints exist but are secondary priority)
 - Learning content → still local static data
 - All UI components, navigation, and styling → completely unchanged
@@ -69,7 +71,7 @@ Paste this instruction into your agent:
 >
 > Define and export the following:
 >
-> ```typescript
+> ````typescript
 > export const API_BASE_URL = 'https://campus-kobo-backend-gmiq.vercel.app/api/v1';
 >
 > export const API_ENDPOINTS = {
@@ -141,6 +143,7 @@ Paste this instruction into your agent:
 >
 > export const API_TIMEOUT = 15000; // 15 seconds
 > ```"
+> ````
 
 ---
 
@@ -155,23 +158,28 @@ Paste this instruction into your agent:
 > Create and export the following async functions:
 >
 > **saveTokens(accessToken: string, refreshToken: string): Promise\<void\>**
+>
 > - Calls `SecureStore.setItemAsync` to save both tokens using their respective keys from TOKEN_KEYS
 > - Wrap in try/catch — if SecureStore fails (some Android emulators), fall back to AsyncStorage with the same keys
 > - Log a console warning if fallback is used
 >
 > **getAccessToken(): Promise\<string | null\>**
+>
 > - Retrieves the access token from SecureStore
 > - Returns null if not found or on error
 >
 > **getRefreshToken(): Promise\<string | null\>**
+>
 > - Retrieves the refresh token from SecureStore
 > - Returns null if not found or on error
 >
 > **clearTokens(): Promise\<void\>**
+>
 > - Deletes both token keys from SecureStore
 > - Also clears from AsyncStorage in case fallback was used
 >
 > **hasValidTokens(): Promise\<boolean\>**
+>
 > - Calls getAccessToken()
 > - Returns true if a non-null, non-empty string is found
 > - Returns false otherwise
@@ -186,12 +194,14 @@ Paste this instruction into your agent:
 > "Create the file `/src/services/apiClient.ts`. This is the core HTTP client that all API calls go through.
 >
 > Import axios and create a default axios instance with:
+>
 > - `baseURL`: API_BASE_URL from constants/api
 > - `timeout`: API_TIMEOUT from constants/api
 > - `headers`: `{ 'Content-Type': 'application/json', 'Accept': 'application/json' }`
 >
 > **Request Interceptor:**
 > Add a request interceptor that runs before every outgoing request:
+>
 > 1. Calls `getAccessToken()` from TokenStorage
 > 2. If a token exists, adds it to the request headers as `Authorization: Bearer {token}`
 > 3. If no token exists, the request goes out without an auth header (for public endpoints like login/register)
@@ -201,9 +211,11 @@ Paste this instruction into your agent:
 > Add a response interceptor with two handlers:
 >
 > SUCCESS handler (status 2xx):
+>
 > - Simply return `response.data` — this unwraps the axios response so callers get the data directly
 >
 > ERROR handler:
+>
 > - Check if `error.response?.status === 401`
 >   - If yes: attempt token refresh (see below)
 >   - If the refresh also fails: call `clearTokens()` and emit an event `'AUTH_EXPIRED'` using a simple EventEmitter (see Step 5)
@@ -216,6 +228,7 @@ Paste this instruction into your agent:
 >
 > **Token Refresh Logic (inside the error interceptor):**
 > Create a private async function `handleTokenRefresh(failedRequest)`:
+>
 > 1. Get the refresh token from TokenStorage
 > 2. If no refresh token exists, reject immediately
 > 3. Make a direct axios POST (not through the intercepted client) to `API_BASE_URL + '/auth/refresh'` with body `{ refresh_token: refreshToken }`
@@ -233,20 +246,21 @@ Paste this instruction into your agent:
 > "Create the file `/src/utils/authEvents.ts`. This is a lightweight event emitter used to communicate auth state changes (like token expiry) from the API client layer to the UI layer without creating circular dependencies.
 >
 > ```typescript
-> import { EventEmitter } from 'events';
+> import { EventEmitter } from "events";
 >
 > class AuthEventEmitter extends EventEmitter {}
 >
 > export const authEvents = new AuthEventEmitter();
 >
 > export const AUTH_EVENTS = {
->   TOKEN_EXPIRED: 'AUTH_EXPIRED',
->   LOGGED_OUT: 'LOGGED_OUT',
->   LOGGED_IN: 'LOGGED_IN',
+>   TOKEN_EXPIRED: "AUTH_EXPIRED",
+>   LOGGED_OUT: "LOGGED_OUT",
+>   LOGGED_IN: "LOGGED_IN",
 > };
 > ```
 >
 > This will be imported in:
+>
 > - `apiClient.ts` — to emit `AUTH_EXPIRED` when refresh fails
 > - `AppContext.tsx` — to listen for `AUTH_EXPIRED` and automatically log the user out and redirect to login screen
 >
@@ -265,11 +279,13 @@ Paste this instruction into your agent:
 > Create and export:
 >
 > **isOnline(): Promise\<boolean\>**
+>
 > - Calls `NetInfo.fetch()`
 > - Returns `state.isConnected && state.isInternetReachable` (both must be true)
 > - Returns false on any error
 >
 > **useNetworkStatus(): { isOnline: boolean }** (a React hook)
+>
 > - Uses `useState(true)` for isOnline
 > - Uses `useEffect` to subscribe to `NetInfo.addEventListener`
 > - Updates state whenever connection changes
@@ -330,46 +346,56 @@ Paste this instruction into your agent:
 > Create and export the following async functions:
 >
 > **register(data: RegisterRequest): Promise\<AuthUserResponse\>**
+>
 > - POST to API_ENDPOINTS.REGISTER with data
 > - Do NOT save tokens here — registration does not return tokens, just the user
 > - Return the response
 >
 > **login(data: LoginRequest): Promise\<TokenResponse\>**
+>
 > - POST to API_ENDPOINTS.LOGIN with data
 > - On success: call `saveTokens(response.access_token, response.refresh_token)`
 > - Return the full token response
 >
 > **googleAuth(data: GoogleAuthRequest): Promise\<TokenResponse\>**
+>
 > - POST to API_ENDPOINTS.GOOGLE_AUTH with data
 > - On success: save tokens
 > - Return response
 >
 > **verifyEmail(data: VerifyEmailRequest): Promise\<any\>**
+>
 > - POST to API_ENDPOINTS.VERIFY_EMAIL with data
 > - Return response
 >
 > **resendVerification(email: string): Promise\<any\>**
+>
 > - POST to API_ENDPOINTS.RESEND_VERIFICATION with `{ email }`
 > - Return response
 >
 > **refreshToken(refreshToken: string): Promise\<TokenResponse\>**
+>
 > - POST to API_ENDPOINTS.REFRESH_TOKEN with `{ refresh_token: refreshToken }`
 > - On success: save the new tokens
 > - Return response
 >
 > **changePassword(data: { old_password: string; new_password: string }): Promise\<any\>**
+>
 > - POST to API_ENDPOINTS.CHANGE_PASSWORD with data
 > - Return response
 >
 > **changeEmail(data: { new_email: string; password: string }): Promise\<any\>**
+>
 > - POST to API_ENDPOINTS.CHANGE_EMAIL with data
 > - Return response
 >
 > **createPin(data: { pin: string }): Promise\<any\>**
+>
 > - POST to API_ENDPOINTS.CREATE_PIN with data
 > - Return response
 >
 > **logout(): Promise\<void\>**
+>
 > - POST to API_ENDPOINTS.LOGOUT (fire and forget — don't crash if it fails)
 > - Regardless of response: call `clearTokens()`
 > - Wrap the API call in its own try/catch so token clearing always happens even if the server call fails"
@@ -406,14 +432,17 @@ Paste this instruction into your agent:
 > Create and export:
 >
 > **getMe(): Promise\<UserProfileResponse\>**
+>
 > - GET to API_ENDPOINTS.GET_ME
 > - Returns the current logged-in user's profile
 >
 > **updateProfile(data: UserProfileUpdateRequest): Promise\<UserProfileResponse\>**
+>
 > - PUT to API_ENDPOINTS.UPDATE_PROFILE with data
 > - Returns updated profile
 >
 > **uploadAvatar(imageUri: string): Promise\<{ avatar_url: string }\>**
+>
 > - POST to API_ENDPOINTS.UPLOAD_AVATAR
 > - Must use FormData — NOT JSON
 > - Create a FormData object, append the image as a file field named 'file'
@@ -421,9 +450,11 @@ Paste this instruction into your agent:
 > - Return the response containing the new avatar URL
 >
 > **listSessions(): Promise\<any[]\>**
+>
 > - GET to API_ENDPOINTS.LIST_SESSIONS
 >
 > **revokeSession(sessionId: string): Promise\<any\>**
+>
 > - DELETE to API_ENDPOINTS.REVOKE_SESSION(sessionId)"
 
 ---
@@ -464,18 +495,22 @@ Paste this instruction into your agent:
 > Create and export:
 >
 > **getProgress(): Promise\<OnboardingProgressResponse\>**
+>
 > - GET to API_ENDPOINTS.ONBOARDING_PROGRESS
 > - Returns the user's current onboarding state
 >
 > **selectGoal(data: GoalSelectionRequest): Promise\<any\>**
+>
 > - POST to API_ENDPOINTS.ONBOARDING_GOAL with data
 > - Return response
 >
 > **setupBudget(data: BudgetSetupRequest): Promise\<any\>**
+>
 > - POST to API_ENDPOINTS.ONBOARDING_BUDGET with data
 > - Return response
 >
 > **setupCategories(data: CategorySetupRequest): Promise\<any\>**
+>
 > - POST to API_ENDPOINTS.ONBOARDING_CATEGORIES with data
 > - Return response"
 
@@ -499,6 +534,7 @@ Paste this instruction into your agent:
 > ```
 >
 > Add a new function **checkAuthStatus()** that runs on app launch:
+>
 > 1. Set `authLoading = true`
 > 2. Call `hasValidTokens()` from TokenStorage
 > 3. If tokens exist:
@@ -510,6 +546,7 @@ Paste this instruction into your agent:
 > 5. Always set `authLoading = false` at the end (in a finally block)
 >
 > Add a new function **loginWithApi(email, password)**:
+>
 > 1. Call `authService.login({ email, password })`
 > 2. On success: set `isAuthenticated = true`, then call `getMe()` and set `apiUser`
 > 3. Also call `loadAllData()` to load any local data
@@ -517,16 +554,19 @@ Paste this instruction into your agent:
 > 5. Throw errors so callers can display them
 >
 > Add a new function **registerWithApi(full_name, email, password)**:
+>
 > 1. Call `authService.register({ full_name, email, password })`
 > 2. Return the result — do NOT set isAuthenticated (user must verify email first)
 >
 > Add a new function **logoutFromApi()**:
+>
 > 1. Call `authService.logout()`
 > 2. Set `isAuthenticated = false`, `apiUser = null`
 > 3. Call `loadAllData()` to reset local state
 > 4. Emit `AUTH_EVENTS.LOGGED_OUT`
 >
 > Listen for `AUTH_EVENTS.TOKEN_EXPIRED` via authEvents in a `useEffect`:
+>
 > - When fired: call `logoutFromApi()` and show a toast: 'Your session has expired. Please log in again.'
 >
 > Call `checkAuthStatus()` in the existing `useEffect` that calls `loadAllData()` on app start — run both in parallel.
@@ -559,6 +599,7 @@ Paste this instruction into your agent:
 > ```
 >
 > This means the app will:
+>
 > - Show a loading screen briefly on startup
 > - Auto-navigate to dashboard if tokens are valid
 > - Show onboarding/login if not authenticated
@@ -576,6 +617,7 @@ Paste this instruction into your agent:
 > "Update `/src/screens/onboarding/SignUpScreen.tsx` to use the real API instead of creating a local user directly.
 >
 > Add the following new state variables:
+>
 > ```typescript
 > const [isLoading, setIsLoading] = useState(false);
 > const [apiError, setApiError] = useState<string | null>(null);
@@ -596,6 +638,7 @@ Paste this instruction into your agent:
 > 7. Always set `isLoading = false` in a finally block
 >
 > Update the 'Create Account' button:
+>
 > - When `isLoading` is true: show an `ActivityIndicator` (white, size 'small') instead of the button text
 > - Disable the button while loading
 >
@@ -614,15 +657,18 @@ Paste this instruction into your agent:
 > Receives `route.params.email` (string).
 >
 > **Header:**
+>
 > - Back arrow left (goes back to SignUpScreen)
 > - Title: 'Verify Your Email'
 >
 > **Content:**
+>
 > - Large envelope icon centered at top (use Ionicons 'mail-outline' in PRIMARY_GREEN, size 72)
 > - Title: 'Check your inbox' (large, bold)
 > - Subtitle: 'We sent a verification code to {email}. Enter it below to activate your account.' (gray, with the email highlighted in PRIMARY_GREEN bold)
 >
 > **6-digit OTP input:**
+>
 > - 6 separate TextInput boxes side by side (not one big field)
 > - Each box: 48x56px, rounded border, centered numeric text, large font (24px)
 > - Border turns PRIMARY_GREEN when focused
@@ -633,17 +679,20 @@ Paste this instruction into your agent:
 > - Use `useRef` to hold refs for all 6 inputs
 >
 > **Timer section:**
+>
 > - 'Didn't receive it? Resend in {seconds}s' — countdown from 60 seconds
 > - Use `useEffect` with `setInterval` to count down
 > - When timer reaches 0: text changes to 'Resend verification email' as a tappable PRIMARY_GREEN link
 > - Tapping calls `authService.resendVerification(email)` and resets the timer to 60
 >
 > **Verify button:**
+>
 > - 'Verify Email' — PRIMARY_GREEN full width
 > - Disabled until all 6 boxes have digits
 > - Shows ActivityIndicator while loading
 >
 > **Logic on submit:**
+>
 > 1. Set loading true
 > 2. Combine the 6 inputs into one code string
 > 3. Call `authService.verifyEmail({ email, code })`
@@ -662,6 +711,7 @@ Paste this instruction into your agent:
 > "Update `/src/screens/onboarding/LoginScreen.tsx` to use the real API.
 >
 > Add state variables:
+>
 > ```typescript
 > const [isLoading, setIsLoading] = useState(false);
 > const [apiError, setApiError] = useState<string | null>(null);
@@ -684,6 +734,7 @@ Paste this instruction into your agent:
 > 7. Always set `isLoading = false` in finally block
 >
 > Update the 'Log In' button:
+>
 > - Show ActivityIndicator while loading, disable button
 >
 > Add the same red error card below the form as in SignUpScreen.
@@ -703,6 +754,7 @@ Paste this instruction into your agent:
 > Import `onboardingService` from `../services/onboardingService`.
 >
 > Add state:
+>
 > ```typescript
 > const [isLoading, setIsLoading] = useState(false);
 > const [apiError, setApiError] = useState<string | null>(null);
@@ -712,9 +764,9 @@ Paste this instruction into your agent:
 >
 > ```typescript
 > const GOAL_API_VALUES: Record<string, string> = {
->   'Track my spending': 'track_spending',
->   'Control my budget': 'control_budget',
->   'Save towards goals': 'save_goals',
+>   "Track my spending": "track_spending",
+>   "Control my budget": "control_budget",
+>   "Save towards goals": "save_goals",
 > };
 > ```
 >
@@ -743,6 +795,7 @@ Paste this instruction into your agent:
 > Import `onboardingService` from `../services/onboardingService`.
 >
 > Add state:
+>
 > ```typescript
 > const [isLoading, setIsLoading] = useState(false);
 > ```
@@ -773,12 +826,12 @@ Paste this instruction into your agent:
 >
 > ```typescript
 > const CATEGORY_API_IDS: Record<string, string> = {
->   'Food': 'food',
->   'Transport': 'transport',
->   'Data/Internet': 'data_internet',
->   'Entertainment': 'entertainment',
->   'Shopping': 'shopping',
->   'Health': 'health',
+>   Food: "food",
+>   Transport: "transport",
+>   "Data/Internet": "data_internet",
+>   Entertainment: "entertainment",
+>   Shopping: "shopping",
+>   Health: "health",
 > };
 > ```
 >
@@ -805,6 +858,7 @@ Paste this instruction into your agent:
 > The existing logic already sets `hasCompletedOnboarding = true` in local storage. Add one additional step:
 >
 > When the screen mounts (in the existing `useEffect`):
+>
 > 1. Try to call `onboardingService.getProgress()` to verify onboarding is recorded on the server
 > 2. Log the result but do not block or crash based on the result
 > 3. Keep all existing behavior exactly as-is (confetti, timer, etc.)
@@ -824,17 +878,20 @@ Paste this instruction into your agent:
 > Import `apiUser` from AppContext.
 >
 > Update the profile card at the top:
+>
 > - Display name: `apiUser?.full_name || user?.name || 'User'` (API takes priority, falls back to local)
 > - Display email: `apiUser?.email || user?.email || ''`
 > - Avatar: if `apiUser?.avatar_url` exists, show it as an `Image` component; otherwise show the existing initials circle
 >
 > Update the 'Edit Profile' bottom sheet's save button:
+>
 > 1. When the user saves the edit form, call `updateProfile({ full_name: newName })` from userService
 > 2. On success: update `apiUser` via `setApiUser()` in context AND update local `user` via `updateUser()` in context
 > 3. On failure: show a toast error
 > 4. Show ActivityIndicator in the save button while loading
 >
 > Update the 'Log Out' confirmation handler:
+>
 > - Replace the old logout logic (which just cleared local state) with a call to `logoutFromApi()` from AppContext
 > - AppNavigator will automatically redirect to the login screen when `isAuthenticated` becomes false
 >
@@ -849,9 +906,11 @@ Paste this instruction into your agent:
 > "Update `/src/screens/profile/SecurityPrivacyScreen.tsx` to wire up the Change Password and Change Email flows to the real API.
 >
 > **Change Password row:**
+>
 > - Instead of showing 'Coming soon' alert, navigate to a new **ChangePasswordScreen** (create below)
 >
 > **Change Email row:**
+>
 > - Instead of showing 'Coming soon' alert, navigate to a new **ChangeEmailScreen** (create below)
 >
 > Create the file `/src/screens/profile/ChangePasswordScreen.tsx`:
@@ -859,21 +918,25 @@ Paste this instruction into your agent:
 > Header: Back arrow, Title 'Change Password'
 >
 > Form:
+>
 > 1. Current Password — secure input
 > 2. New Password — secure input with eye toggle + strength indicator (same as SignUpScreen)
 > 3. Confirm New Password — secure input
 >
 > Validation:
+>
 > - New password must be at least 6 characters
 > - Confirm password must match new password
 > - Show inline red errors below each field if invalid
 >
 > Save button:
+>
 > - 'Update Password' — PRIMARY_GREEN, full width
 > - Disabled until all 3 fields are filled
 > - Shows ActivityIndicator while loading
 >
 > Logic on submit:
+>
 > 1. Validate locally first
 > 2. Call `authService.changePassword({ old_password, new_password })`
 > 3. On success: show SuccessScreen component with title 'Password Updated!', then navigate back
@@ -886,12 +949,14 @@ Paste this instruction into your agent:
 > Header: Back arrow, Title 'Change Email'
 >
 > Form:
+>
 > 1. New Email Address — email input
 > 2. Current Password (for security verification) — secure input
 >
 > Save button: 'Update Email' — PRIMARY_GREEN
 >
 > Logic on submit:
+>
 > 1. Call `authService.changeEmail({ new_email, password })`
 > 2. On success: show a success message: 'Verification email sent to {newEmail}. Please verify it to complete the change.'
 > 3. On failure: show apiError
@@ -909,6 +974,7 @@ Paste this instruction into your agent:
 > In the existing `handleDone` function (which saves PIN to local user context and navigates back):
 >
 > After saving locally, ALSO call the API:
+>
 > 1. Call `authService.createPin({ pin })` — the PIN should have been passed through navigation params from ConfirmPINScreen to PINSuccessScreen
 > 2. Use try/catch — if it fails, log silently. The PIN is still saved locally so the app PIN lock still works.
 > 3. No visual changes — this is a background sync."
@@ -928,13 +994,16 @@ Paste this instruction into your agent:
 > Props: none — it reads from the `useNetworkStatus()` hook internally.
 >
 > When `isOnline` is false:
+>
 > - Show a yellow (#F59E0B) banner with a wifi-off icon and text 'You are offline. Showing saved data.'
 > - Animate it sliding down from height 0 to height 36px using Animated
 >
 > When `isOnline` is true:
+>
 > - Animate it sliding back up (height 0) and hide it
 >
 > Import and add this component to the following screens, placing it immediately inside the outermost View, above the Header component:
+>
 > - DashboardScreen
 > - ExpensesListScreen
 > - BudgetScreen
@@ -952,18 +1021,23 @@ Paste this instruction into your agent:
 > "Go through every function in `authService.ts`, `userService.ts`, and `onboardingService.ts`. Verify that each one:
 >
 > 1. **Does NOT have an internal try/catch** — errors should bubble up to the calling screen, which will handle them. The service files should be clean async functions that either return data or throw.
->
 > 2. **Calling screens DO have try/catch** — verify that every screen function that calls a service is wrapped in try/catch with:
 >    - A `setIsLoading(false)` in the `finally` block
 >    - A `setApiError(error.message)` in the `catch` block
 >    - A red error card in the JSX that shows `apiError` if it's non-null
->
 > 3. **FastAPI validation errors are readable** — the API returns 422 errors as:
 >    ```json
->    { 'detail': [{ 'loc': ['body', 'email'], 'msg': 'value is not a valid email', 'type': '...' }] }
+>    {
+>      "detail": [
+>        {
+>          "loc": ["body", "email"],
+>          "msg": "value is not a valid email",
+>          "type": "..."
+>        }
+>      ]
+>    }
 >    ```
 >    Verify that the apiClient response interceptor (from Step 4) correctly formats these as: 'email: value is not a valid email' and that the error reaches the screen as a plain string.
->
 > 4. **Network errors have a friendly message** — if axios throws a network error (no internet), the error message should be 'No internet connection. Please check your network.' — add this as a special case in the apiClient error interceptor: if `error.code === 'ECONNABORTED'` or `!error.response`, throw `new Error('No internet connection. Please check your network.')`.
 >
 > Fix any issues found during this audit."
@@ -979,24 +1053,28 @@ Paste this instruction into your agent:
 > "The following API endpoints exist on the backend but are NOT being connected in this integration phase. Add comments in the relevant screen files to mark where these connections should be added in a future phase. Do not implement them now — just add the comment markers.
 >
 > **In DashboardScreen.tsx** — add comment above the helper functions section:
+>
 > ```typescript
 > // TODO Phase 2: Replace local calculation with GET /api/v1/dashboard and GET /api/v1/dashboard/summary
 > // The API returns pre-calculated totals, which will replace getTotalIncome(), getTotalExpenses(), etc.
 > ```
 >
 > **In ExpensesListScreen.tsx** — add comment above the transaction list:
+>
 > ```typescript
 > // TODO Phase 2: Replace local transactions state with GET /api/v1/expenses (list) and GET /api/v1/income (list)
 > // All CRUD (create, edit, delete) should also use the corresponding API endpoints
 > ```
 >
 > **In BudgetScreen.tsx** — add comment:
+>
 > ```typescript
 > // TODO Phase 2: Replace local budgets with GET /api/v1/budgets
 > // CreateBudgetScreen should POST to /api/v1/budgets, edit should PUT, delete should DELETE
 > ```
 >
 > **In SavingsScreen.tsx** — add comment:
+>
 > ```typescript
 > // TODO Phase 2: Replace local savings goals with GET /api/v1/savings/goals
 > // CreateSavingsGoalScreen should POST to /api/v1/savings/goals
@@ -1004,16 +1082,19 @@ Paste this instruction into your agent:
 > ```
 >
 > **In HelpFAQScreen.tsx** — add comment:
+>
 > ```typescript
 > // TODO Phase 2: Replace static FAQ list with GET /api/v1/support/faqs
 > // CreateSupportMessage should POST to /api/v1/support/messages
 > ```
 >
 > **In NotificationSettingsScreen.tsx** — add comment:
-> ```typescript
+>
+> ````typescript
 > // TODO Phase 2: Replace local toggle state with GET /api/v1/notifications/preferences (on mount)
 > // And PUT /api/v1/notifications/preferences when a toggle changes
 > ```"
+> ````
 
 ---
 
@@ -1026,6 +1107,7 @@ Paste this instruction into your agent:
 > "After completing all previous steps, perform the following manual test sequence on Expo Go. Fix any issues found before proceeding.
 >
 > **Test 1: Registration**
+>
 > 1. Open the app fresh (clear app data or uninstall/reinstall)
 > 2. Navigate to Sign Up screen
 > 3. Fill in a real email address, full name, and password
@@ -1036,6 +1118,7 @@ Paste this instruction into your agent:
 > 8. Expected: Navigates to GoalSelectionScreen
 >
 > **Test 2: Onboarding Steps**
+>
 > 1. On GoalSelectionScreen: select one or more goals, tap Continue
 > 2. Expected: Navigates to SetMonthlyBudgetScreen without error
 > 3. Enter a budget amount (e.g. 50000), tap Continue
@@ -1048,11 +1131,13 @@ Paste this instruction into your agent:
 > 10. Expected: MainBottomTabNavigator shows, Dashboard screen is visible
 >
 > **Test 3: Login and Token Persistence**
+>
 > 1. Close the app completely (swipe away from multitasking)
 > 2. Reopen the app
 > 3. Expected: Brief loading screen, then automatic navigation to Dashboard (no login prompt)
 >
 > **Test 4: Login Screen**
+>
 > 1. Clear app data or log out
 > 2. Go to Login screen
 > 3. Enter wrong password
@@ -1061,6 +1146,7 @@ Paste this instruction into your agent:
 > 6. Expected: Auto-navigation to Dashboard
 >
 > **Test 5: Logout**
+>
 > 1. Navigate to Profile & Settings
 > 2. Tap Log Out → confirm
 > 3. Expected: Returns to WelcomeScreen1 / Login screen
@@ -1068,6 +1154,7 @@ Paste this instruction into your agent:
 > 5. Expected: Login screen shown (no auto-login)
 >
 > **Test 6: Offline Behavior**
+>
 > 1. Login successfully
 > 2. Turn off Wi-Fi and mobile data
 > 3. Navigate to Dashboard
@@ -1089,6 +1176,7 @@ Paste this instruction into your agent:
 > This screen is shown while `authLoading` is true in AppContext (i.e., while the app is checking if the user has valid tokens on startup).
 >
 > Layout:
+>
 > - White background, full screen
 > - CampusKobo logo centered (same as SplashScreen but without the auto-timer — it stays until authLoading becomes false)
 > - App name 'CampusKobo' in large PRIMARY_GREEN bold text
@@ -1096,6 +1184,7 @@ Paste this instruction into your agent:
 > - Small `ActivityIndicator` in PRIMARY_GREEN at the bottom center of the screen, about 40px above the safe area bottom
 >
 > Update AppNavigator.tsx:
+>
 > - Import `authLoading` from AppContext
 > - At the very top of the navigation render: if `authLoading === true`, return `<AppLoadingScreen />` instead of any navigator
 > - This prevents any flash of the wrong screen while auth is being determined"
@@ -1136,47 +1225,42 @@ Paste this instruction into your agent:
 > "Do a final check across the project to ensure:
 >
 > 1. **No unused imports** — remove any old imports that were replaced by API-connected versions (e.g., direct calls to `StorageService.getUser()` in auth screens that are now handled by AppContext)
->
 > 2. **Consistent token usage** — search the entire codebase for any string 'localStorage' or direct AsyncStorage usage in screens (not StorageService). All sensitive tokens must go through TokenStorage, not direct AsyncStorage.
->
 > 3. **No hardcoded user objects** — search for `{ id:`, `{ email:` patterns in screen files. All user data should come from context, not be created inline in screens (except for the initial registration flow).
->
 > 4. **All new screens are in the navigator** — confirm that `EmailVerificationScreen`, `ChangePasswordScreen`, and `ChangeEmailScreen` are registered in the correct stacks in AppNavigator.tsx.
->
 > 5. **apiClient is the only HTTP client** — there should be no `fetch()` calls or direct `axios` calls in screen files or service files. All network calls must go through the `apiClient` instance.
->
 > 6. **Environment safety** — confirm that `API_BASE_URL` in `constants/api.ts` is the only place the backend URL appears. Do a search for 'vercel.app' across the codebase — it should appear exactly once."
 
 ---
 
 ## QUICK REFERENCE — File Changes Summary
 
-| File | Action | Purpose |
-|---|---|---|
-| `/src/constants/api.ts` | **Create** | All API URLs and token keys |
-| `/src/storage/TokenStorage.ts` | **Create** | Secure JWT storage |
-| `/src/services/apiClient.ts` | **Create** | Axios instance with interceptors |
-| `/src/utils/authEvents.ts` | **Create** | Auth state event emitter |
-| `/src/utils/networkStatus.ts` | **Create** | Online/offline detection |
-| `/src/services/authService.ts` | **Create** | All /auth/ API calls |
-| `/src/services/userService.ts` | **Create** | All /users/ API calls |
-| `/src/services/onboardingService.ts` | **Create** | All /onboarding/ API calls |
-| `/src/context/AppContext.tsx` | **Update** | Add API auth state + functions |
-| `/src/navigation/AppNavigator.tsx` | **Update** | Auth-aware root navigation |
-| `/src/screens/onboarding/SignUpScreen.tsx` | **Update** | Real API registration |
-| `/src/screens/onboarding/EmailVerificationScreen.tsx` | **Create** | OTP email verification |
-| `/src/screens/onboarding/LoginScreen.tsx` | **Update** | Real API login |
-| `/src/screens/onboarding/GoalSelectionScreen.tsx` | **Update** | API onboarding step 1 |
-| `/src/screens/onboarding/SetMonthlyBudgetScreen.tsx` | **Update** | API onboarding step 2 |
-| `/src/screens/onboarding/QuickCategorySetupScreen.tsx` | **Update** | API onboarding step 3 |
-| `/src/screens/onboarding/OnboardingSuccessScreen.tsx` | **Update** | Silent API sync |
-| `/src/screens/profile/ProfileSettingsScreen.tsx` | **Update** | Show real user data |
-| `/src/screens/profile/SecurityPrivacyScreen.tsx` | **Update** | Wire change password/email |
-| `/src/screens/profile/ChangePasswordScreen.tsx` | **Create** | Change password flow |
-| `/src/screens/profile/ChangeEmailScreen.tsx` | **Create** | Change email flow |
-| `/src/screens/profile/PINSuccessScreen.tsx` | **Update** | Background PIN API sync |
-| `/src/components/OfflineBanner.tsx` | **Create** | Offline indicator banner |
-| `/src/screens/AppLoadingScreen.tsx` | **Create** | Startup auth loading screen |
+| File                                                   | Action     | Purpose                          |
+| ------------------------------------------------------ | ---------- | -------------------------------- |
+| `/src/constants/api.ts`                                | **Create** | All API URLs and token keys      |
+| `/src/storage/TokenStorage.ts`                         | **Create** | Secure JWT storage               |
+| `/src/services/apiClient.ts`                           | **Create** | Axios instance with interceptors |
+| `/src/utils/authEvents.ts`                             | **Create** | Auth state event emitter         |
+| `/src/utils/networkStatus.ts`                          | **Create** | Online/offline detection         |
+| `/src/services/authService.ts`                         | **Create** | All /auth/ API calls             |
+| `/src/services/userService.ts`                         | **Create** | All /users/ API calls            |
+| `/src/services/onboardingService.ts`                   | **Create** | All /onboarding/ API calls       |
+| `/src/context/AppContext.tsx`                          | **Update** | Add API auth state + functions   |
+| `/src/navigation/AppNavigator.tsx`                     | **Update** | Auth-aware root navigation       |
+| `/src/screens/onboarding/SignUpScreen.tsx`             | **Update** | Real API registration            |
+| `/src/screens/onboarding/EmailVerificationScreen.tsx`  | **Create** | OTP email verification           |
+| `/src/screens/onboarding/LoginScreen.tsx`              | **Update** | Real API login                   |
+| `/src/screens/onboarding/GoalSelectionScreen.tsx`      | **Update** | API onboarding step 1            |
+| `/src/screens/onboarding/SetMonthlyBudgetScreen.tsx`   | **Update** | API onboarding step 2            |
+| `/src/screens/onboarding/QuickCategorySetupScreen.tsx` | **Update** | API onboarding step 3            |
+| `/src/screens/onboarding/OnboardingSuccessScreen.tsx`  | **Update** | Silent API sync                  |
+| `/src/screens/profile/ProfileSettingsScreen.tsx`       | **Update** | Show real user data              |
+| `/src/screens/profile/SecurityPrivacyScreen.tsx`       | **Update** | Wire change password/email       |
+| `/src/screens/profile/ChangePasswordScreen.tsx`        | **Create** | Change password flow             |
+| `/src/screens/profile/ChangeEmailScreen.tsx`           | **Create** | Change email flow                |
+| `/src/screens/profile/PINSuccessScreen.tsx`            | **Update** | Background PIN API sync          |
+| `/src/components/OfflineBanner.tsx`                    | **Create** | Offline indicator banner         |
+| `/src/screens/AppLoadingScreen.tsx`                    | **Create** | Startup auth loading screen      |
 
 ---
 
