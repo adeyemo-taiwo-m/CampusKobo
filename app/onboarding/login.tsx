@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -9,7 +9,13 @@ import { useAppContext } from '../../src/context/AppContext';
 
 export default function LoginScreen() {
   const router = useRouter();
-  const { loginWithApi } = useAppContext();
+  const { loginWithApi, isAuthenticated, authLoading } = useAppContext();
+  
+  useEffect(() => {
+    if (!authLoading && isAuthenticated) {
+      router.replace('/(tabs)');
+    }
+  }, [isAuthenticated, authLoading]);
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -25,7 +31,7 @@ export default function LoginScreen() {
     
     try {
       await loginWithApi(email, password);
-      // Success is handled automatically by AppContext and index.tsx redirection
+      // The useEffect above will handle the navigation
     } catch (error: any) {
       const errorMessage = error.message || 'Login failed. Please try again.';
       

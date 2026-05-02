@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import Svg, { Path } from "react-native-svg";
 import { Fonts, PRIMARY_GREEN, WHITE } from "../constants";
 
 const { width } = Dimensions.get("window");
@@ -52,8 +53,34 @@ export const CustomTabBar = ({
     }
   };
 
+  const getPath = () => {
+    const cutoutRadius = 45;
+    const centerX = width / 2;
+    // Creates a smooth curve around the center FAB
+    return `
+      M 0 0
+      H ${centerX - cutoutRadius - 10}
+      C ${centerX - cutoutRadius} 0, ${centerX - cutoutRadius + 5} ${cutoutRadius - 5}, ${centerX} ${cutoutRadius - 5}
+      C ${centerX + cutoutRadius - 5} ${cutoutRadius - 5}, ${centerX + cutoutRadius} 0, ${centerX + cutoutRadius + 10} 0
+      H ${width}
+      V ${TAB_BAR_HEIGHT}
+      H 0
+      Z
+    `;
+  };
+
   return (
     <View style={styles.container}>
+      <View style={styles.svgContainer}>
+        <Svg width={width} height={TAB_BAR_HEIGHT}>
+          <Path
+            d={getPath()}
+            fill={WHITE}
+            stroke="#E5E7EB"
+            strokeWidth={1}
+          />
+        </Svg>
+      </View>
       <View style={styles.tabsContainer}>
         {visibleRoutes.map((route, index) => {
           const { options } = descriptors[route.key];
@@ -78,13 +105,13 @@ export const CustomTabBar = ({
               iconName = isFocused ? "home" : "home-outline";
               break;
             case "expenses":
-              iconName = isFocused ? "receipt" : "receipt-outline";
+              iconName = isFocused ? "list" : "list-outline";
               break;
             case "budget":
-              iconName = isFocused ? "bar-chart" : "bar-chart-outline";
+              iconName = isFocused ? "stats-chart" : "stats-chart-outline";
               break;
             case "savings":
-              iconName = isFocused ? "wallet" : "wallet-outline";
+              iconName = isFocused ? "disc" : "disc-outline";
               break;
           }
 
@@ -95,6 +122,7 @@ export const CustomTabBar = ({
               style={styles.tabItem}
               activeOpacity={0.7}
             >
+              {isFocused && <View style={styles.activeIndicator} />}
               <Ionicons
                 name={iconName}
                 size={22}
@@ -138,18 +166,17 @@ export const CustomTabBar = ({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: WHITE,
+    backgroundColor: "transparent", // Background handled by SVG
     height: TAB_BAR_HEIGHT,
     width: width,
-    borderTopWidth: 1,
-    borderTopColor: "#E5E7EB", // BORDER_GRAY
-    paddingBottom: 8,
-    elevation: 8,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
     overflow: "visible",
+  },
+  svgContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: width,
+    height: TAB_BAR_HEIGHT,
   },
   tabsContainer: {
     flexDirection: "row",
@@ -177,19 +204,20 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   fabButton: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 68, // Slightly bigger as per visual
+    height: 68,
+    borderRadius: 34,
     backgroundColor: PRIMARY_GREEN,
     justifyContent: "center",
     alignItems: "center",
-    marginTop: -35, // Lift it up
-    elevation: 5,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 5,
-    borderWidth: 4,
-    borderColor: WHITE,
+    marginTop: -52, // Lifted higher as requested
+  },
+  activeIndicator: {
+    position: 'absolute',
+    top: 0,
+    width: 45,
+    height: 4,
+    backgroundColor: PRIMARY_GREEN,
+    borderRadius: 2,
   },
 });
