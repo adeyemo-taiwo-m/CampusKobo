@@ -42,6 +42,7 @@ export default function DashboardScreen() {
     isBalanceHidden,
     toggleBalanceVisibility,
     apiUser,
+    dashboardSummary,
   } = useAppContext();
   const [isAddFundsVisible, setIsAddFundsVisible] = useState(false);
   const { toastProps, showToast } = useToast();
@@ -102,18 +103,23 @@ export default function DashboardScreen() {
   }, [transactions, currentMonth, currentYear]);
 
   const totalIncome = useMemo(() => {
+    if (dashboardSummary) return dashboardSummary.total_income;
     return currentMonthTransactions
       .filter((t) => t.type === "income")
       .reduce((sum, t) => sum + t.amount, 0);
-  }, [currentMonthTransactions]);
+  }, [currentMonthTransactions, dashboardSummary]);
 
   const totalExpenses = useMemo(() => {
+    if (dashboardSummary) return dashboardSummary.total_expenses;
     return currentMonthTransactions
       .filter((t) => t.type === "expense")
       .reduce((sum, t) => sum + t.amount, 0);
-  }, [currentMonthTransactions]);
+  }, [currentMonthTransactions, dashboardSummary]);
 
-  const totalBalance = totalIncome - totalExpenses;
+  const totalBalance = useMemo(() => {
+    if (dashboardSummary) return dashboardSummary.total_balance;
+    return totalIncome - totalExpenses;
+  }, [totalIncome, totalExpenses, dashboardSummary]);
 
   const budgetTotal = useMemo(() => {
     return budgets.reduce((sum, b) => sum + b.limitAmount, 0);
@@ -229,15 +235,7 @@ export default function DashboardScreen() {
                     style={{ marginLeft: 8 }}
                   />
                 </TouchableOpacity>
-                {transactions.length > 0 && (
-                  <>
-                    <View style={styles.vDivider} />
-                    <View style={styles.growthBadge}>
-                      <Ionicons name="arrow-up" size={14} color="#10B981" />
-                      <Text style={styles.growthText}>12% vs Last month</Text>
-                    </View>
-                  </>
-                )}
+                {/* Growth badge removed as it was hardcoded. Re-enable when API provides comparison data. */}
               </View>
 
               {/* Section 2 — Budget Overview */}
@@ -270,7 +268,7 @@ export default function DashboardScreen() {
                       </Text>
                       <Text style={styles.budgetStatus}>
                         {" "}
-                        • You are doing well
+                        • {budgetProgress > 0.9 ? "Close to limit" : "On track"}
                       </Text>
                     </View>
                   </TouchableOpacity>

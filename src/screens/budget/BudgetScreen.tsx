@@ -197,18 +197,24 @@ export const BudgetScreen = () => {
 
           {hasBudgets ? (
             <View style={styles.budgetListContainer}>
-              {budgets.map((budget) => (
-                <BudgetCard 
-                  key={budget.id} 
-                  budget={{
-                    ...budget,
-                    icon: getIconForCategory(budget.category),
-                    daysLeft: 6, // Mocking days left
-                    iconColor: '#3CB96A'
-                  }} 
-                  onPress={() => router.push({ pathname: '/budget/detail', params: { id: budget.id } })} 
-                />
-              ))}
+                {budgets.map((budget) => {
+                  const today = new Date();
+                  const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+                  const remainingDays = lastDay - today.getDate();
+                  
+                  return (
+                    <BudgetCard 
+                      key={budget.id} 
+                      budget={{
+                        ...budget,
+                        icon: getIconForCategory(budget.category),
+                        daysLeft: remainingDays,
+                        iconColor: '#3CB96A'
+                      }} 
+                      onPress={() => router.push({ pathname: '/budget/detail', params: { id: budget.id } })} 
+                    />
+                  );
+                })}
             </View>
           ) : (
             <View style={styles.emptyContainer}>

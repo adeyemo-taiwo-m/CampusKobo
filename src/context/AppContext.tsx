@@ -17,6 +17,10 @@ import { UserProfileResponse, userService } from "../services/userService";
 import { authService } from "../services/authService";
 import { hasValidTokens, clearTokens } from "../storage/TokenStorage";
 import { authEvents, AUTH_EVENTS } from "../utils/authEvents";
+import { transactionService } from "../services/transactionService";
+import { budgetService } from "../services/budgetService";
+import { savingsService } from "../services/savingsService";
+import { dashboardService, DashboardSummary } from "../services/dashboardService";
 
 interface AppContextType {
   user: User | null;
@@ -29,6 +33,7 @@ interface AppContextType {
   isAuthenticated: boolean;
   authLoading: boolean;
   networkError: boolean;
+  dashboardSummary: DashboardSummary | null;
   loadAllData: () => Promise<void>;
   checkAuthStatus: () => Promise<void>;
   addTransaction: (transaction: Transaction) => Promise<void>;
@@ -83,14 +88,17 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [authLoading, setAuthLoading] = useState<boolean>(true);
   const [networkError, setNetworkError] = useState<boolean>(false);
+  const [dashboardSummary, setDashboardSummary] = useState<DashboardSummary | null>(null);
 
   const checkAuthStatus = async () => {
     setAuthLoading(true);
     try {
       const hasTokens = await hasValidTokens();
       if (hasTokens) {
+        console.log('🔑 Auth Check - Tokens found');
         try {
           const profile = await userService.getMe();
+          console.log('✅ User profile fetched:', profile.email);
           setApiUser(profile);
           setIsAuthenticated(true);
           
@@ -164,6 +172,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const loadAllData = async () => {
     setIsLoading(true);
     try {
+      // 1. Load Local Storage Data (for offline fallback)
       let t = await StorageService.getTransactions();
       const u = await StorageService.getUser();
       let b = await StorageService.getBudgets();
@@ -172,7 +181,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
       if (u) {
         setIsBalanceHidden(!!u.hideBalance);
-        
         // Migration: Change name from "Ad" or "Adeyemo..." to "Taiwo"
         if (u.name === 'Ad' || u.name === 'Adeyemo Taiwo M' || u.name === 'Adeyemo') {
           u.name = 'Taiwo';
@@ -180,186 +188,49 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         }
       }
 
-      // Sample data to ensure it matches the latest mockup
-      const sampleTransactions: Transaction[] = [
-        {
-          id: "sample-1",
-          amount: 60000,
-          type: "income",
-          category: "Salary",
-          categoryIcon: "cash-outline",
-          categoryColor: "#10B981",
-          description: "Monthly salary payment for October performance",
-          note: "Monthly salary payment for October performance",
-          date: new Date().toISOString(),
-          isRecurring: true,
-        },
-        {
-          id: "sample-2",
-          amount: 1500,
-          type: "expense",
-          category: "Food",
-          categoryIcon: "restaurant-outline",
-          categoryColor: "#EF4444",
-          description: "Lunch at Shade's store with the study group",
-          note: "Lunch at Shade's store with the study group",
-          date: new Date().toISOString(),
-          isRecurring: false,
-        },
-        {
-          id: "sample-3",
-          amount: 2200,
-          type: "expense",
-          category: "Transport",
-          categoryIcon: "car-sport-outline",
-          categoryColor: "#F59E0B",
-          description: "Uber to Island for the weekend hackathon event",
-          note: "Uber to Island for the weekend hackathon event",
-          date: new Date().toISOString(),
-          isRecurring: false,
-        },
-        {
-          id: "sample-4",
-          amount: 5000,
-          type: "expense",
-          category: "Shopping",
-          categoryIcon: "cart-outline",
-          categoryColor: "#EC4899",
-          description: "Shoprite groceries for the hostel party tonight",
-          note: "Shoprite groceries for the hostel party tonight",
-          date: new Date().toISOString(),
-          isRecurring: false,
-        },
-        {
-          id: "sample-5",
-          amount: 1800,
-          type: "expense",
-          category: "Food",
-          categoryIcon: "cafe-outline",
-          categoryColor: "#EF4444",
-          description: "Breakfast at Chicken Republic after morning class",
-          note: "Breakfast at Chicken Republic after morning class",
-          date: new Date(Date.now() - 86400000).toISOString(),
-          isRecurring: false,
-        },
-        {
-          id: "sample-6",
-          amount: 500,
-          type: "expense",
-          category: "Airtime",
-          categoryIcon: "call-outline",
-          categoryColor: "#3B82F6",
-          description: "MTN recharge for mobile data subscription",
-          note: "MTN recharge for mobile data subscription",
-          date: new Date(Date.now() - 86400000).toISOString(),
-          isRecurring: false,
-        },
-        {
-          id: "sample-7",
-          amount: 8000,
-          type: "expense",
-          category: "Utilities",
-          categoryIcon: "flash-outline",
-          categoryColor: "#EF4444",
-          description: "EKEDC electricity bill for the apartment complex",
-          note: "EKEDC electricity bill for the apartment complex",
-          date: new Date(2025, 3, 18, 10, 0).toISOString(),
-          isRecurring: true,
-        },
-        {
-          id: "sample-8",
-          amount: 3500,
-          type: "expense",
-          category: "Health",
-          categoryIcon: "heart-outline",
-          categoryColor: "#EF4444",
-          description: "Pharmacy - Medplus for multivitamins and minerals",
-          note: "Pharmacy - Medplus for multivitamins and minerals",
-          date: new Date(2025, 3, 18, 13, 30).toISOString(),
-          isRecurring: false,
-        },
-        {
-          id: "sample-9",
-          amount: 1000,
-          type: "expense",
-          category: "Airtime",
-          categoryIcon: "call-outline",
-          categoryColor: "#EF4444",
-          description: "MTN recharge for emergency calls",
-          note: "MTN recharge for emergency calls",
-          date: new Date(2025, 3, 18, 18, 0).toISOString(),
-          isRecurring: false,
-        },
-      ];
+      // 2. If Authenticated, Sync with API
+      const hasTokens = await hasValidTokens();
+      console.log('🔑 Auth Check - Has Tokens:', hasTokens);
 
-      const sampleBudgets: Budget[] = [
-        {
-          id: "b1",
-          category: "Food",
-          categoryIcon: "restaurant-outline",
-          limitAmount: 15000,
-          spentAmount: 12000,
-          period: "monthly",
-          startDate: new Date().toISOString(),
-          color: "#3CB96A",
-        },
-        {
-          id: "b2",
-          category: "Data & Airtime",
-          categoryIcon: "wifi-outline",
-          limitAmount: 8000,
-          spentAmount: 2400,
-          period: "monthly",
-          startDate: new Date().toISOString(),
-          color: "#3CB96A",
-        },
-        {
-          id: "b3",
-          category: "Transport",
-          categoryIcon: "car-outline",
-          limitAmount: 10000,
-          spentAmount: 11000,
-          period: "monthly",
-          startDate: new Date().toISOString(),
-          color: "#3CB96A",
-        },
-      ];
+      if (hasTokens) {
+        try {
+          console.log('🔄 Syncing financial data with API...');
+          const [apiIncome, apiExpenses, apiBudgets, apiSavings, apiSummary] = await Promise.all([
+            transactionService.getIncome().catch((e) => { console.error('Income Sync Error:', e); return []; }),
+            transactionService.getExpenses().catch((e) => { console.error('Expense Sync Error:', e); return []; }),
+            budgetService.getBudgets().catch((e) => { console.error('Budget Sync Error:', e); return []; }),
+            savingsService.getSavingsGoals().catch((e) => { console.error('Savings Sync Error:', e); return []; }),
+            dashboardService.getSummary().catch((e) => { console.error('Summary Sync Error:', e); return null; }),
+          ]);
 
-      const sampleSavings: SavingsGoal[] = [
-        {
-          id: "s1",
-          name: "New Laptop",
-          targetAmount: 250000,
-          savedAmount: 150000,
-          deadline: "2025-12-20",
-          emoji: "💻",
-          createdAt: new Date().toISOString(),
-          contributions: [],
-        },
-        {
-          id: "s2",
-          name: "Phone Upgrade",
-          targetAmount: 120000,
-          savedAmount: 30000,
-          deadline: "2025-10-15",
-          emoji: "📱",
-          createdAt: new Date().toISOString(),
-          contributions: [],
-        },
-      ];
+          console.log('✅ API Sync Complete');
 
-      // If existing data is empty, replace with samples
-      if (t.length === 0 || t.some((tr) => tr.id.startsWith("sample"))) {
-        await StorageService.saveTransactions(sampleTransactions);
-        t = sampleTransactions;
-      }
-      if (b.length === 0) {
-        await StorageService.saveBudgets(sampleBudgets);
-        b = sampleBudgets;
-      }
-      if (s.length === 0) {
-        await StorageService.saveSavingsGoals(sampleSavings);
-        s = sampleSavings;
+          t = [...apiIncome, ...apiExpenses];
+          b = apiBudgets;
+          s = apiSavings;
+          if (apiSummary) {
+            setDashboardSummary(apiSummary);
+            console.log('📊 Dashboard Data Synced from Backend:', {
+              balance: apiSummary.total_balance,
+              income: apiSummary.total_income,
+              expenses: apiSummary.total_expenses,
+              budget: apiSummary.monthly_budget,
+              transactionsCount: t.length,
+              savingsGoalsCount: s.length
+            });
+          }
+
+          // Save to local storage for offline use
+          await Promise.all([
+            StorageService.saveTransactions(t),
+            StorageService.saveBudgets(b),
+            StorageService.saveSavingsGoals(s),
+          ]);
+        } catch (apiError) {
+          console.error('❌ Critical Sync Error:', apiError);
+        }
+      } else {
+        console.log('ℹ️ No active tokens found, skipping API sync.');
       }
 
       setUserState(u);
@@ -575,6 +446,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         registerWithApi,
         logoutFromApi,
         setApiUser,
+        dashboardSummary,
       }}
     >
       {children}
