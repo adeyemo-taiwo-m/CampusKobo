@@ -210,7 +210,7 @@ const styles = StyleSheet.create({
     backgroundColor: PRIMARY_GREEN,
     justifyContent: "center",
     alignItems: "center",
-    marginTop: -52, // Lifted higher as requested
+    marginTop: -75, // Detach fully from the tab bar background
   },
   activeIndicator: {
     position: 'absolute',
