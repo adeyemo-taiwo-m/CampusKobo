@@ -156,7 +156,13 @@ export default function ExpensesListScreen() {
             income={totalIncome}
             expenses={totalExpenses}
             progress={budgetProgress}
-            periodLabel="This Month"
+            periodLabel={
+              activeFilter === 'This Month' 
+                ? new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }).toUpperCase()
+                : activeFilter === 'Last Month'
+                ? subMonths(new Date(), 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }).toUpperCase()
+                : activeFilter.toUpperCase()
+            }
             statusCaption={`You've spent ${getPercentage(budgetSpent, budgetTotal)}% of your monthly budget`}
             style={styles.summaryCard}
           />

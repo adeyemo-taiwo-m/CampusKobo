@@ -857,7 +857,7 @@ const styles = StyleSheet.create({
   },
   modernAmountLarge: {
     fontFamily: Fonts.bold,
-    fontSize: 28,
+    fontSize: 36,
     color: WHITE,
   },
   modernRight: {
