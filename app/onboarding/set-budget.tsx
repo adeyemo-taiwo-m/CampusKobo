@@ -8,7 +8,6 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
-  ActivityIndicator,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -135,13 +134,12 @@ export default function SetMonthlyBudgetScreen() {
 
           <View style={styles.footer}>
             <Button
-              title={isLoading ? "" : "Continue"}
+              title="Continue"
               onPress={handleContinue}
               variant="primary"
-              disabled={isLoading || !budget}
-            >
-              {isLoading && <ActivityIndicator size="small" color={WHITE} />}
-            </Button>
+              disabled={!budget}
+              loading={isLoading}
+            />
           </View>
         </View>
       </KeyboardAvoidingView>

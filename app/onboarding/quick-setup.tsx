@@ -6,7 +6,6 @@ import {
   SafeAreaView,
   TouchableOpacity,
   ScrollView,
-  ActivityIndicator,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -130,13 +129,12 @@ export default function QuickCategorySetupScreen() {
 
         <View style={styles.footer}>
           <Button
-            title={isLoading ? "" : "Continue"}
+            title="Continue"
             onPress={handleFinish}
-            disabled={selectedCategories.length === 0 || isLoading}
+            disabled={selectedCategories.length === 0}
             variant="primary"
-          >
-            {isLoading && <ActivityIndicator size="small" color={WHITE} />}
-          </Button>
+            loading={isLoading}
+          />
         </View>
       </View>
     </SafeAreaView>
