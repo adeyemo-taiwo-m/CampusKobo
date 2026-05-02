@@ -164,23 +164,23 @@ export const SavingsScreen = () => {
             <Text style={styles.welcomeText}>Hi, {(apiUser?.full_name || user?.name)?.split(' ')[0] || 'there'}</Text>
           </TouchableOpacity>
 
-          <Text style={styles.headerTitle}>Savings</Text>
-
-          <View style={styles.headerActions}>
-            <TouchableOpacity
-              style={styles.iconButton}
-              onPress={() => router.push("/learning")}
-            >
-              <Ionicons name="school-outline" size={20} color={WHITE} />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.iconButton}
-              onPress={() => router.push("/profile/notifications")}
-            >
-              <Ionicons name="notifications-outline" size={20} color={WHITE} />
-            </TouchableOpacity>
+            <View style={styles.headerActions}>
+              <TouchableOpacity
+                style={styles.iconButton}
+                onPress={() => router.push("/learning")}
+              >
+                <Ionicons name="school-outline" size={20} color={WHITE} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.iconButton}
+                onPress={() => router.push("/profile/notifications")}
+              >
+                <Ionicons name="notifications-outline" size={20} color={WHITE} />
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
+
+          <Text style={styles.headerTitleLabelCentered}>Savings</Text>
 
         {/* Savings specific DarkCard summary */}
         <View style={styles.cardWrapper}>
@@ -299,10 +299,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginLeft: 10,
   },
-  headerTitle: {
-    fontFamily: Fonts.semiBold,
+  headerTitleLabelCentered: {
+    fontFamily: Fonts.medium,
     color: WHITE,
     fontSize: 16,
+    textAlign: "center",
+    marginBottom: 12,
   },
   headerActions: {
     flexDirection: "row",

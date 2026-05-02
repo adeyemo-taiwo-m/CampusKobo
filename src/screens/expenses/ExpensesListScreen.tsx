@@ -137,8 +137,6 @@ export default function ExpensesListScreen() {
               <Text style={styles.welcomeText}>Hi, {(apiUser?.full_name || user?.name)?.split(' ')[0] || 'there'}</Text>
             </TouchableOpacity>
             
-            <Text style={styles.headerTitle}>Expenses</Text>
-
             <View style={styles.headerActions}>
               <TouchableOpacity style={styles.iconButton} onPress={() => router.push("/learning")}>
                 <Ionicons name="school-outline" size={22} color={WHITE} />
@@ -148,6 +146,8 @@ export default function ExpensesListScreen() {
               </TouchableOpacity>
             </View>
           </View>
+
+          <Text style={styles.headerTitleLabelCentered}>Expenses</Text>
 
           {/* Reusable Dark Summary Card */}
           <DarkCard
@@ -302,10 +302,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: Fonts.bold,
   },
-  headerTitle: {
-    fontFamily: Fonts.semiBold,
+  headerTitleLabelCentered: {
+    fontFamily: Fonts.medium,
     color: WHITE,
     fontSize: 16,
+    textAlign: "center",
+    marginBottom: 12,
   },
   headerActions: {
     flexDirection: "row",
