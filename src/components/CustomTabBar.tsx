@@ -1,45 +1,54 @@
-import React from 'react';
-import { View, StyleSheet, TouchableOpacity, Dimensions, Platform, Text } from 'react-native';
-import { Svg, Path } from 'react-native-svg';
-import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
-import { PRIMARY_GREEN, WHITE, Fonts } from '../constants';
+import { Ionicons } from "@expo/vector-icons";
+import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
+import { useRouter } from "expo-router";
+import React from "react";
+import {
+  Dimensions,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { Fonts, PRIMARY_GREEN, WHITE } from "../constants";
 
-const { width } = Dimensions.get('window');
+const { width } = Dimensions.get("window");
 const TAB_BAR_HEIGHT = 65;
 
-const VISIBLE_TABS = ['index', 'expenses', 'budget', 'savings'] as const;
+const VISIBLE_TABS = ["index", "expenses", "budget", "savings"] as const;
 const TAB_TITLES: Record<string, string> = {
-  index: 'Home',
-  expenses: 'Expenses',
-  budget: 'Budget',
-  savings: 'Savings',
+  index: "Home",
+  expenses: "Expenses",
+  budget: "Budget",
+  savings: "Savings",
 };
 
-export const CustomTabBar = ({ state, descriptors, navigation }: BottomTabBarProps) => {
+export const CustomTabBar = ({
+  state,
+  descriptors,
+  navigation,
+}: BottomTabBarProps) => {
   const router = useRouter();
   const currentRouteName = state.routes[state.index]?.name;
 
   // Only render the 4 visible tabs in the requested order
-  const visibleRoutes = VISIBLE_TABS.map(name => 
-    state.routes.find(r => r.name === name)
+  const visibleRoutes = VISIBLE_TABS.map((name) =>
+    state.routes.find((r) => r.name === name),
   ).filter(Boolean) as any[];
 
   const handleFabPress = () => {
     switch (currentRouteName) {
-      case 'index':
-      case 'expenses':
-        router.push('/add-transaction');
+      case "index":
+      case "expenses":
+        router.push("/add-transaction");
         break;
-      case 'budget':
-        router.push('/budget/create');
+      case "budget":
+        router.push("/budget/create");
         break;
-      case 'savings':
-        router.push('/savings/create');
+      case "savings":
+        router.push("/savings/create");
         break;
       default:
-        router.push('/add-transaction');
+        router.push("/add-transaction");
     }
   };
 
@@ -52,7 +61,7 @@ export const CustomTabBar = ({ state, descriptors, navigation }: BottomTabBarPro
 
           const onPress = () => {
             const event = navigation.emit({
-              type: 'tabPress',
+              type: "tabPress",
               target: route.key,
               canPreventDefault: true,
             });
@@ -63,19 +72,19 @@ export const CustomTabBar = ({ state, descriptors, navigation }: BottomTabBarPro
 
           const title = TAB_TITLES[route.name] ?? (options.title as string);
 
-          let iconName: any = 'home-outline';
+          let iconName: any = "home-outline";
           switch (route.name) {
-            case 'index':
-              iconName = isFocused ? 'home' : 'home-outline';
+            case "index":
+              iconName = isFocused ? "home" : "home-outline";
               break;
-            case 'expenses':
-              iconName = isFocused ? 'receipt' : 'receipt-outline';
+            case "expenses":
+              iconName = isFocused ? "receipt" : "receipt-outline";
               break;
-            case 'budget':
-              iconName = isFocused ? 'bar-chart' : 'bar-chart-outline';
+            case "budget":
+              iconName = isFocused ? "bar-chart" : "bar-chart-outline";
               break;
-            case 'savings':
-              iconName = isFocused ? 'wallet' : 'wallet-outline';
+            case "savings":
+              iconName = isFocused ? "wallet" : "wallet-outline";
               break;
           }
 
@@ -89,9 +98,14 @@ export const CustomTabBar = ({ state, descriptors, navigation }: BottomTabBarPro
               <Ionicons
                 name={iconName}
                 size={22}
-                color={isFocused ? PRIMARY_GREEN : '#6B7280'}
+                color={isFocused ? PRIMARY_GREEN : "#6B7280"}
               />
-              <Text style={[styles.tabLabel, { color: isFocused ? PRIMARY_GREEN : '#6B7280' }]}>
+              <Text
+                style={[
+                  styles.tabLabel,
+                  { color: isFocused ? PRIMARY_GREEN : "#6B7280" },
+                ]}
+              >
                 {title}
               </Text>
             </TouchableOpacity>
@@ -128,27 +142,27 @@ const styles = StyleSheet.create({
     height: TAB_BAR_HEIGHT,
     width: width,
     borderTopWidth: 1,
-    borderTopColor: '#E5E7EB', // BORDER_GRAY
+    borderTopColor: "#E5E7EB", // BORDER_GRAY
     paddingBottom: 8,
     elevation: 8,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.05,
     shadowRadius: 4,
-    overflow: 'visible',
+    overflow: "visible",
   },
   tabsContainer: {
-    flexDirection: 'row',
-    height: '100%',
-    width: '100%',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    overflow: 'visible',
+    flexDirection: "row",
+    height: "100%",
+    width: "100%",
+    justifyContent: "space-around",
+    alignItems: "center",
+    overflow: "visible",
   },
   tabItem: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     paddingTop: 8,
   },
   tabLabel: {
@@ -158,8 +172,8 @@ const styles = StyleSheet.create({
   },
   fabContainer: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     zIndex: 1,
   },
   fabButton: {
@@ -167,11 +181,11 @@ const styles = StyleSheet.create({
     height: 60,
     borderRadius: 30,
     backgroundColor: PRIMARY_GREEN,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginTop: -35, // Lift it up
     elevation: 5,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 5,

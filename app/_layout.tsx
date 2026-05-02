@@ -1,25 +1,25 @@
-import 'react-native-gesture-handler';
-import 'react-native-reanimated';
-import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import { AppProvider } from '@/src/context/AppContext';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { 
-  useFonts, 
-  Poppins_400Regular, 
-  Poppins_500Medium, 
+import { AppProvider } from "@/src/context/AppContext";
+import {
+  Poppins_400Regular,
+  Poppins_500Medium,
   Poppins_600SemiBold,
-  Poppins_700Bold
-} from '@expo-google-fonts/poppins';
-import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
+  Poppins_700Bold,
+  useFonts,
+} from "@expo-google-fonts/poppins";
+import { Stack } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
+import { StatusBar } from "expo-status-bar";
+import { useEffect } from "react";
+import "react-native-gesture-handler";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import "react-native-reanimated";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
 
 export const unstable_settings = {
-  anchor: '(tabs)',
+  anchor: "(tabs)",
 };
 
 export default function RootLayout() {
@@ -52,7 +52,10 @@ export default function RootLayout() {
             <Stack.Screen name="savings" options={{ headerShown: false }} />
             <Stack.Screen name="learning" options={{ headerShown: false }} />
             <Stack.Screen name="profile" options={{ headerShown: false }} />
-            <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
+            <Stack.Screen
+              name="modal"
+              options={{ presentation: "modal", title: "Modal" }}
+            />
           </Stack>
           <StatusBar style="dark" />
         </AppProvider>

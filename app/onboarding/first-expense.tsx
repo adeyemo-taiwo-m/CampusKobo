@@ -26,7 +26,7 @@ import { useAppContext } from "../../src/context/AppContext";
 
 export default function FirstExpenseScreen() {
   const router = useRouter();
-  const { addTransaction } = useAppContext();
+  const { addTransaction, updateUser } = useAppContext();
 
   const [amount, setAmount] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<any>(null);
@@ -70,7 +70,10 @@ export default function FirstExpenseScreen() {
         <OnboardingHeader
           currentStep={3}
           totalSteps={4}
-          onSkip={() => router.replace("/(tabs)")}
+          onSkip={() => {
+            updateUser({ hasCompletedOnboarding: true });
+            router.replace("/(tabs)");
+          }}
         />
 
         <SuccessModal 
@@ -78,6 +81,7 @@ export default function FirstExpenseScreen() {
           title="You're All Set! 🎉"
           subtitle="Welcome to CampusKobo. Your financial journey starts today."
           onDone={() => {
+            updateUser({ hasCompletedOnboarding: true });
             setShowSuccess(false);
             router.replace("/(tabs)");
           }}

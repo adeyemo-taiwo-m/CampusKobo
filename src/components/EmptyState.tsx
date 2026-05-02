@@ -1,13 +1,7 @@
-import React from "react";
-import { View, Text, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import {
-  SPACING,
-  Fonts,
-  TEXT_PRIMARY,
-  TEXT_SECONDARY,
-  FONT_SIZE,
-} from "../constants";
+import React from "react";
+import { StyleSheet, Text, View } from "react-native";
+import { Fonts, SPACING, TEXT_PRIMARY, TEXT_SECONDARY } from "../constants";
 import { Button } from "./Button";
 
 interface EmptyStateProps {

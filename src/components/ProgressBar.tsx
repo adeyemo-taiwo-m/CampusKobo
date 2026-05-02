@@ -1,6 +1,5 @@
 import React from "react";
-import { View, StyleSheet, ViewStyle } from "react-native";
-import { SPACING } from "../constants";
+import { StyleSheet, View, ViewStyle } from "react-native";
 
 interface ProgressBarProps {
   progress: number; // 0 to 1

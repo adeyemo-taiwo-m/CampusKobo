@@ -91,7 +91,9 @@ export const DarkCard = ({
                       <Text style={{ fontSize: 16 }}>{categoryIcon}</Text>
                     </View>
                   )}
-                  <Text style={styles.savingsLabel}>{label || "Total Savings"}</Text>
+                  <Text style={styles.savingsLabel}>
+                    {label || "Total Savings"}
+                  </Text>
                 </View>
 
                 {/* Amount / Target */}
@@ -105,14 +107,14 @@ export const DarkCard = ({
                     </Text>
                   )}
                 </View>
-                
+
                 <View style={styles.savingsProgressRow}>
                   <View style={styles.savingsBarWrapper}>
-                    <ProgressBar 
-                      progress={progress || 0} 
-                      height={10} 
-                      fillColor={Colors.primary.P50} 
-                      backgroundColor={Colors.primary.P600} 
+                    <ProgressBar
+                      progress={progress || 0}
+                      height={10}
+                      fillColor={Colors.primary.P50}
+                      backgroundColor={Colors.primary.P600}
                     />
                   </View>
                   <Text style={styles.savingsPercent}>
@@ -121,9 +123,7 @@ export const DarkCard = ({
                 </View>
 
                 {periodLabel && (
-                  <Text style={styles.savingsFooterLabel}>
-                    {periodLabel}
-                  </Text>
+                  <Text style={styles.savingsFooterLabel}>{periodLabel}</Text>
                 )}
               </View>
             ) : (
@@ -137,18 +137,22 @@ export const DarkCard = ({
                   }
                 >
                   <View
-                    style={isBalanceType || centered ? null : styles.centerAlign}
+                    style={
+                      isBalanceType || centered ? null : styles.centerAlign
+                    }
                   >
                     {isBalanceType ? (
                       <Text style={styles.label}>Current Balance</Text>
-                    ) : (isTransactionType || isBudgetType) ? null : (
+                    ) : isTransactionType || isBudgetType ? null : (
                       <View style={styles.periodBadgeCentered}>
                         <Text style={styles.periodLabel}>{periodLabel} 📅</Text>
                       </View>
                     )}
 
                     {label && !isSavingsType && (
-                      <Text style={isBudgetType ? styles.mutedLabel : styles.label}>
+                      <Text
+                        style={isBudgetType ? styles.mutedLabel : styles.label}
+                      >
                         {label}
                       </Text>
                     )}
@@ -158,12 +162,14 @@ export const DarkCard = ({
                       <View style={styles.budgetCategoryHeader}>
                         <View style={styles.budgetCategoryIconCircle}>
                           <Ionicons
-                            name={(categoryIcon as any) || 'wallet-outline'}
+                            name={(categoryIcon as any) || "wallet-outline"}
                             size={16}
                             color={"#bcf6d3"}
                           />
                         </View>
-                        <Text style={styles.budgetCategoryName}>{categoryName}</Text>
+                        <Text style={styles.budgetCategoryName}>
+                          {categoryName}
+                        </Text>
                       </View>
                     )}
 
@@ -220,7 +226,11 @@ export const DarkCard = ({
                           <View
                             style={[
                               styles.categoryBadgeDetail,
-                              { backgroundColor: isIncome ? "#2DBB6D" : "#FFE6E6" },
+                              {
+                                backgroundColor: isIncome
+                                  ? "#2DBB6D"
+                                  : "#FFE6E6",
+                              },
                             ]}
                           >
                             <Ionicons
@@ -238,7 +248,11 @@ export const DarkCard = ({
                           <View
                             style={[
                               styles.typeTag,
-                              { backgroundColor: isIncome ? "#2DBB6D" : "#FFE6E6" },
+                              {
+                                backgroundColor: isIncome
+                                  ? "#2DBB6D"
+                                  : "#FFE6E6",
+                              },
                             ]}
                           >
                             <Text
@@ -265,7 +279,9 @@ export const DarkCard = ({
                       style={styles.eyeButton}
                     >
                       <Ionicons
-                        name={isBalanceVisible ? "eye-outline" : "eye-off-outline"}
+                        name={
+                          isBalanceVisible ? "eye-outline" : "eye-off-outline"
+                        }
                         size={24}
                         color="rgba(255, 255, 255, 0.7)"
                       />
@@ -273,7 +289,10 @@ export const DarkCard = ({
                   )}
 
                   {showToggle && (
-                    <TouchableOpacity style={styles.tealToggle} onPress={onToggle}>
+                    <TouchableOpacity
+                      style={styles.tealToggle}
+                      onPress={onToggle}
+                    >
                       <View style={styles.tealToggleInner} />
                     </TouchableOpacity>
                   )}
@@ -297,7 +316,11 @@ export const DarkCard = ({
 
                       <View style={styles.statCol}>
                         <View style={styles.statHeader}>
-                          <Ionicons name="arrow-down" size={14} color="#A5D6A7" />
+                          <Ionicons
+                            name="arrow-down"
+                            size={14}
+                            color="#A5D6A7"
+                          />
                           <Text style={styles.statLabel}>Expenses</Text>
                         </View>
                         <Text style={styles.statValue}>
@@ -318,7 +341,9 @@ export const DarkCard = ({
                       <View
                         style={[
                           styles.budgetProgressBarFill,
-                          { width: `${Math.min(100, Math.round(progress * 100))}%` },
+                          {
+                            width: `${Math.min(100, Math.round(progress * 100))}%`,
+                          },
                         ]}
                       />
                     </View>
@@ -343,7 +368,9 @@ export const DarkCard = ({
                 {type === "expenses" && progress !== undefined && (
                   <>
                     {statusCaption && (
-                      <Text style={styles.statusCaptionTop}>{statusCaption}</Text>
+                      <Text style={styles.statusCaptionTop}>
+                        {statusCaption}
+                      </Text>
                     )}
                     <View style={styles.progressSection}>
                       <View style={{ flex: 1 }}>
@@ -658,8 +685,8 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   savingsHeaderRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 10,
     marginBottom: 4,
   },
@@ -668,8 +695,8 @@ const styles = StyleSheet.create({
     height: 32,
     borderRadius: 8,
     backgroundColor: Colors.primary.P100,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   savingsLabel: {
     fontFamily: Fonts.regular,
@@ -677,8 +704,8 @@ const styles = StyleSheet.create({
     color: "rgba(255, 255, 255, 0.8)",
   },
   savingsAmountRow: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
+    flexDirection: "row",
+    alignItems: "baseline",
     marginVertical: 4,
   },
   savingsAmount: {

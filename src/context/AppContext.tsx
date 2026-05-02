@@ -76,6 +76,12 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
       if (u) {
         setIsBalanceHidden(!!u.hideBalance);
+        
+        // Migration: Change name from "Ad" or "Adeyemo..." to "Taiwo"
+        if (u.name === 'Ad' || u.name === 'Adeyemo Taiwo M' || u.name === 'Adeyemo') {
+          u.name = 'Taiwo';
+          await StorageService.saveUser(u);
+        }
       }
 
       // Sample data to ensure it matches the latest mockup

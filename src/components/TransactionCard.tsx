@@ -1,18 +1,13 @@
-import React from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import React from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import {
-  PRIMARY_GREEN,
-  WHITE,
-  SPACING,
   Fonts,
+  PRIMARY_GREEN,
+  SPACING,
   TEXT_PRIMARY,
   TEXT_SECONDARY,
+  WHITE,
 } from "../constants";
 
 export interface Transaction {
@@ -53,7 +48,10 @@ export const TransactionCard = ({
         <View
           style={[
             styles.iconContainer,
-            { backgroundColor: (transaction.categoryColor || PRIMARY_GREEN) + "15" },
+            {
+              backgroundColor:
+                (transaction.categoryColor || PRIMARY_GREEN) + "15",
+            },
           ]}
         >
           <Ionicons
@@ -65,24 +63,31 @@ export const TransactionCard = ({
         <View style={styles.textContainer}>
           <Text style={styles.categoryTitle}>{transaction.category}</Text>
           <View style={styles.detailsRow}>
-             <Ionicons name="document-text-outline" size={12} color={TEXT_SECONDARY} style={{ marginRight: 4 }} />
-             <Text style={styles.description} numberOfLines={1}>
-               {transaction.note || transaction.description}
-             </Text>
+            <Ionicons
+              name="document-text-outline"
+              size={12}
+              color={TEXT_SECONDARY}
+              style={{ marginRight: 4 }}
+            />
+            <Text style={styles.description} numberOfLines={1}>
+              {transaction.note || transaction.description}
+            </Text>
           </View>
           <View style={styles.detailsRow}>
-             <Ionicons name="time-outline" size={12} color={TEXT_SECONDARY} style={{ marginRight: 4 }} />
-             <Text style={styles.time}>{formattedTime}</Text>
+            <Ionicons
+              name="time-outline"
+              size={12}
+              color={TEXT_SECONDARY}
+              style={{ marginRight: 4 }}
+            />
+            <Text style={styles.time}>{formattedTime}</Text>
           </View>
         </View>
       </View>
 
       <View style={styles.rightContent}>
         <Text
-          style={[
-            styles.amount,
-            { color: isIncome ? "#10B981" : "#EF4444" },
-          ]}
+          style={[styles.amount, { color: isIncome ? "#10B981" : "#EF4444" }]}
         >
           {isIncome ? "+" : "-"}₦{transaction.amount.toLocaleString()}
         </Text>
@@ -123,8 +128,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   detailsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginTop: 2,
   },
   categoryTitle: {

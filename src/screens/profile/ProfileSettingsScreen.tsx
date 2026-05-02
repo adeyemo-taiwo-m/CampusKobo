@@ -69,13 +69,13 @@ export const ProfileSettingsScreen = () => {
   const router = useRouter();
   const { logout, user, updateUser, isLoading } = useAppContext();
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
-  const [userName, setUserName] = useState(user?.fullName || 'Adeyemo Taiwo M');
+  const [userName, setUserName] = useState(user?.name || 'Taiwo');
   const [userEmail, setUserEmail] = useState(user?.email || 'adeyemo@gmail.com');
   const [userPhone, setUserPhone] = useState(user?.phone || '+234 7012345678');
 
   React.useEffect(() => {
     if (user) {
-      setUserName(user.fullName || 'Adeyemo Taiwo M');
+      setUserName(user.name || 'Taiwo');
       setUserEmail(user.email || 'adeyemo@gmail.com');
       setUserPhone(user.phone || '+234 7012345678');
     }
@@ -102,7 +102,7 @@ export const ProfileSettingsScreen = () => {
   };
 
   const handleEditProfile = async () => {
-    await updateUser({ fullName: userName, phone: userPhone });
+    await updateUser({ name: userName, phone: userPhone });
     setIsEditModalVisible(false);
     Alert.alert('Success', 'Profile updated successfully!');
   };

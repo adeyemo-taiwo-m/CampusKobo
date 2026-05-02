@@ -1,40 +1,46 @@
-import React, { useState, useMemo } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  SafeAreaView,
-  StatusBar,
-  Image,
-  ActivityIndicator,
-} from "react-native";
-import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import React, { useMemo, useState } from "react";
 import {
-  PRIMARY_GREEN,
-  WHITE,
-  TEXT_PRIMARY,
-  TEXT_SECONDARY,
-  SPACING,
-  Fonts,
-  BACKGROUND,
-} from "../../constants";
-import { useAppContext } from "../../context/AppContext";
+  Image,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { AddFundsBottomSheet } from "../../components/AddFundsBottomSheet";
 import { DarkCard } from "../../components/DarkCard";
 import { ProgressBar } from "../../components/ProgressBar";
-import { TransactionCard } from "../../components/TransactionCard";
-import { EmptyState } from "../../components/EmptyState";
-import { AddFundsBottomSheet } from "../../components/AddFundsBottomSheet";
-import { Toast } from "../../components/Toast";
-import { useToast } from "../../hooks/useToast";
 import { Skeleton } from "../../components/Skeleton";
-import { formatCurrency, getPercentage, getDaysLeftInMonth } from "../../utils/formatters";
+import { Toast } from "../../components/Toast";
+import { TransactionCard } from "../../components/TransactionCard";
+import {
+  BACKGROUND,
+  Fonts,
+  PRIMARY_GREEN,
+  SPACING,
+  TEXT_PRIMARY,
+  TEXT_SECONDARY,
+  WHITE,
+} from "../../constants";
+import { useAppContext } from "../../context/AppContext";
+import { useToast } from "../../hooks/useToast";
+import { formatCurrency, getPercentage } from "../../utils/formatters";
 
 export default function DashboardScreen() {
   const router = useRouter();
-  const { user, transactions, budgets, savingsGoals, isLoading, isBalanceHidden, toggleBalanceVisibility } = useAppContext();
+  const {
+    user,
+    transactions,
+    budgets,
+    savingsGoals,
+    isLoading,
+    isBalanceHidden,
+    toggleBalanceVisibility,
+  } = useAppContext();
   const [isAddFundsVisible, setIsAddFundsVisible] = useState(false);
   const { toastProps, showToast } = useToast();
 
@@ -44,18 +50,39 @@ export default function DashboardScreen() {
         <Skeleton width={120} height={40} borderRadius={20} />
         <View style={styles.headerActions}>
           <Skeleton width={40} height={40} borderRadius={20} />
-          <Skeleton width={40} height={40} borderRadius={20} style={{ marginLeft: 12 }} />
+          <Skeleton
+            width={40}
+            height={40}
+            borderRadius={20}
+            style={{ marginLeft: 12 }}
+          />
         </View>
       </View>
-      <Skeleton width="100%" height={180} borderRadius={24} style={{ marginTop: 24 }} />
+      <Skeleton
+        width="100%"
+        height={180}
+        borderRadius={24}
+        style={{ marginTop: 24 }}
+      />
       <View style={styles.statsRow}>
         <Skeleton width="48%" height={120} borderRadius={20} />
         <Skeleton width="48%" height={120} borderRadius={20} />
       </View>
       <View style={styles.recentSection}>
-        <Skeleton width={150} height={24} borderRadius={4} style={{ marginBottom: 16 }} />
-        {[1, 2, 3].map(i => (
-          <Skeleton key={i} width="100%" height={70} borderRadius={16} style={{ marginBottom: 12 }} />
+        <Skeleton
+          width={150}
+          height={24}
+          borderRadius={4}
+          style={{ marginBottom: 16 }}
+        />
+        {[1, 2, 3].map((i) => (
+          <Skeleton
+            key={i}
+            width="100%"
+            height={70}
+            borderRadius={16}
+            style={{ marginBottom: 12 }}
+          />
         ))}
       </View>
     </View>
@@ -96,7 +123,6 @@ export default function DashboardScreen() {
 
   const budgetProgress = budgetTotal > 0 ? budgetSpent / budgetTotal : 0;
 
-
   const primaryGoal = savingsGoals.length > 0 ? savingsGoals[0] : null;
 
   const initials = useMemo(() => {
@@ -116,9 +142,7 @@ export default function DashboardScreen() {
       {isLoading ? (
         <View style={styles.headerBackground}>
           <SafeAreaView>
-            <View style={{ paddingHorizontal: 20 }}>
-              {renderSkeletons()}
-            </View>
+            <View style={{ paddingHorizontal: 20 }}>{renderSkeletons()}</View>
           </SafeAreaView>
         </View>
       ) : (
@@ -137,7 +161,9 @@ export default function DashboardScreen() {
                       style={styles.avatarImage}
                     />
                   </View>
-                  <Text style={styles.welcomeText}>Hi, {user?.name?.split(' ')[0] || 'there'}</Text>
+                  <Text style={styles.welcomeText}>
+                    Hi, {user?.name?.split(" ")[0] || "there"}
+                  </Text>
                 </TouchableOpacity>
 
                 <View style={styles.headerActions}>
@@ -178,166 +204,194 @@ export default function DashboardScreen() {
               contentContainerStyle={styles.scrollContent}
               showsVerticalScrollIndicator={false}
             >
-        {/* Date Filter Bar */}
-        <View style={styles.dateFilter}>
-          <TouchableOpacity style={styles.dateSelector}>
-            <Text style={styles.dateText}>{new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }).toUpperCase()}</Text>
-            <Ionicons
-              name="calendar-outline"
-              size={16}
-              color={TEXT_SECONDARY}
-              style={{ marginLeft: 8 }}
-            />
-          </TouchableOpacity>
-          {transactions.length > 0 && (
-            <>
-              <View style={styles.vDivider} />
-              <View style={styles.growthBadge}>
-                <Ionicons name="arrow-up" size={14} color="#10B981" />
-                <Text style={styles.growthText}>12% vs Last month</Text>
+              {/* Date Filter Bar */}
+              <View style={styles.dateFilter}>
+                <TouchableOpacity style={styles.dateSelector}>
+                  <Text style={styles.dateText}>
+                    {new Date()
+                      .toLocaleDateString("en-US", {
+                        month: "long",
+                        year: "numeric",
+                      })
+                      .toUpperCase()}
+                  </Text>
+                  <Ionicons
+                    name="calendar-outline"
+                    size={16}
+                    color={TEXT_SECONDARY}
+                    style={{ marginLeft: 8 }}
+                  />
+                </TouchableOpacity>
+                {transactions.length > 0 && (
+                  <>
+                    <View style={styles.vDivider} />
+                    <View style={styles.growthBadge}>
+                      <Ionicons name="arrow-up" size={14} color="#10B981" />
+                      <Text style={styles.growthText}>12% vs Last month</Text>
+                    </View>
+                  </>
+                )}
               </View>
-            </>
-          )}
-        </View>
 
-        {/* Section 2 — Budget Overview */}
-        <View style={styles.sectionCard}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Budget</Text>
-            {budgets.length > 0 && (
-              <Text style={styles.percentageText}>
-                {getPercentage(budgetSpent, budgetTotal)}%
-              </Text>
-            )}
-          </View>
-
-          {budgets.length > 0 ? (
-            <TouchableOpacity onPress={() => router.push("/(tabs)/budget")}>
-              <View style={styles.amountRowBaseline}>
-                <Text style={styles.budgetValue}>
-                  {formatCurrency(budgetSpent)}
-                </Text>
-                <Text style={styles.budgetTotal}>
-                  /{formatCurrency(budgetTotal)}
-                </Text>
-              </View>
-              <ProgressBar progress={budgetProgress} />
-              <View style={styles.budgetFooter}>
-                <Text style={styles.budgetLeft}>
-                  {formatCurrency(budgetTotal - budgetSpent)} left
-                </Text>
-                <Text style={styles.budgetStatus}> • You are doing well</Text>
-              </View>
-            </TouchableOpacity>
-          ) : (
-            <View style={styles.emptyCardContent}>
-              <Text style={styles.emptyCardTitle}>No budget set yet</Text>
-              <Text style={styles.emptyCardSubtitle}>
-                Set a budget to track your spending
-              </Text>
-              <TouchableOpacity
-                style={styles.primaryActionBtn}
-                onPress={() => router.push("/budget/create")}
-              >
-                <Text style={styles.primaryActionBtnText}>Create Budget</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-        </View>
-
-        {/* Section 3 — Savings Progress */}
-        <View style={styles.sectionCard}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Savings Progress</Text>
-          </View>
-
-          {primaryGoal ? (
-            <TouchableOpacity onPress={() => router.push("/(tabs)/savings")}>
-              <View style={styles.savingsRow}>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.goalName}>{primaryGoal.name}</Text>
-                  <View style={styles.amountRowBaseline}>
-                    <Text style={styles.goalAmount}>
-                      {formatCurrency(primaryGoal.savedAmount)}
+              {/* Section 2 — Budget Overview */}
+              <View style={styles.sectionCard}>
+                <View style={styles.sectionHeader}>
+                  <Text style={styles.sectionTitle}>Budget</Text>
+                  {budgets.length > 0 && (
+                    <Text style={styles.percentageText}>
+                      {getPercentage(budgetSpent, budgetTotal)}%
                     </Text>
-                    <Text style={styles.goalTarget}>
-                      /{formatCurrency(primaryGoal.targetAmount)}
-                    </Text>
-                  </View>
+                  )}
                 </View>
-                <View style={styles.progressRingContainer}>
-                  <View
-                    style={[
-                      styles.circularProgress,
-                      { borderColor: "#E8F5E9" },
-                    ]}
+
+                {budgets.length > 0 ? (
+                  <TouchableOpacity
+                    onPress={() => router.push("/(tabs)/budget")}
                   >
-                    <View
-                      style={[
-                        styles.progressArc,
-                        { transform: [{ rotate: "45deg" }] },
-                      ]}
-                    />
-                    <Text style={styles.circleText}>
-                      {getPercentage(primaryGoal.savedAmount, primaryGoal.targetAmount)}%
+                    <View style={styles.amountRowBaseline}>
+                      <Text style={styles.budgetValue}>
+                        {formatCurrency(budgetSpent)}
+                      </Text>
+                      <Text style={styles.budgetTotal}>
+                        /{formatCurrency(budgetTotal)}
+                      </Text>
+                    </View>
+                    <ProgressBar progress={budgetProgress} />
+                    <View style={styles.budgetFooter}>
+                      <Text style={styles.budgetLeft}>
+                        {formatCurrency(budgetTotal - budgetSpent)} left
+                      </Text>
+                      <Text style={styles.budgetStatus}>
+                        {" "}
+                        • You are doing well
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                ) : (
+                  <View style={styles.emptyCardContent}>
+                    <Text style={styles.emptyCardTitle}>No budget set yet</Text>
+                    <Text style={styles.emptyCardSubtitle}>
+                      Set a budget to track your spending
+                    </Text>
+                    <TouchableOpacity
+                      style={styles.primaryActionBtn}
+                      onPress={() => router.push("/budget/create")}
+                    >
+                      <Text style={styles.primaryActionBtnText}>
+                        Create Budget
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+              </View>
+
+              {/* Section 3 — Savings Progress */}
+              <View style={styles.sectionCard}>
+                <View style={styles.sectionHeader}>
+                  <Text style={styles.sectionTitle}>Savings Progress</Text>
+                </View>
+
+                {primaryGoal ? (
+                  <TouchableOpacity
+                    onPress={() => router.push("/(tabs)/savings")}
+                  >
+                    <View style={styles.savingsRow}>
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.goalName}>{primaryGoal.name}</Text>
+                        <View style={styles.amountRowBaseline}>
+                          <Text style={styles.goalAmount}>
+                            {formatCurrency(primaryGoal.savedAmount)}
+                          </Text>
+                          <Text style={styles.goalTarget}>
+                            /{formatCurrency(primaryGoal.targetAmount)}
+                          </Text>
+                        </View>
+                      </View>
+                      <View style={styles.progressRingContainer}>
+                        <View
+                          style={[
+                            styles.circularProgress,
+                            { borderColor: "#E8F5E9" },
+                          ]}
+                        >
+                          <View
+                            style={[
+                              styles.progressArc,
+                              { transform: [{ rotate: "45deg" }] },
+                            ]}
+                          />
+                          <Text style={styles.circleText}>
+                            {getPercentage(
+                              primaryGoal.savedAmount,
+                              primaryGoal.targetAmount,
+                            )}
+                            %
+                          </Text>
+                        </View>
+                      </View>
+                    </View>
+                    <TouchableOpacity
+                      style={styles.primaryActionBtn}
+                      onPress={() => setIsAddFundsVisible(true)}
+                    >
+                      <Text style={styles.primaryActionBtnText}>Add funds</Text>
+                    </TouchableOpacity>
+                  </TouchableOpacity>
+                ) : (
+                  <View style={styles.emptyCardContent}>
+                    <Text style={styles.emptyCardTitle}>
+                      No savings goal yet
+                    </Text>
+                    <Text style={styles.emptyCardSubtitle}>
+                      Start saving towards something important
+                    </Text>
+                    <TouchableOpacity
+                      style={styles.primaryActionBtn}
+                      onPress={() => router.push("/savings/create")}
+                    >
+                      <Text style={styles.primaryActionBtnText}>
+                        Start Saving
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+              </View>
+
+              {/* Section 4 — Recent Transactions */}
+              <View style={styles.transactionsSection}>
+                <View style={styles.sectionHeader}>
+                  <Text style={styles.sectionTitleLabel}>
+                    Recent Transactions
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => router.push("/(tabs)/expenses")}
+                  >
+                    <Text style={styles.viewAllText}>View all</Text>
+                  </TouchableOpacity>
+                </View>
+
+                {transactions.length > 0 ? (
+                  transactions
+                    .slice(0, 5)
+                    .map((t) => (
+                      <TransactionCard
+                        key={t.id}
+                        transaction={t}
+                        onPress={() => router.push(`/transaction/${t.id}`)}
+                      />
+                    ))
+                ) : (
+                  <View style={styles.emptyTransactions}>
+                    <Text style={styles.emptyTransactionsText}>
+                      No transactions yet
                     </Text>
                   </View>
-                </View>
+                )}
               </View>
-              <TouchableOpacity
-                style={styles.primaryActionBtn}
-                onPress={() => setIsAddFundsVisible(true)}
-              >
-                <Text style={styles.primaryActionBtnText}>Add funds</Text>
-              </TouchableOpacity>
-            </TouchableOpacity>
-          ) : (
-            <View style={styles.emptyCardContent}>
-              <Text style={styles.emptyCardTitle}>No savings goal yet</Text>
-              <Text style={styles.emptyCardSubtitle}>
-                Start saving towards something important
-              </Text>
-              <TouchableOpacity
-                style={styles.primaryActionBtn}
-                onPress={() => router.push("/savings/create")}
-              >
-                <Text style={styles.primaryActionBtnText}>Start Saving</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-        </View>
 
-        {/* Section 4 — Recent Transactions */}
-        <View style={styles.transactionsSection}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitleLabel}>Recent Transactions</Text>
-            <TouchableOpacity onPress={() => router.push("/(tabs)/expenses")}>
-              <Text style={styles.viewAllText}>View all</Text>
-            </TouchableOpacity>
+              <View style={{ height: 100 }} />
+            </ScrollView>
           </View>
-
-          {transactions.length > 0 ? (
-            transactions
-              .slice(0, 5)
-              .map((t) => (
-                <TransactionCard
-                  key={t.id}
-                  transaction={t}
-                  onPress={() => router.push(`/transaction/${t.id}`)}
-                />
-              ))
-          ) : (
-            <View style={styles.emptyTransactions}>
-              <Text style={styles.emptyTransactionsText}>
-                No transactions yet
-              </Text>
-            </View>
-          )}
-        </View>
-
-        <View style={{ height: 100 }} />
-      </ScrollView>
-    </View>
         </>
       )}
 
@@ -360,8 +414,6 @@ export default function DashboardScreen() {
         />
       )}
 
-
-
       <Toast {...toastProps} />
     </View>
   );
@@ -376,14 +428,14 @@ const styles = StyleSheet.create({
     paddingTop: SPACING.MD,
   },
   skeletonHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 20,
   },
   statsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginTop: 24,
   },
   recentSection: {
@@ -391,9 +443,9 @@ const styles = StyleSheet.create({
   },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(255, 255, 255, 0.7)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(255, 255, 255, 0.7)",
+    justifyContent: "center",
+    alignItems: "center",
     zIndex: 1000,
   },
   headerBackground: {
