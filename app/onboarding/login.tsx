@@ -1,45 +1,45 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { WHITE, PRIMARY_GREEN, TEXT_SECONDARY, TEXT_PRIMARY, SPACING, FONT_SIZE } from '../../src/constants';
+import { WHITE, PRIMARY_GREEN, TEXT_SECONDARY, TEXT_PRIMARY, SPACING, FONT_SIZE, Fonts } from '../../src/constants';
 import { Button } from '../../src/components/Button';
 import { InputField } from '../../src/components/InputField';
 import { useAppContext } from '../../src/context/AppContext';
-import { StorageService } from '../../src/storage/StorageService';
 
 export default function LoginScreen() {
   const router = useRouter();
-  const { setUser } = useAppContext();
+  const { loginWithApi } = useAppContext();
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
 
   const handleLogin = async () => {
-    // For prototype purposes, any non-empty combination succeeds
-    if (email && password) {
-      const existingUser = await StorageService.getUser();
+    if (!email || !password) return;
+    
+    setApiError(null);
+    setIsLoading(true);
+    
+    try {
+      await loginWithApi(email, password);
+      // Success is handled automatically by AppContext and index.tsx redirection
+    } catch (error: any) {
+      const errorMessage = error.message || 'Login failed. Please try again.';
       
-      if (existingUser && existingUser.email === email) {
-        setUser(existingUser);
-        router.replace('/(tabs)');
+      // Check if user needs verification
+      if (errorMessage.toLowerCase().includes('not verified') || errorMessage.toLowerCase().includes('verify')) {
+        router.push({
+          pathname: '/onboarding/email-verification',
+          params: { email }
+        });
       } else {
-        // Mocking a successful login for a new user entry
-        const mockUser = {
-          id: '123',
-          name: 'Student User',
-          email: email,
-          currency: 'NGN' as const,
-          monthlyBudget: 0,
-          selectedGoals: [],
-          selectedCategories: [],
-          hasPIN: false,
-          hasCompletedOnboarding: true,
-        };
-        setUser(mockUser);
-        router.replace('/(tabs)');
+        setApiError(errorMessage);
       }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -62,6 +62,7 @@ export default function LoginScreen() {
             value={email} 
             onChangeText={setEmail}
             keyboardType="email-address"
+            editable={!isLoading}
           />
           <InputField 
             label="Password" 
@@ -69,6 +70,7 @@ export default function LoginScreen() {
             value={password} 
             onChangeText={setPassword}
             secureTextEntry={!showPassword}
+            editable={!isLoading}
             rightIcon={
               <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
                 <Ionicons name={showPassword ? "eye-off" : "eye"} size={20} color={TEXT_SECONDARY} />
@@ -76,21 +78,34 @@ export default function LoginScreen() {
             }
           />
 
-          <TouchableOpacity onPress={() => Alert.alert('Forgot Password', 'Password reset sent to your email')} style={styles.forgotPassword}>
+          <TouchableOpacity 
+            onPress={() => router.push('/(auth)/forgot-password' as any)} 
+            style={styles.forgotPassword}
+            disabled={isLoading}
+          >
             <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
           </TouchableOpacity>
+
+          {apiError && (
+            <View style={styles.errorCard}>
+              <Ionicons name="alert-circle" size={20} color={WHITE} />
+              <Text style={styles.errorText}>{apiError}</Text>
+            </View>
+          )}
         </View>
 
         <View style={styles.footer}>
           <Button 
-            title="Log In" 
+            title={isLoading ? "" : "Log In"} 
             onPress={handleLogin} 
-            disabled={!email || !password}
-          />
+            disabled={!email || !password || isLoading}
+          >
+            {isLoading && <ActivityIndicator size="small" color={WHITE} />}
+          </Button>
           
           <View style={styles.signupLinkContainer}>
             <Text style={styles.footerText}>Don't have an account? </Text>
-            <TouchableOpacity onPress={() => router.push('/onboarding/signup')}>
+            <TouchableOpacity onPress={() => router.push('/onboarding/signup')} disabled={isLoading}>
               <Text style={styles.linkText}>Sign Up</Text>
             </TouchableOpacity>
           </View>
@@ -119,11 +134,13 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZE.XXXL,
     fontWeight: 'bold',
     color: TEXT_PRIMARY,
+    fontFamily: Fonts.semiBold,
   },
   subtitle: {
     fontSize: FONT_SIZE.LG,
     color: TEXT_SECONDARY,
     marginTop: SPACING.XS,
+    fontFamily: Fonts.regular,
   },
   form: {
     marginBottom: SPACING.XL,
@@ -136,6 +153,22 @@ const styles = StyleSheet.create({
     color: PRIMARY_GREEN,
     fontSize: FONT_SIZE.MD,
     fontWeight: '500',
+    fontFamily: Fonts.medium,
+  },
+  errorCard: {
+    backgroundColor: '#EF4444',
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: SPACING.MD,
+    borderRadius: 8,
+    marginTop: SPACING.MD,
+  },
+  errorText: {
+    color: WHITE,
+    fontSize: FONT_SIZE.MD,
+    marginLeft: SPACING.SM,
+    fontFamily: Fonts.medium,
+    flex: 1,
   },
   footer: {
     marginTop: SPACING.MD,
@@ -148,10 +181,12 @@ const styles = StyleSheet.create({
   footerText: {
     color: TEXT_SECONDARY,
     fontSize: FONT_SIZE.MD,
+    fontFamily: Fonts.regular,
   },
   linkText: {
     color: PRIMARY_GREEN,
     fontSize: FONT_SIZE.MD,
     fontWeight: 'bold',
+    fontFamily: Fonts.semiBold,
   },
 });
