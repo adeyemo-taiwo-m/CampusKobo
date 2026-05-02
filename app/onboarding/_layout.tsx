@@ -9,6 +9,7 @@ export default function OnboardingLayout() {
       <Stack.Screen name="welcome3" />
       <Stack.Screen name="login" />
       <Stack.Screen name="signup" />
+      <Stack.Screen name="email-verification" />
       <Stack.Screen name="goal-selection" />
       <Stack.Screen name="set-budget" />
       <Stack.Screen name="quick-setup" />
