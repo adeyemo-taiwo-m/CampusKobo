@@ -6,6 +6,7 @@ import {
   SafeAreaView,
   TouchableOpacity,
   ScrollView,
+  ActivityIndicator,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -22,6 +23,7 @@ import {
 import { Button } from "../../src/components/Button";
 import { OnboardingHeader } from "../../src/components/OnboardingHeader";
 import { useAppContext } from "../../src/context/AppContext";
+import { onboardingService } from "../../src/services/onboardingService";
 
 interface GoalOption {
   id: string;
@@ -29,6 +31,12 @@ interface GoalOption {
   title: string;
   description: string;
 }
+
+const GOAL_API_VALUES: Record<string, string> = {
+  "track": "track_spending",
+  "control": "control_budget",
+  "save": "save_goals",
+};
 
 const GOALS: GoalOption[] = [
   {
@@ -55,11 +63,25 @@ export default function GoalSelectionScreen() {
   const router = useRouter();
   const { updateUser } = useAppContext();
   const [selectedGoal, setSelectedGoal] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (selectedGoal) {
-      updateUser({ selectedGoals: [selectedGoal] });
-      router.push("/onboarding/set-budget");
+      setIsLoading(true);
+      
+      try {
+        // CALL THE API (Fire and forget style for onboarding)
+        const apiGoal = GOAL_API_VALUES[selectedGoal];
+        await onboardingService.selectGoal({ goal: apiGoal });
+      } catch (error) {
+        // Log the error silently — do not show an error to the user for this step
+        console.warn("API Goal Selection failed, continuing locally:", error);
+      } finally {
+        // ALWAYS navigate regardless of success
+        updateUser({ selectedGoals: [selectedGoal] });
+        setIsLoading(false);
+        router.push("/onboarding/set-budget");
+      }
     }
   };
 
@@ -87,6 +109,7 @@ export default function GoalSelectionScreen() {
                   style={[styles.goalCard, isSelected && styles.selectedCard]}
                   onPress={() => setSelectedGoal(goal.id)}
                   activeOpacity={0.8}
+                  disabled={isLoading}
                 >
                   <View style={styles.iconContainer}>
                     <Ionicons
@@ -112,11 +135,13 @@ export default function GoalSelectionScreen() {
 
         <View style={styles.footer}>
           <Button
-            title="Continue"
+            title={isLoading ? "" : "Continue"}
             onPress={handleContinue}
-            disabled={!selectedGoal}
+            disabled={!selectedGoal || isLoading}
             variant="primary"
-          />
+          >
+            {isLoading && <ActivityIndicator size="small" color={WHITE} />}
+          </Button>
         </View>
       </View>
     </SafeAreaView>
@@ -204,6 +229,21 @@ const styles = StyleSheet.create({
   footer: {
     paddingVertical: SPACING.LG,
     backgroundColor: WHITE,
+  },
+  errorCard: {
+    backgroundColor: "#EF4444",
+    flexDirection: "row",
+    alignItems: "center",
+    padding: SPACING.MD,
+    borderRadius: 12,
+    marginTop: SPACING.MD,
+  },
+  errorText: {
+    color: WHITE,
+    fontSize: FONT_SIZE.MD,
+    marginLeft: SPACING.SM,
+    fontFamily: Fonts.medium,
+    flex: 1,
   },
 });
 

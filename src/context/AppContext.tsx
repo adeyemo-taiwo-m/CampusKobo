@@ -165,9 +165,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     try {
       let t = await StorageService.getTransactions();
       const u = await StorageService.getUser();
-      const b = await StorageService.getBudgets();
-      const s = await StorageService.getSavingsGoals();
-      const r = await StorageService.getRecurringExpenses();
+      let b = await StorageService.getBudgets();
+      let s = await StorageService.getSavingsGoals();
+      let r = await StorageService.getRecurringExpenses();
 
       if (u) {
         setIsBalanceHidden(!!u.hideBalance);

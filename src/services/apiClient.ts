@@ -79,9 +79,18 @@ apiClient.interceptors.response.use(
       }
     }
 
-    // For all other errors
-    const errorMessage = (error.response?.data as any)?.detail || error.message || 'Something went wrong';
-    throw new Error(errorMessage);
+      // Handle general errors
+      const errorMessage = (error.response?.data as any)?.detail || error.message || 'An unexpected error occurred';
+      
+      if (error.response?.status === 500) {
+        console.error('[API 500 ERROR]', {
+          url: error.config?.url,
+          data: error.response?.data,
+          status: error.response?.status
+        });
+      }
+
+      return Promise.reject(new Error(errorMessage));
   }
 );
 
