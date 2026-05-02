@@ -6,19 +6,32 @@ import ConfettiCannon from 'react-native-confetti-cannon';
 import { DARK_CARD, WHITE, PRIMARY_GREEN, SPACING, FONT_SIZE, Fonts } from '../../src/constants';
 import { Button } from '../../src/components/Button';
 import { useAppContext } from '../../src/context/AppContext';
+import { onboardingService } from '../../src/services/onboardingService';
 
 export default function OnboardingSuccessScreen() {
   const router = useRouter();
   const { updateUser } = useAppContext();
 
   useEffect(() => {
-    // Update user status
+    // Update user status locally
     updateUser({ hasCompletedOnboarding: true });
 
-    // Auto-navigate after 1 seconds
+    // Verify progress on server (Silent check)
+    const verifyOnboarding = async () => {
+      try {
+        const progress = await onboardingService.getProgress();
+        console.log('Onboarding status on server:', progress);
+      } catch (error) {
+        console.warn('Could not verify onboarding progress on server:', error);
+      }
+    };
+    
+    verifyOnboarding();
+
+    // Auto-navigate after 1.5 seconds (slightly longer to allow API call and visual feedback)
     const timer = setTimeout(() => {
       router.replace('/(tabs)');
-    }, 1000);
+    }, 1500);
 
     return () => clearTimeout(timer);
   }, []);

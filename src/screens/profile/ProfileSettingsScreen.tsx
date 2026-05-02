@@ -13,6 +13,7 @@ import {
   TextInput,
   Modal,
   TouchableWithoutFeedback,
+  ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -27,6 +28,8 @@ import {
 import { Header } from '../../components/Header';
 import { useAppContext } from '../../context/AppContext';
 import { InputField } from '../../components/InputField';
+import { OfflineBanner } from '../../components/OfflineBanner';
+import { userService } from '../../services/userService';
 
 const { height } = Dimensions.get('window');
 
@@ -67,21 +70,32 @@ const SettingsRow = ({
 
 export const ProfileSettingsScreen = () => {
   const router = useRouter();
-  const { logout, user, updateUser, isLoading } = useAppContext();
+  const { 
+    logoutFromApi, 
+    user, 
+    updateUser, 
+    isLoading: contextLoading,
+    apiUser,
+    setApiUser
+  } = useAppContext();
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
-  const [userName, setUserName] = useState(user?.name || 'Taiwo');
-  const [userEmail, setUserEmail] = useState(user?.email || 'adeyemo@gmail.com');
-  const [userPhone, setUserPhone] = useState(user?.phone || '+234 7012345678');
+  const [isUpdating, setIsUpdating] = useState(false);
+  
+  const initialName = apiUser?.full_name || user?.name || 'User';
+  const initialEmail = apiUser?.email || user?.email || '';
+  const initialPhone = user?.phone || '+234 7012345678';
+
+  const [userName, setUserName] = useState(initialName);
+  const [userEmail, setUserEmail] = useState(initialEmail);
+  const [userPhone, setUserPhone] = useState(initialPhone);
 
   React.useEffect(() => {
-    if (user) {
-      setUserName(user.name || 'Taiwo');
-      setUserEmail(user.email || 'adeyemo@gmail.com');
-      setUserPhone(user.phone || '+234 7012345678');
-    }
-  }, [user]);
+    setUserName(apiUser?.full_name || user?.name || 'User');
+    setUserEmail(apiUser?.email || user?.email || '');
+    setUserPhone(user?.phone || '+234 7012345678');
+  }, [user, apiUser]);
 
-  if (isLoading) return null;
+  if (contextLoading) return null;
 
   const handleLogout = () => {
     Alert.alert(
@@ -90,26 +104,51 @@ export const ProfileSettingsScreen = () => {
       [
         { text: 'Cancel', style: 'cancel' },
         { 
-          text: 'Log Out', 
-          style: 'destructive',
-          onPress: async () => {
-            await logout();
-            router.replace('/onboarding/welcome1');
-          }
+      text: 'Log Out', 
+      style: 'destructive',
+      onPress: async () => {
+        try {
+          await logoutFromApi();
+          // The navigator will handle the redirect automatically based on isAuthenticated
+        } catch (error) {
+          console.error('Logout error:', error);
+          Alert.alert('Error', 'Failed to log out properly. Please try again.');
         }
+      }
+    }
       ]
     );
   };
 
   const handleEditProfile = async () => {
-    await updateUser({ name: userName, phone: userPhone });
-    setIsEditModalVisible(false);
-    Alert.alert('Success', 'Profile updated successfully!');
+    if (!userName.trim()) {
+      Alert.alert('Error', 'Name cannot be empty');
+      return;
+    }
+
+    setIsUpdating(true);
+    try {
+      // 1. Update on API
+      const updatedApiUser = await userService.updateProfile({ full_name: userName });
+      
+      // 2. Update context states
+      setApiUser(updatedApiUser);
+      await updateUser({ name: userName, phone: userPhone });
+      
+      setIsEditModalVisible(false);
+      Alert.alert('Success', 'Profile updated successfully!');
+    } catch (error: any) {
+      console.error('Update profile error:', error);
+      Alert.alert('Update Failed', error.message || 'Could not update profile. Please try again.');
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
+      <OfflineBanner />
       <Header 
         title="Profile & Settings" 
         showBack={true} 
@@ -119,10 +158,18 @@ export const ProfileSettingsScreen = () => {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         {/* Profile Card */}
         <View style={styles.profileCard}>
-          <Image 
-            source={require('../../../assets/images/avatar.jpeg')} 
-            style={styles.avatar} 
-          />
+          {apiUser?.avatar_url ? (
+            <Image 
+              source={{ uri: apiUser.avatar_url }} 
+              style={styles.avatar} 
+            />
+          ) : (
+            <View style={[styles.avatar, styles.initialsAvatar]}>
+              <Text style={styles.avatarInitials}>
+                {userName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2)}
+              </Text>
+            </View>
+          )}
           <View style={styles.profileInfo}>
             <Text style={styles.userName}>{userName}</Text>
             <Text style={styles.userEmail}>{userEmail}</Text>
@@ -247,10 +294,18 @@ export const ProfileSettingsScreen = () => {
                   {/* Modal Avatar */}
                   <View style={styles.modalAvatarContainer}>
                     <View style={styles.modalAvatarWrapper}>
-                      <Image 
-                        source={require('../../../assets/images/avatar.jpeg')} 
-                        style={styles.modalAvatar} 
-                      />
+                      {apiUser?.avatar_url ? (
+                        <Image 
+                          source={{ uri: apiUser.avatar_url }} 
+                          style={styles.modalAvatar} 
+                        />
+                      ) : (
+                        <View style={[styles.modalAvatar, styles.initialsAvatarModal]}>
+                          <Text style={styles.avatarInitialsModal}>
+                            {userName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2)}
+                          </Text>
+                        </View>
+                      )}
                       <TouchableOpacity style={styles.avatarEditBadge}>
                         <Ionicons name="image-outline" size={16} color={WHITE} />
                       </TouchableOpacity>
@@ -283,10 +338,15 @@ export const ProfileSettingsScreen = () => {
                 </ScrollView>
 
                 <TouchableOpacity 
-                  style={styles.saveBtn}
+                  style={[styles.saveBtn, isUpdating && styles.disabledBtn]}
                   onPress={handleEditProfile}
+                  disabled={isUpdating}
                 >
-                  <Text style={styles.saveBtnText}>Save Changes</Text>
+                  {isUpdating ? (
+                    <ActivityIndicator color={WHITE} size="small" />
+                  ) : (
+                    <Text style={styles.saveBtnText}>Save Changes</Text>
+                  )}
                 </TouchableOpacity>
               </View>
             </TouchableWithoutFeedback>
@@ -326,6 +386,16 @@ const styles = StyleSheet.create({
     marginRight: 20,
     borderWidth: 2,
     borderColor: PRIMARY_GREEN,
+  },
+  initialsAvatar: {
+    backgroundColor: '#E7F5ED',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarInitials: {
+    fontSize: 32,
+    fontFamily: Fonts.bold,
+    color: PRIMARY_GREEN,
   },
   profileInfo: {
     flex: 1,
@@ -475,6 +545,16 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: PRIMARY_GREEN,
   },
+  initialsAvatarModal: {
+    backgroundColor: '#E7F5ED',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarInitialsModal: {
+    fontSize: 40,
+    fontFamily: Fonts.bold,
+    color: PRIMARY_GREEN,
+  },
   avatarEditBadge: {
     position: 'absolute',
     bottom: 0,
@@ -518,6 +598,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 'auto',
     marginBottom: 20,
+  },
+  disabledBtn: {
+    opacity: 0.7,
   },
   saveBtnText: {
     color: WHITE,

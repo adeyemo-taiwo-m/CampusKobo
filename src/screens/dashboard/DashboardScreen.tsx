@@ -17,6 +17,7 @@ import { ProgressBar } from "../../components/ProgressBar";
 import { Skeleton } from "../../components/Skeleton";
 import { Toast } from "../../components/Toast";
 import { TransactionCard } from "../../components/TransactionCard";
+import { OfflineBanner } from "../../components/OfflineBanner";
 import {
   BACKGROUND,
   Fonts,
@@ -40,6 +41,7 @@ export default function DashboardScreen() {
     isLoading,
     isBalanceHidden,
     toggleBalanceVisibility,
+    apiUser,
   } = useAppContext();
   const [isAddFundsVisible, setIsAddFundsVisible] = useState(false);
   const { toastProps, showToast } = useToast();
@@ -126,18 +128,19 @@ export default function DashboardScreen() {
   const primaryGoal = savingsGoals.length > 0 ? savingsGoals[0] : null;
 
   const initials = useMemo(() => {
-    if (!user?.name) return "CK";
-    return user.name
+    const name = apiUser?.full_name || user?.name || "CK";
+    return name
       .split(" ")
       .map((n) => n[0])
       .join("")
       .toUpperCase()
       .slice(0, 2);
-  }, [user]);
+  }, [user, apiUser]);
 
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
+      <OfflineBanner />
 
       {isLoading ? (
         <View style={styles.headerBackground}>
@@ -156,13 +159,17 @@ export default function DashboardScreen() {
                   onPress={() => router.push("/profile")}
                 >
                   <View style={styles.avatar}>
-                    <Image
-                      source={require("../../../assets/images/avatar.jpeg")}
-                      style={styles.avatarImage}
-                    />
+                    {apiUser?.avatar_url ? (
+                      <Image
+                        source={{ uri: apiUser.avatar_url }}
+                        style={styles.avatarImage}
+                      />
+                    ) : (
+                      <Text style={styles.avatarText}>{initials}</Text>
+                    )}
                   </View>
                   <Text style={styles.welcomeText}>
-                    Hi, {user?.name?.split(" ")[0] || "there"}
+                    Hi, {(apiUser?.full_name || user?.name)?.split(" ")[0] || "there"}
                   </Text>
                 </TouchableOpacity>
 

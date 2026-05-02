@@ -20,6 +20,7 @@ import {
   Fonts,
 } from '../../constants';
 import { Header } from '../../components/Header';
+import { useAppContext } from '../../context/AppContext';
 
 const CustomToggle = ({ value, onValueChange, disabled = false }: { value: boolean, onValueChange: (v: boolean) => void, disabled?: boolean }) => {
   return (
@@ -231,14 +232,14 @@ export const SecurityPrivacyScreen = () => {
               title="Change Password"
               description="Update your account password"
               type="arrow"
-              onPress={() => Alert.alert('Coming soon', 'This feature is coming in the next update.')}
+              onPress={() => router.push('/profile/change-password')}
             />
             <SecurityRow
               icon="mail-outline"
               title="Change Email"
               description="Update your email address"
               type="arrow"
-              onPress={() => Alert.alert('Coming soon', 'This feature is coming in the next update.')}
+              onPress={() => router.push('/profile/change-email')}
             />
             <SecurityRow
               icon="trash-outline"

@@ -62,6 +62,7 @@ interface AppContextType {
   loginWithApi: (email: string, password: string) => Promise<void>;
   registerWithApi: (full_name: string, email: string, password: string) => Promise<any>;
   logoutFromApi: () => Promise<void>;
+  setApiUser: (user: UserProfileResponse | null) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -573,6 +574,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         loginWithApi,
         registerWithApi,
         logoutFromApi,
+        setApiUser,
       }}
     >
       {children}

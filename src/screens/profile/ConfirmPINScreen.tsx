@@ -68,7 +68,7 @@ export const ConfirmPINScreen = () => {
       if (pin === originalPin) {
         // Success
         const timer = setTimeout(() => {
-          router.push('/profile/pin-success');
+          router.push({ pathname: '/profile/pin-success', params: { pin } });
         }, 200);
         return () => clearTimeout(timer);
       } else {

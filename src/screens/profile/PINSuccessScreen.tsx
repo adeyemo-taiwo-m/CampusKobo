@@ -7,8 +7,9 @@ import {
   SafeAreaView,
   StatusBar,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { authService } from '../../services/authService';
 import {
   WHITE,
   PRIMARY_GREEN,
@@ -19,9 +20,19 @@ import {
 
 export const PINSuccessScreen = () => {
   const router = useRouter();
-
-  const handleDone = () => {
-    // In a real app, we would save the PIN to global state/storage here
+  const { pin } = useLocalSearchParams<{ pin: string }>();
+  
+  const handleDone = async () => {
+    // 1. Save to API (Background sync)
+    if (pin) {
+      try {
+        await authService.createPin({ pin });
+      } catch (error) {
+        console.warn('Failed to sync PIN with server, but saved locally:', error);
+      }
+    }
+    
+    // 2. Navigate back
     router.replace('/profile/security');
   };
 

@@ -38,6 +38,7 @@ import { Toast } from "../../components/Toast";
 import { useToast } from "../../hooks/useToast";
 import { useAppContext } from "../../context/AppContext";
 import { ProgressBar } from "../../components/ProgressBar";
+import { OfflineBanner } from "../../components/OfflineBanner";
 import { formatCurrency, getPercentage } from "../../utils/formatters";
 import { SavingsGoal } from "../../types";
 
@@ -60,7 +61,7 @@ const getGoalEmoji = (name: string): string => {
 export const SavingsScreen = () => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { savingsGoals, isLoading, user } = useAppContext();
+  const { savingsGoals, isLoading, user, apiUser } = useAppContext();
   const { toastProps, showToast } = useToast();
   const hasGoals = savingsGoals.length > 0;
   const totalSaved = savingsGoals.reduce((sum, g) => sum + g.savedAmount, 0);
@@ -139,6 +140,7 @@ export const SavingsScreen = () => {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={PRIMARY_GREEN} />
+      <OfflineBanner />
 
       {/* ── Green Hero Region ─────────────────────── */}
       <View style={[styles.heroRegion, { paddingTop: insets.top + 10 }]}>
@@ -149,12 +151,17 @@ export const SavingsScreen = () => {
             onPress={() => router.push("/profile")}
           >
             <View style={styles.avatar}>
-              <Image
-                source={require("../../../assets/images/avatar.jpeg")}
-                style={styles.avatarImage}
-              />
+              {apiUser?.avatar_url ? (
+                <Image source={{ uri: apiUser.avatar_url }} style={styles.avatarImage} />
+              ) : (
+                <View style={styles.initialsAvatar}>
+                  <Text style={styles.initialsText}>
+                    {(apiUser?.full_name || user?.name || 'CK').split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2)}
+                  </Text>
+                </View>
+              )}
             </View>
-            <Text style={styles.welcomeText}>Hi, {user?.name?.split(' ')[0] || 'there'}</Text>
+            <Text style={styles.welcomeText}>Hi, {(apiUser?.full_name || user?.name)?.split(' ')[0] || 'there'}</Text>
           </TouchableOpacity>
 
           <Text style={styles.headerTitle}>Savings</Text>
@@ -273,6 +280,18 @@ const styles = StyleSheet.create({
   avatarImage: {
     width: 38,
     height: 38,
+  },
+  initialsAvatar: {
+    width: 38,
+    height: 38,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  initialsText: {
+    color: WHITE,
+    fontSize: 14,
+    fontFamily: Fonts.bold,
   },
   welcomeText: {
     fontFamily: Fonts.semiBold,
