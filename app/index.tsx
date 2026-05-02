@@ -1,16 +1,25 @@
-import { Redirect } from 'expo-router';
+import React, { useEffect } from 'react';
+import { View, ActivityIndicator } from 'react-native';
+import { useRouter } from 'expo-router';
 import { useAppContext } from '../src/context/AppContext';
 
 export default function Index() {
-  const { user, isLoading } = useAppContext();
+  const { isAuthenticated, authLoading, isLoading } = useAppContext();
+  const router = useRouter();
 
-  if (isLoading) return null;
+  useEffect(() => {
+    if (!authLoading && !isLoading) {
+      if (isAuthenticated) {
+        router.replace('/(tabs)');
+      } else {
+        router.replace('/onboarding/splash');
+      }
+    }
+  }, [isAuthenticated, authLoading, isLoading]);
 
-  // If user has not completed onboarding, send them to the splash screen
-  if (!user || !user.hasCompletedOnboarding) {
-    return <Redirect href="/onboarding/splash" />;
-  }
-
-  // Otherwise, send them to the main dashboard
-  return <Redirect href="/(tabs)" />;
+  return (
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' }}>
+      <ActivityIndicator size="large" color="#3CB96A" />
+    </View>
+  );
 }
