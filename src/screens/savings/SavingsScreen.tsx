@@ -143,59 +143,61 @@ export const SavingsScreen = () => {
       <OfflineBanner />
 
       {/* ── Green Hero Region ─────────────────────── */}
-      <View style={[styles.heroRegion, { paddingTop: insets.top + 10 }]}>
-        {/* Header row */}
-        <View style={styles.headerRow}>
-          <TouchableOpacity
-            style={styles.profileSection}
-            onPress={() => router.push("/profile")}
-          >
-            <View style={styles.avatar}>
-              {apiUser?.avatar_url ? (
-                <Image source={{ uri: apiUser.avatar_url }} style={styles.avatarImage} />
-              ) : (
-                <View style={styles.initialsAvatar}>
-                  <Text style={styles.initialsText}>
-                    {(apiUser?.full_name || user?.name || 'CK').split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2)}
-                  </Text>
-                </View>
-              )}
-            </View>
-            <Text style={styles.welcomeText}>Hi, {(apiUser?.full_name || user?.name)?.split(' ')[0] || 'there'}</Text>
-          </TouchableOpacity>
+      <View style={styles.heroRegion}>
+        <SafeAreaView>
+          {/* Header row */}
+          <View style={styles.headerContent}>
+            <TouchableOpacity
+              style={styles.profileSection}
+              onPress={() => router.push("/profile")}
+            >
+              <View style={styles.avatar}>
+                {apiUser?.avatar_url ? (
+                  <Image source={{ uri: apiUser.avatar_url }} style={styles.avatarImage} />
+                ) : (
+                  <View style={styles.initialsAvatar}>
+                    <Text style={styles.initialsText}>
+                      {(apiUser?.full_name || user?.name || 'CK').split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2)}
+                    </Text>
+                  </View>
+                )}
+              </View>
+              <Text style={styles.welcomeText}>Hi, {(apiUser?.full_name || user?.name)?.split(' ')[0] || 'there'}</Text>
+            </TouchableOpacity>
 
             <View style={styles.headerActions}>
               <TouchableOpacity
                 style={styles.iconButton}
                 onPress={() => router.push("/learning")}
               >
-                <Ionicons name="school-outline" size={20} color={WHITE} />
+                <Ionicons name="school-outline" size={22} color={WHITE} />
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.iconButton}
                 onPress={() => router.push("/profile/notifications")}
               >
-                <Ionicons name="notifications-outline" size={20} color={WHITE} />
+                <Ionicons name="notifications-outline" size={22} color={WHITE} />
               </TouchableOpacity>
             </View>
           </View>
 
           <Text style={styles.headerTitleLabelCentered}>Savings</Text>
 
-        {/* Savings specific DarkCard summary */}
-        <View style={styles.cardWrapper}>
-          <DarkCard
-            type="savings"
-            amount={totalSaved}
-            label="Total Savings"
-            periodLabel={
-              hasGoals
-                ? `Across ${savingsGoals.length} active goals`
-                : "No active goals yet"
-            }
-            progress={overallProgress}
-          />
-        </View>
+          {/* Savings specific DarkCard summary */}
+          <View style={styles.cardWrapper}>
+            <DarkCard
+              type="savings"
+              amount={totalSaved}
+              label="Total Savings"
+              periodLabel={
+                hasGoals
+                  ? `Across ${savingsGoals.length} active goals`
+                  : "No active goals yet"
+              }
+              progress={overallProgress}
+            />
+          </View>
+        </SafeAreaView>
       </View>
 
       {/* ── White Body ───────────────────────────── */}
@@ -220,6 +222,15 @@ export const SavingsScreen = () => {
           )}
         </ScrollView>
       </View>
+
+      {/* Floating Action Button */}
+      <TouchableOpacity
+        style={styles.fab}
+        onPress={() => router.push("/savings/create")}
+        activeOpacity={0.8}
+      >
+        <Ionicons name="add" size={32} color={WHITE} />
+      </TouchableOpacity>
 
       {/* Add Funds Bottom Sheet */}
       {selectedGoal && (
@@ -259,12 +270,13 @@ const styles = StyleSheet.create({
     backgroundColor: PRIMARY_GREEN,
     paddingBottom: SPACING.LG,
   },
-  headerRow: {
+  headerContent: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 20,
-    marginBottom: 20,
+    paddingHorizontal: SPACING.LG,
+    paddingTop: 8, // Reduced since it's inside SafeAreaView
+    marginBottom: 12,
   },
   profileSection: {
     flexDirection: "row",
@@ -319,7 +331,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   cardWrapper: {
-    paddingHorizontal: 20,
+    paddingHorizontal: SPACING.LG,
   },
 
   // ── White Body ───────────────────────────────
@@ -438,6 +450,22 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     paddingTop: 40,
+  },
+  fab: {
+    position: "absolute",
+    right: 20,
+    bottom: 30,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: PRIMARY_GREEN,
+    alignItems: "center",
+    justifyContent: "center",
+    elevation: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
   },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,

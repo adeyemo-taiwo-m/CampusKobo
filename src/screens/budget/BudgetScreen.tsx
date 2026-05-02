@@ -249,7 +249,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: SPACING.LG,
     paddingTop: SPACING.XXL,
-    marginBottom: SPACING.MD,
+    marginBottom: 12,
   },
   profileSection: {
     flexDirection: "row",
@@ -289,7 +289,7 @@ const styles = StyleSheet.create({
     color: WHITE,
     fontSize: 16,
     textAlign: "center",
-    marginBottom: 8,
+    marginBottom: 12,
   },
   headerActions: {
     flexDirection: "row",

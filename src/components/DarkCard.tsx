@@ -72,9 +72,9 @@ export const DarkCard = ({
   return (
     <View style={[styles.outerContainer, style]}>
       <LinearGradient
-        colors={isBudgetType ? ["#27AE60", "#0A4A25"] : ["#2DD673", "#177E42"]}
+        colors={isBudgetType ? ["#27AE60", "#0A4A25"] : ["#2DD673", "#116232"]}
         start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }} // Horizontal gradient
+        end={{ x: 1, y: 1 }} // Diagonal gradient for more depth
         style={[styles.gradient, isBudgetType && styles.budgetGradient]}
       >
         {children ? (
@@ -126,44 +126,90 @@ export const DarkCard = ({
                   <Text style={styles.savingsFooterLabel}>{periodLabel}</Text>
                 )}
               </View>
-            ) : (
-              /* Standard Structure (Balance, Expenses, Transaction, Budget) */
-              <>
-                <View
-                  style={
-                    (isBalanceType || isTransactionType) && !centered
-                      ? styles.topRow
-                      : styles.topRowCenter
-                  }
-                >
-                  <View
-                    style={
-                      isBalanceType || centered ? null : styles.centerAlign
-                    }
-                  >
-                    {isBalanceType ? (
-                      <Text style={styles.label}>Current Balance</Text>
-                    ) : isTransactionType || isBudgetType ? null : (
-                      <View style={styles.periodBadgeCentered}>
-                        <Text style={styles.periodLabel}>{periodLabel} 📅</Text>
+            ) : isBalanceType ? (
+              /* Balance Specific Structure (Matching the Reference Image) */
+              <View style={styles.balanceContent}>
+                <View style={styles.balanceHeader}>
+                  <Text style={styles.label}>Current Balance</Text>
+                </View>
+
+                <View style={styles.balanceMainRow}>
+                  <View style={styles.balanceAmountWrapper}>
+                    <Text style={styles.amountTextLarge}>
+                      {isBalanceVisible
+                        ? `₦${Math.max(0, amount).toLocaleString()}`
+                        : "₦ ••••••"}
+                    </Text>
+                    {isBalanceVisible && (
+                      <Text style={styles.decimals}>.00</Text>
+                    )}
+                  </View>
+
+                  {onToggleVisibility && (
+                    <TouchableOpacity
+                      onPress={onToggleVisibility}
+                      style={styles.eyeButtonLarge}
+                    >
+                      <Ionicons
+                        name={isBalanceVisible ? "eye-outline" : "eye-off-outline"}
+                        size={28}
+                        color="rgba(255, 255, 255, 0.5)"
+                      />
+                    </TouchableOpacity>
+                  )}
+                </View>
+
+                {!hideIncomeExpenses && (
+                  <>
+                    <View style={styles.dividerThin} />
+                    <View style={styles.bottomRow}>
+                      <View style={styles.statCol}>
+                        <View style={styles.statHeader}>
+                          <Ionicons name="arrow-up" size={18} color="rgba(255,255,255,0.6)" style={{ marginRight: 8 }} />
+                          <Text style={styles.statLabelSmall}>Income</Text>
+                        </View>
+                        <Text style={styles.statValueLarge}>
+                          +₦{income.toLocaleString()}
+                        </Text>
                       </View>
-                    )}
 
-                    {label && !isSavingsType && (
-                      <Text
-                        style={isBudgetType ? styles.mutedLabel : styles.label}
-                      >
-                        {label}
-                      </Text>
-                    )}
+                      <View style={styles.verticalDividerThin} />
 
-                    {/* Budget type: category header */}
-                    {isBudgetType && categoryName && (
+                      <View style={styles.statCol}>
+                        <View style={styles.statHeader}>
+                          <Ionicons
+                            name="arrow-down"
+                            size={18}
+                            color="rgba(255,255,255,0.6)"
+                            style={{ marginRight: 8 }}
+                          />
+                          <Text style={styles.statLabelSmall}>Expenses</Text>
+                        </View>
+                        <Text style={styles.statValueLarge}>
+                          −₦{expenses.toLocaleString()}
+                        </Text>
+                      </View>
+                    </View>
+                  </>
+                )}
+              </View>
+            ) : type === "expenses" || isBudgetType ? (
+              /* Modern Summary Structure (Balanced Two-Column Layout) */
+              <View style={styles.modernContent}>
+                <View style={styles.modernHeader}>
+                  <View style={styles.modernHeaderLeft}>
+                    {type === "expenses" ? (
+                      <View style={styles.modernPeriodPill}>
+                        <Text style={styles.modernPeriodPillText}>
+                          {periodLabel}
+                        </Text>
+                      </View>
+                    ) : (
                       <View style={styles.budgetCategoryHeader}>
                         <View style={styles.budgetCategoryIconCircle}>
                           <Ionicons
                             name={(categoryIcon as any) || "wallet-outline"}
-                            size={16}
+                            size={14}
                             color={"#bcf6d3"}
                           />
                         </View>
@@ -172,217 +218,114 @@ export const DarkCard = ({
                         </Text>
                       </View>
                     )}
+                  </View>
+                  <TouchableOpacity
+                    onPress={onToggleVisibility}
+                    style={styles.visibilityToggleSmall}
+                  >
+                    <Ionicons
+                      name={isBalanceVisible ? "eye-outline" : "eye-off-outline"}
+                      size={18}
+                      color="rgba(255, 255, 255, 0.5)"
+                    />
+                  </TouchableOpacity>
+                </View>
 
-                    <View style={styles.amountRow}>
-                      {isBalanceType ? (
-                        <View style={styles.balanceAmountRow}>
-                          <Text style={styles.amountTextLarge}>
-                            {isBalanceVisible
-                              ? `₦${Math.max(0, amount).toLocaleString()}`
-                              : "₦ ••••••"}
-                          </Text>
-                          {isBalanceVisible && (
-                            <Text style={styles.decimals}>.00</Text>
-                          )}
-                        </View>
-                      ) : isTransactionType ? (
-                        <Text
-                          style={[
-                            styles.amountText,
-                            centered && { textAlign: "center" },
-                          ]}
-                        >
-                          {`${isIncome ? "+" : "−"}₦${amount.toLocaleString()}`}
-                        </Text>
-                      ) : isBudgetType ? (
-                        <View style={styles.budgetAmountRow}>
-                          <Text
-                            style={styles.budgetAmountPrimary}
-                          >{`₦${amount.toLocaleString()}`}</Text>
-                          {limitAmount && (
-                            <Text
-                              style={styles.budgetAmountSuffix}
-                            >{`/₦${limitAmount.toLocaleString()}`}</Text>
-                          )}
-                        </View>
-                      ) : (
-                        <Text
-                          style={[
-                            styles.amountText,
-                            centered && { textAlign: "center" },
-                          ]}
-                        >
-                          {`₦${amount.toLocaleString()}`}
-                          {type === "expenses" && (
-                            <Text style={styles.spentLabel}> spent</Text>
-                          )}
-                        </Text>
-                      )}
-                    </View>
-
-                    {isTransactionType && (
-                      <View style={styles.transactionMeta}>
-                        <View style={styles.categoryRow}>
-                          <View
-                            style={[
-                              styles.categoryBadgeDetail,
-                              {
-                                backgroundColor: isIncome
-                                  ? "#2DBB6D"
-                                  : "#FFE6E6",
-                              },
-                            ]}
-                          >
-                            <Ionicons
-                              name={categoryIcon as any}
-                              size={20}
-                              color={isIncome ? WHITE : "#E03A3A"}
-                            />
-                          </View>
-                          <Text style={styles.categoryNameText}>
-                            {categoryName}
-                          </Text>
-                        </View>
-
-                        <View style={styles.tagRow}>
-                          <View
-                            style={[
-                              styles.typeTag,
-                              {
-                                backgroundColor: isIncome
-                                  ? "#2DBB6D"
-                                  : "#FFE6E6",
-                              },
-                            ]}
-                          >
-                            <Text
-                              style={[
-                                styles.tagText,
-                                { color: isIncome ? WHITE : "#E03A3A" },
-                              ]}
-                            >
-                              {isIncome ? "Income" : "Expense"}
-                            </Text>
-                          </View>
-
-                          <View style={styles.monthTag}>
-                            <Text style={styles.monthTagText}>This Month</Text>
-                          </View>
-                        </View>
-                      </View>
-                    )}
+                <View style={styles.modernMainRow}>
+                  <View style={styles.modernLeft}>
+                    <Text style={styles.modernLabel}>
+                      {type === "expenses" ? "Total Spent" : "Budget Limit"}
+                    </Text>
+                    <Text style={styles.modernAmountLarge}>
+                      {type === "expenses" && !isBalanceVisible
+                        ? "₦ ••••••"
+                        : `₦${amount.toLocaleString()}`}
+                    </Text>
                   </View>
 
-                  {isBalanceType && onToggleVisibility && (
-                    <TouchableOpacity
-                      onPress={onToggleVisibility}
-                      style={styles.eyeButton}
-                    >
-                      <Ionicons
-                        name={
-                          isBalanceVisible ? "eye-outline" : "eye-off-outline"
-                        }
-                        size={24}
-                        color="rgba(255, 255, 255, 0.7)"
-                      />
-                    </TouchableOpacity>
-                  )}
+                  <View style={styles.modernRight}>
+                    <View style={styles.modernProgressBox}>
+                      <Text style={styles.modernProgressPercentLarge}>
+                        {Math.round((progress || 0) * 100)}%
+                      </Text>
+                      <Text style={styles.modernProgressSubtext}>Used</Text>
+                    </View>
+                  </View>
+                </View>
 
-                  {showToggle && (
-                    <TouchableOpacity
-                      style={styles.tealToggle}
-                      onPress={onToggle}
+                <View style={styles.modernFooter}>
+                  <View style={styles.modernProgressBarTrack}>
+                    <View
+                      style={[
+                        styles.modernProgressBarFill,
+                        {
+                          width: `${Math.min(
+                            100,
+                            Math.round((progress || 0) * 100)
+                          )}%`,
+                        },
+                      ]}
+                    />
+                  </View>
+                  {statusCaption && (
+                    <Text style={styles.modernStatusCaption}>
+                      {statusCaption}
+                    </Text>
+                  )}
+                </View>
+              </View>
+            ) : (
+              /* Standard Structure (Transaction) */
+              <View style={centered ? styles.topRowCenter : styles.topRow}>
+                <View style={centered ? styles.centerAlign : null}>
+                  {label && (
+                    <Text style={styles.label}>{label}</Text>
+                  )}
+                  
+                  <View style={styles.amountRow}>
+                    <Text
+                      style={[
+                        styles.amountText,
+                        centered && { textAlign: "center" },
+                      ]}
                     >
-                      <View style={styles.tealToggleInner} />
-                    </TouchableOpacity>
+                      {isTransactionType
+                        ? `${isIncome ? "+" : "−"}₦${amount.toLocaleString()}`
+                        : `₦${amount.toLocaleString()}`}
+                    </Text>
+                  </View>
+
+                  {isTransactionType && (
+                    <View style={styles.transactionMeta}>
+                      <View style={styles.categoryRow}>
+                        <View
+                          style={[
+                            styles.categoryBadgeDetail,
+                            {
+                              backgroundColor: isIncome ? "#2DBB6D" : "#FFE6E6",
+                            },
+                          ]}
+                        >
+                          <Ionicons
+                            name={categoryIcon as any}
+                            size={20}
+                            color={isIncome ? WHITE : "#E03A3A"}
+                          />
+                        </View>
+                        <Text style={styles.categoryNameText}>
+                          {categoryName}
+                        </Text>
+                      </View>
+                    </View>
                   )}
                 </View>
 
-                {isBalanceType && !hideIncomeExpenses && (
-                  <>
-                    <View style={styles.divider} />
-                    <View style={styles.bottomRow}>
-                      <View style={styles.statCol}>
-                        <View style={styles.statHeader}>
-                          <Ionicons name="arrow-up" size={14} color="#A5D6A7" />
-                          <Text style={styles.statLabel}>Income</Text>
-                        </View>
-                        <Text style={styles.statValue}>
-                          +₦{income.toLocaleString()}
-                        </Text>
-                      </View>
-
-                      <View style={styles.verticalDivider} />
-
-                      <View style={styles.statCol}>
-                        <View style={styles.statHeader}>
-                          <Ionicons
-                            name="arrow-down"
-                            size={14}
-                            color="#A5D6A7"
-                          />
-                          <Text style={styles.statLabel}>Expenses</Text>
-                        </View>
-                        <Text style={styles.statValue}>
-                          −₦{expenses.toLocaleString()}
-                        </Text>
-                      </View>
-                    </View>
-                  </>
+                {showToggle && (
+                  <TouchableOpacity style={styles.tealToggle} onPress={onToggle}>
+                    <View style={styles.tealToggleInner} />
+                  </TouchableOpacity>
                 )}
-
-                {!(isTransactionType || isBudgetType || isBalanceType) && (
-                  <View style={styles.divider} />
-                )}
-
-                {isBudgetType && progress !== undefined && (
-                  <View style={styles.budgetProgressSection}>
-                    <View style={styles.budgetProgressBarTrack}>
-                      <View
-                        style={[
-                          styles.budgetProgressBarFill,
-                          {
-                            width: `${Math.min(100, Math.round(progress * 100))}%`,
-                          },
-                        ]}
-                      />
-                    </View>
-                    <Text style={styles.budgetProgressPercent}>
-                      {Math.round(progress * 100)}%
-                    </Text>
-                  </View>
-                )}
-
-                {isBudgetType && progressLabel && (
-                  <View style={styles.budgetStatusLine}>
-                    <Text style={styles.budgetStatusLeft}>
-                      {progressLabel.split(" • ")[0]}
-                    </Text>
-                    <Text style={styles.budgetStatusDot}>•</Text>
-                    <Text style={styles.budgetStatusMotivation}>
-                      {progressLabel.split(" • ")[1]}
-                    </Text>
-                  </View>
-                )}
-
-                {type === "expenses" && progress !== undefined && (
-                  <>
-                    {statusCaption && (
-                      <Text style={styles.statusCaptionTop}>
-                        {statusCaption}
-                      </Text>
-                    )}
-                    <View style={styles.progressSection}>
-                      <View style={{ flex: 1 }}>
-                        <ProgressBar progress={progress} />
-                      </View>
-                      <Text style={styles.progressPercent}>
-                        {Math.round(progress * 100)}%
-                      </Text>
-                    </View>
-                  </>
-                )}
-              </>
+              </View>
             )}
           </View>
         )}
@@ -739,5 +682,203 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "rgba(255, 255, 255, 0.9)",
     marginTop: 12,
+  },
+  /* Modern card styles */
+  modernAmountContainer: {
+    width: "100%",
+    marginTop: 4,
+  },
+  modernAmountRow: {
+    alignItems: "flex-start",
+  },
+  modernAmountLabel: {
+    fontFamily: Fonts.regular,
+    fontSize: 14,
+    color: "rgba(255, 255, 255, 0.7)",
+    marginBottom: 4,
+  },
+  modernAmountValueRow: {
+    flexDirection: "row",
+    alignItems: "baseline",
+  },
+  modernAmountValue: {
+    fontFamily: Fonts.bold,
+    fontSize: 36,
+    color: WHITE,
+  },
+  modernAmountTarget: {
+    fontFamily: Fonts.regular,
+    fontSize: 18,
+    color: "rgba(255, 255, 255, 0.6)",
+    marginLeft: 4,
+  },
+  modernProgressSection: {
+    marginTop: 20,
+    width: "100%",
+  },
+  modernProgressHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  modernProgressLabel: {
+    fontFamily: Fonts.medium,
+    fontSize: 13,
+    color: "rgba(255, 255, 255, 0.8)",
+  },
+  modernProgressValue: {
+    fontFamily: Fonts.bold,
+    fontSize: 15,
+    color: WHITE,
+  },
+  modernProgressBarTrack: {
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    overflow: "hidden",
+  },
+  modernProgressBarFill: {
+    height: "100%",
+    backgroundColor: WHITE,
+    borderRadius: 5,
+  },
+  modernStatusCaption: {
+    fontFamily: Fonts.regular,
+    fontSize: 12,
+    color: "rgba(255, 255, 255, 0.8)",
+    marginTop: 10,
+    lineHeight: 16,
+  },
+  expensesPeriodHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
+    gap: 8,
+  },
+  expensesPeriodLabel: {
+    fontFamily: Fonts.medium,
+    fontSize: 14,
+    color: "rgba(255, 255, 255, 0.7)",
+    textTransform: "uppercase",
+    letterSpacing: 1,
+  },
+  visibilityToggle: {
+    padding: 4,
+  },
+  /* Specific styles for the redesigned balance card */
+  balanceContent: {
+    paddingVertical: 4,
+    width: "100%",
+  },
+  balanceHeader: {
+    marginBottom: 8,
+  },
+  balanceMainRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 24,
+    width: "100%",
+  },
+  balanceAmountWrapper: {
+    flexDirection: "row",
+    alignItems: "baseline",
+  },
+  eyeButtonLarge: {
+    padding: 8,
+  },
+  dividerThin: {
+    height: 0.5,
+    backgroundColor: "rgba(255, 255, 255, 0.3)",
+    marginBottom: 20,
+  },
+  statLabelSmall: {
+    fontFamily: Fonts.regular,
+    fontSize: 14,
+    color: "rgba(255, 255, 255, 0.6)",
+  },
+  statValueLarge: {
+    fontFamily: Fonts.bold,
+    fontSize: 22,
+    color: WHITE,
+    marginTop: 4,
+  },
+  verticalDividerThin: {
+    width: 0.5,
+    height: 40,
+    backgroundColor: "rgba(255, 255, 255, 0.3)",
+    marginHorizontal: 16,
+  },
+  /* Modern Summary Styles (Balanced Layout) */
+  modernContent: {
+    width: "100%",
+  },
+  modernHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  modernHeaderLeft: {
+    flex: 1,
+  },
+  modernPeriodPill: {
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 20,
+    alignSelf: "flex-start",
+  },
+  modernPeriodPillText: {
+    fontFamily: Fonts.medium,
+    fontSize: 11,
+    color: WHITE,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  visibilityToggleSmall: {
+    padding: 4,
+  },
+  modernMainRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  modernLeft: {
+    flex: 1,
+  },
+  modernLabel: {
+    fontFamily: Fonts.regular,
+    fontSize: 13,
+    color: "rgba(255, 255, 255, 0.7)",
+    marginBottom: 4,
+  },
+  modernAmountLarge: {
+    fontFamily: Fonts.bold,
+    fontSize: 28,
+    color: WHITE,
+  },
+  modernRight: {
+    alignItems: "flex-end",
+    paddingLeft: 20,
+  },
+  modernProgressBox: {
+    alignItems: "flex-end",
+  },
+  modernProgressPercentLarge: {
+    fontFamily: Fonts.bold,
+    fontSize: 24,
+    color: WHITE,
+  },
+  modernProgressSubtext: {
+    fontFamily: Fonts.medium,
+    fontSize: 12,
+    color: "rgba(255, 255, 255, 0.6)",
+    textTransform: "uppercase",
+  },
+  modernFooter: {
+    width: "100%",
   },
 });
