@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { WHITE, PRIMARY_GREEN, TEXT_SECONDARY, TEXT_PRIMARY, SPACING, FONT_SIZE, Fonts } from '../../src/constants';
@@ -9,13 +9,16 @@ import { useAppContext } from '../../src/context/AppContext';
 
 export default function SignUpScreen() {
   const router = useRouter();
-  const { setUser } = useAppContext();
+  const { setUser, registerWithApi } = useAppContext();
   
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  
+  const [isLoading, setIsLoading] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
 
   const validate = () => {
     let newErrors: { [key: string]: string } = {};
@@ -35,24 +38,39 @@ export default function SignUpScreen() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSignUp = () => {
+  const handleSignUp = async () => {
+    setApiError(null);
     if (validate()) {
-      // For prototype, just create a user object
-      const newUser = {
-        id: Math.random().toString(36).substr(2, 9),
-        name,
-        email,
-        currency: 'NGN' as const,
-        monthlyBudget: 0,
-        selectedGoals: [],
-        selectedCategories: [],
-        hasPIN: false,
-        hasCompletedOnboarding: false,
-      };
-      
-      setUser(newUser);
-      // Navigate to onboarding flow
-      router.push('/onboarding/goal-selection');
+      setIsLoading(true);
+      try {
+        await registerWithApi(name, email, password);
+        
+        // For offline-first fallback, create a local user object
+        const newUser = {
+          id: Math.random().toString(36).substr(2, 9),
+          name,
+          email,
+          currency: 'NGN' as const,
+          monthlyBudget: 0,
+          selectedGoals: [],
+          selectedCategories: [],
+          hasPIN: false,
+          hasCompletedOnboarding: false,
+        };
+        
+        setUser(newUser);
+        
+        // Navigate to email verification (Step 13)
+        // @ts-ignore - EmailVerificationScreen will be created next
+        router.push({
+          pathname: '/onboarding/email-verification',
+          params: { email }
+        });
+      } catch (error: any) {
+        setApiError(error.message || 'Registration failed. Please try again.');
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -76,6 +94,7 @@ export default function SignUpScreen() {
             onChangeText={setName}
             state={errors.name ? 'error' : 'default'}
             error={errors.name}
+            editable={!isLoading}
           />
           <InputField 
             label="Email Address" 
@@ -85,6 +104,7 @@ export default function SignUpScreen() {
             keyboardType="email-address"
             state={errors.email ? 'error' : 'default'}
             error={errors.email}
+            editable={!isLoading}
           />
           <InputField 
             label="Password" 
@@ -94,6 +114,7 @@ export default function SignUpScreen() {
             secureTextEntry={!showPassword}
             state={errors.password ? 'error' : 'default'}
             error={errors.password}
+            editable={!isLoading}
             rightIcon={
               <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
                 <Ionicons name={showPassword ? "eye-off" : "eye"} size={20} color={TEXT_SECONDARY} />
@@ -111,18 +132,27 @@ export default function SignUpScreen() {
                </Text>
              )}
           </View>
+
+          {apiError && (
+            <View style={styles.errorCard}>
+              <Ionicons name="alert-circle" size={20} color={WHITE} />
+              <Text style={styles.errorText}>{apiError}</Text>
+            </View>
+          )}
         </View>
 
         <View style={styles.footer}>
           <Button 
-            title="Create Account" 
+            title={isLoading ? "" : "Create Account"} 
             onPress={handleSignUp} 
-            disabled={!name || !email || !password}
-          />
+            disabled={!name || !email || !password || isLoading}
+          >
+            {isLoading && <ActivityIndicator size="small" color={WHITE} />}
+          </Button>
           
           <View style={styles.loginLinkContainer}>
             <Text style={styles.footerText}>Already have an account? </Text>
-            <TouchableOpacity onPress={() => router.push('/onboarding/login')}>
+            <TouchableOpacity onPress={() => router.push('/onboarding/login')} disabled={isLoading}>
               <Text style={styles.linkText}>Log In</Text>
             </TouchableOpacity>
           </View>
@@ -170,6 +200,21 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZE.SM,
     fontWeight: '500',
     fontFamily: Fonts.medium,
+  },
+  errorCard: {
+    backgroundColor: '#EF4444',
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: SPACING.MD,
+    borderRadius: 8,
+    marginTop: SPACING.MD,
+  },
+  errorText: {
+    color: WHITE,
+    fontSize: FONT_SIZE.MD,
+    marginLeft: SPACING.SM,
+    fontFamily: Fonts.medium,
+    flex: 1,
   },
   footer: {
     marginTop: SPACING.MD,
