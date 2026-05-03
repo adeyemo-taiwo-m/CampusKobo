@@ -99,7 +99,7 @@ export const CustomTabBar = ({
               style={styles.tabItem}
               activeOpacity={0.7}
             >
-              <View style={[styles.iconContainer, isFocused && styles.activeIconContainer]}>
+              <View style={styles.iconContainer}>
                 <Ionicons
                   name={iconName}
                   size={24}
@@ -175,12 +175,7 @@ const styles = StyleSheet.create({
   iconContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-  },
-  activeIconContainer: {
-    backgroundColor: `${PRIMARY_GREEN}15`, // Light green background for active icon
+    padding: 8,
   },
   tabLabel: {
     fontSize: 10,
