@@ -40,8 +40,9 @@ export interface AppContextType {
   dashboardSummary: DashboardSummary | null;
 
   // Computed transaction totals
-  totalIncomeThisMonth: number;
-  totalExpensesThisMonth: number;
+  totalIncomeLastMonth: number;
+  totalExpensesLastMonth: number;
+  expenseChangeVsLastMonth: number | null;
   currentBalance: number;
   netThisMonth: number;
   recentTransactions: Transaction[];
@@ -60,6 +61,7 @@ export interface AppContextType {
   totalSavingsTarget: number;
   overallSavingsPercent: number;
   primarySavingsGoal: SavingsGoal | null;
+  primarySavingsGoalEnriched: any;
   enrichedSavingsGoals: EnrichedSavingsGoal[];
 
   // Category helpers
@@ -76,6 +78,7 @@ export interface AppContextType {
   getDaysElapsedThisMonth: () => number;
   getTotalDaysThisMonth: () => number;
   isThisMonth: (dateString: string) => boolean;
+  isLastMonth: (dateString: string) => boolean;
 
   // All existing action functions
   loadAllData: () => Promise<void>;
@@ -558,9 +561,16 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   // Date helpers
   const isThisMonth = (dateString: string): boolean => {
-    const date = new Date(dateString);
+    const d = new Date(dateString);
     const now = new Date();
-    return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+  };
+
+  const isLastMonth = (dateString: string): boolean => {
+    const d = new Date(dateString);
+    const now = new Date();
+    const last = new Date(now.getFullYear(), now.getMonth() - 1);
+    return d.getMonth() === last.getMonth() && d.getFullYear() === last.getFullYear();
   };
 
   const isThisWeek = (dateString: string): boolean => {
@@ -572,9 +582,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     return date >= startOfWeek && date <= now;
   };
 
-  const getDaysElapsedThisMonth = (): number => {
-    return Math.max(1, new Date().getDate());
-  };
+  const getDaysElapsedThisMonth = (): number => Math.max(1, new Date().getDate());
 
   const getDaysLeftThisMonth = (): number => {
     const now = new Date();
@@ -587,20 +595,34 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     return new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
   };
 
-  // Transaction totals
   const totalIncomeThisMonth = useMemo(() => {
+    if (dashboardSummary?.total_income !== undefined) return dashboardSummary.total_income;
     return transactions
       .filter(t => t.type === 'income' && isThisMonth(t.date))
       .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
-  }, [transactions]);
+  }, [transactions, dashboardSummary]);
 
   const totalExpensesThisMonth = useMemo(() => {
+    if (dashboardSummary?.total_expenses !== undefined) return dashboardSummary.total_expenses;
     return transactions
       .filter(t => t.type === 'expense' && isThisMonth(t.date))
       .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
-  }, [transactions]);
+  }, [transactions, dashboardSummary]);
+
+  const totalIncomeLastMonth = useMemo(() =>
+    transactions
+      .filter(t => t.type === 'income' && isLastMonth(t.date))
+      .reduce((sum, t) => sum + (Number(t.amount) || 0), 0),
+  [transactions]);
+
+  const totalExpensesLastMonth = useMemo(() =>
+    transactions
+      .filter(t => t.type === 'expense' && isLastMonth(t.date))
+      .reduce((sum, t) => sum + (Number(t.amount) || 0), 0),
+  [transactions]);
 
   const currentBalance = useMemo(() => {
+    if (dashboardSummary?.total_balance !== undefined) return dashboardSummary.total_balance;
     const allIncome = transactions
       .filter(t => t.type === 'income')
       .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
@@ -608,22 +630,29 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       .filter(t => t.type === 'expense')
       .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
     return allIncome - allExpenses;
-  }, [transactions]);
+  }, [transactions, dashboardSummary]);
+
+  const expenseChangeVsLastMonth = useMemo(() => {
+    if (totalExpensesLastMonth === 0) return null;
+    return Math.round(
+      ((totalExpensesThisMonth - totalExpensesLastMonth) / totalExpensesLastMonth) * 100
+    );
+  }, [totalExpensesThisMonth, totalExpensesLastMonth]);
 
   const netThisMonth = useMemo(() => {
     return totalIncomeThisMonth - totalExpensesThisMonth;
   }, [totalIncomeThisMonth, totalExpensesThisMonth]);
 
-  const recentTransactions = useMemo(() => {
-    return [...transactions]
+  const recentTransactions = useMemo(() =>
+    [...transactions]
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-      .slice(0, 5);
-  }, [transactions]);
+      .slice(0, 5),
+  [transactions]);
 
-  const allTransactionsSorted = useMemo(() => {
-    return [...transactions]
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  }, [transactions]);
+  const allTransactionsSorted = useMemo(() =>
+    [...transactions]
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
+  [transactions]);
 
   // Budget totals
   const totalBudgetLimit = useMemo(() => {
@@ -631,8 +660,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   }, [budgets]);
 
   const totalBudgetSpent = useMemo(() => {
+    if (dashboardSummary?.budget_spent !== undefined) return dashboardSummary.budget_spent;
     return budgets.reduce((sum, b) => sum + (Number(b.spentAmount) || 0), 0);
-  }, [budgets]);
+  }, [budgets, dashboardSummary]);
 
   const totalBudgetRemaining = useMemo(() => {
     return Math.max(0, totalBudgetLimit - totalBudgetSpent);
@@ -664,8 +694,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   // Savings totals
   const totalSaved = useMemo(() => {
+    if (dashboardSummary?.savings_total !== undefined) return dashboardSummary.savings_total;
     return savingsGoals.reduce((sum, g) => sum + (Number(g.savedAmount) || 0), 0);
-  }, [savingsGoals]);
+  }, [savingsGoals, dashboardSummary]);
 
   const totalSavingsTarget = useMemo(() => {
     return savingsGoals.reduce((sum, g) => sum + (Number(g.targetAmount) || 0), 0);
@@ -681,9 +712,21 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     return [...savingsGoals].sort((a, b) => b.savedAmount - a.savedAmount)[0];
   }, [savingsGoals]);
 
+  const primarySavingsGoalEnriched = useMemo(() => {
+    if (!primarySavingsGoal) return null;
+    const g = primarySavingsGoal;
+    const numSaved = Number(String(g.savedAmount).replace(/,/g, '')) || 0;
+    const numTarget = Number(String(g.targetAmount).replace(/,/g, '')) || 0;
+    const percent = numTarget === 0 ? 0 : Math.min(100, Math.round((numSaved / numTarget) * 100));
+    const remaining = Math.max(0, numTarget - numSaved);
+    return { ...g, percent, remaining };
+  }, [primarySavingsGoal]);
+
   const enrichedSavingsGoals = useMemo(() => {
     return savingsGoals.map(g => {
-      const percent = g.targetAmount === 0 ? 0 : Math.min(100, Math.round((g.savedAmount / g.targetAmount) * 100));
+      const numSaved = Number(String(g.savedAmount).replace(/,/g, '')) || 0;
+      const numTarget = Number(String(g.targetAmount).replace(/,/g, '')) || 0;
+      const percent = numTarget === 0 ? 0 : Math.min(100, Math.round((numSaved / numTarget) * 100));
       const remaining = Math.max(0, g.targetAmount - g.savedAmount);
       let daysLeft: number | null = null;
       if (g.deadline) {
@@ -777,6 +820,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         logoutFromApi,
         setApiUser,
         dashboardSummary,
+        totalIncomeLastMonth,
+        totalExpensesLastMonth,
+        expenseChangeVsLastMonth,
         totalIncomeThisMonth,
         totalExpensesThisMonth,
         currentBalance,
@@ -793,6 +839,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         totalSavingsTarget,
         overallSavingsPercent,
         primarySavingsGoal,
+        primarySavingsGoalEnriched,
         enrichedSavingsGoals,
         expensesByCategory,
         getTransactionsByCategory,
@@ -803,6 +850,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         getDaysElapsedThisMonth,
         getTotalDaysThisMonth,
         isThisMonth,
+        isLastMonth,
         processRecurringExpense,
       }}
     >

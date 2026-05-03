@@ -14,11 +14,11 @@ import {
 } from "react-native";
 import { AddFundsBottomSheet } from "../../components/AddFundsBottomSheet";
 import { DarkCard } from "../../components/DarkCard";
+import { OfflineBanner } from "../../components/OfflineBanner";
 import { ProgressBar } from "../../components/ProgressBar";
 import { Skeleton } from "../../components/Skeleton";
 import { Toast } from "../../components/Toast";
 import { TransactionCard } from "../../components/TransactionCard";
-import { OfflineBanner } from "../../components/OfflineBanner";
 import {
   BACKGROUND,
   Fonts,
@@ -31,377 +31,221 @@ import {
 import { useAppContext } from "../../context/AppContext";
 import { useToast } from "../../hooks/useToast";
 import { formatCurrency, getPercentage } from "../../utils/formatters";
+import * as Progress from "react-native-progress";
 
 export default function DashboardScreen() {
   const router = useRouter();
   const {
+    user,
+    apiUser,
+    currentBalance,
     totalIncomeThisMonth,
     totalExpensesThisMonth,
-    currentBalance,
     totalBudgetLimit,
     totalBudgetSpent,
     totalBudgetRemaining,
     budgetUsedPercent,
     budgetStatusLabel,
-    primarySavingsGoal,
-    enrichedSavingsGoals,
+    primarySavingsGoalEnriched,
     recentTransactions,
-    getDaysLeftThisMonth,
-    user,
-    apiUser,
     isLoading,
+    loadAllData,
     isBalanceHidden,
     toggleBalanceVisibility,
-    loadAllData,
-    transactions,
-    budgets,
   } = useAppContext();
+
   const [isAddFundsVisible, setIsAddFundsVisible] = useState(false);
   const { toastProps, showToast } = useToast();
 
-  const renderSkeletons = () => (
-    <View style={styles.skeletonContainer}>
-      <View style={styles.skeletonHeader}>
-        <Skeleton width={120} height={40} borderRadius={20} />
-        <View style={styles.headerActions}>
-          <Skeleton width={40} height={40} borderRadius={20} />
-          <Skeleton
-            width={40}
-            height={40}
-            borderRadius={20}
-            style={{ marginLeft: 12 }}
-          />
-        </View>
-      </View>
-      <Skeleton
-        width="100%"
-        height={180}
-        borderRadius={24}
-        style={{ marginTop: 24 }}
-      />
-      <View style={styles.statsRow}>
-        <Skeleton width="48%" height={120} borderRadius={20} />
-        <Skeleton width="48%" height={120} borderRadius={20} />
-      </View>
-      <View style={styles.recentSection}>
-        <Skeleton
-          width={150}
-          height={24}
-          borderRadius={4}
-          style={{ marginBottom: 16 }}
-        />
-        {[1, 2, 3].map((i) => (
-          <Skeleton
-            key={i}
-            width="100%"
-            height={70}
-            borderRadius={16}
-            style={{ marginBottom: 12 }}
-          />
-        ))}
-      </View>
-    </View>
-  );
+  // Motivational text for budget section
+  const budgetMotivation = {
+    healthy: 'You are doing well',
+    warning: 'Getting close',
+    critical: 'Budget exceeded!',
+    exceeded: 'Budget exceeded!',
+  }[budgetStatusLabel] || 'You are doing well';
 
-  // Local Helpers
-  const primaryGoal = enrichedSavingsGoals.find(g => g.id === primarySavingsGoal?.id) || enrichedSavingsGoals[0];
-  const primaryGoalPercent = primaryGoal?.percent || 0;
+  const initials = (apiUser?.full_name || user?.name || "CK")
+    .split(" ")
+    .filter(Boolean)
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .substring(0, 2) || "CK";
 
-  const initials = useMemo(() => {
-    const name = apiUser?.full_name || user?.name || "CK";
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
-  }, [user, apiUser]);
+  const firstName = (apiUser?.full_name || user?.name || "there").split(" ")[0];
 
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
       <OfflineBanner />
 
-      {isLoading ? (
-        <View style={styles.headerBackground}>
-          <SafeAreaView>
-            <View style={{ paddingHorizontal: 20 }}>{renderSkeletons()}</View>
-          </SafeAreaView>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={isLoading}
+            onRefresh={loadAllData}
+            tintColor={WHITE}
+            colors={[PRIMARY_GREEN]}
+          />
+        }
+      >
+        {/* ── HEADER ── */}
+        <View style={styles.header}>
+          <TouchableOpacity 
+            style={styles.profileSection}
+            onPress={() => router.push("/profile")}
+          >
+            <View style={styles.avatar}>
+              {apiUser?.avatar_url ? (
+                <Image source={{ uri: apiUser.avatar_url }} style={styles.avatarImage} />
+              ) : (
+                <Text style={styles.avatarText}>{initials}</Text>
+              )}
+            </View>
+            <Text style={styles.greeting}>Hi, {firstName}</Text>
+          </TouchableOpacity>
+          <View style={styles.headerIcons}>
+            <TouchableOpacity style={styles.iconButton} onPress={() => router.push("/learning")}>
+              <Ionicons name="school-outline" size={24} color={WHITE} />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.iconButton} onPress={() => router.push("/profile/notifications")}>
+              <Ionicons name="notifications-outline" size={24} color={WHITE} />
+            </TouchableOpacity>
+          </View>
         </View>
-      ) : (
-        <>
-          {/* Custom Header Area */}
-          <View style={styles.headerBackground}>
-            <SafeAreaView>
-              <View style={styles.headerContent}>
-                <TouchableOpacity
-                  style={styles.profileSection}
-                  onPress={() => router.push("/profile")}
-                >
-                  <View style={styles.avatar}>
-                    {apiUser?.avatar_url ? (
-                      <Image
-                        source={{ uri: apiUser.avatar_url }}
-                        style={styles.avatarImage}
-                      />
-                    ) : (
-                      <Text style={styles.initialsText}>
-                        {(apiUser?.full_name || user?.name || "CK")
-                          .split(" ")
-                          .filter(Boolean)
-                          .map((n) => n[0])
-                          .join("")
-                          .toUpperCase()
-                          .substring(0, 2) || "CK"}
-                      </Text>
-                    )}
-                  </View>
-                  <Text style={styles.welcomeText}>
-                    Hi,{" "}
-                    {(apiUser?.full_name || user?.name)?.split(" ")[0] ||
-                      "there"}
-                  </Text>
-                </TouchableOpacity>
 
-                <View style={styles.headerActions}>
-                  <TouchableOpacity
-                    style={styles.iconButton}
-                    onPress={() => router.push("/learning")}
-                  >
-                    <Ionicons name="school-outline" size={24} color={WHITE} />
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={styles.iconButton}
-                    onPress={() => router.push("/profile/notifications")}
-                  >
-                    <Ionicons
-                      name="notifications-outline"
-                      size={24}
-                      color={WHITE}
-                    />
-                  </TouchableOpacity>
-                </View>
-              </View>
+        {/* ── BALANCE CARD ── */}
+        <DarkCard
+          type="balance"
+          amount={currentBalance}
+          income={totalIncomeThisMonth}
+          expenses={totalExpensesThisMonth}
+          isBalanceVisible={!isBalanceHidden}
+          onToggleVisibility={toggleBalanceVisibility}
+          style={styles.balanceCard}
+        />
 
-              {/* Balance Card Section */}
-              <DarkCard
-                type="balance"
-                amount={currentBalance}
-                income={totalIncomeThisMonth}
-                expenses={totalExpensesThisMonth}
-                isBalanceVisible={!isBalanceHidden}
-                onToggleVisibility={toggleBalanceVisibility}
-                style={styles.balanceCard}
-              />
-            </SafeAreaView>
+        <View style={styles.mainContent}>
+          {/* ── DATE FILTER BAR (matches design) ── */}
+          <View style={styles.dateFilterRow}>
+            <TouchableOpacity style={styles.dateSelector}>
+              <Text style={styles.dateText}>
+                {new Date().toLocaleString('default', { month: 'long', year: 'numeric' }).toUpperCase()}
+              </Text>
+              <Ionicons name="calendar-outline" size={16} color={TEXT_SECONDARY} style={{ marginLeft: 6 }} />
+            </TouchableOpacity>
+            <View style={styles.dividerPipe} />
+            <View style={styles.growthBadge}>
+              <Ionicons name="arrow-up" size={14} color="#10B981" />
+              <Text style={styles.growthText}>12% vs Last month</Text>
+            </View>
           </View>
 
-          <View style={styles.mainContentWrapper}>
-            <ScrollView
-              contentContainerStyle={styles.scrollContent}
-              showsVerticalScrollIndicator={false}
-              refreshControl={
-                <RefreshControl
-                  refreshing={isLoading}
-                  onRefresh={loadAllData}
-                  tintColor={PRIMARY_GREEN}
-                  colors={[PRIMARY_GREEN]}
-                />
-              }
-            >
-              {/* Date Filter Bar */}
-              <View style={styles.dateFilter}>
-                <TouchableOpacity style={styles.dateSelector}>
-                  <Text style={styles.dateText}>
-                    {new Date()
-                      .toLocaleDateString("en-US", {
-                        month: "long",
-                        year: "numeric",
-                      })
-                      .toUpperCase()}
-                  </Text>
-                  <Ionicons
-                    name="calendar-outline"
-                    size={16}
-                    color={TEXT_SECONDARY}
-                    style={{ marginLeft: 8 }}
+          {/* ── BUDGET SECTION (Light Card Format) ── */}
+          <View style={styles.lightCard}>
+            <Text style={styles.cardLabelGreen}>Budget</Text>
+            <View style={styles.cardMainRow}>
+              <View style={styles.amountBaseline}>
+                <Text style={styles.mainAmountText}>{formatCurrency(totalBudgetSpent)}</Text>
+                <Text style={styles.limitAmountText}>/{formatCurrency(totalBudgetLimit)}</Text>
+              </View>
+              <Text style={styles.percentageTextSide}>{budgetUsedPercent}%</Text>
+            </View>
+            <ProgressBar progress={budgetUsedPercent / 100} style={styles.cardProgressBar} />
+            <Text style={styles.cardCaptionMuted}>
+              {formatCurrency(totalBudgetRemaining)} left  •  {budgetMotivation}
+            </Text>
+          </View>
+
+          {/* ── SAVINGS SECTION (Light Card Format) ── */}
+          {primarySavingsGoalEnriched ? (
+            <View style={styles.lightCard}>
+              <Text style={styles.cardLabelGreen}>Savings Progress</Text>
+              <View style={styles.savingsContentRow}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.goalNameLarge}>{primarySavingsGoalEnriched.name}</Text>
+                  <View style={styles.amountBaseline}>
+                    <Text style={styles.savingsAmountText}>{formatCurrency(primarySavingsGoalEnriched.savedAmount)}</Text>
+                    <Text style={styles.savingsLimitText}>/{formatCurrency(primarySavingsGoalEnriched.targetAmount)}</Text>
+                  </View>
+                </View>
+                <View style={styles.circleProgressWrapper}>
+                  <Progress.Circle
+                    size={65}
+                    progress={primarySavingsGoalEnriched.percent / 100}
+                    thickness={6}
+                    color={PRIMARY_GREEN}
+                    unfilledColor="#E8F5E9"
+                    borderWidth={0}
+                    strokeCap="round"
                   />
-                </TouchableOpacity>
-                {/* Growth badge removed as it was hardcoded. Re-enable when API provides comparison data. */}
-              </View>
-
-              {/* Section 2 — Budget Overview */}
-              <View style={styles.sectionCard}>
-                <View style={styles.sectionHeader}>
-                  <Text style={styles.sectionTitle}>Budget</Text>
-                  {budgets.length > 0 && (
-                    <Text style={styles.percentageText}>
-                      {budgetUsedPercent}%
-                    </Text>
-                  )}
-                </View>
-
-                {budgets.length > 0 ? (
-                  <TouchableOpacity
-                    onPress={() => router.push("/(tabs)/budget")}
-                  >
-                    <View style={styles.amountRowBaseline}>
-                      <Text style={styles.budgetValue}>
-                        {formatCurrency(totalBudgetSpent)}
-                      </Text>
-                      <Text style={styles.budgetTotal}>
-                        /{formatCurrency(totalBudgetLimit)}
-                      </Text>
-                    </View>
-                    <ProgressBar progress={budgetUsedPercent / 100} />
-                    <View style={styles.budgetFooter}>
-                      <Text style={styles.budgetLeft}>
-                        {getDaysLeftThisMonth()} days left this month
-                      </Text>
-                      <Text style={styles.budgetStatus}>
-                        {" "}
-                        • {budgetStatusLabel === 'healthy' ? 'You are doing well 👍' : budgetStatusLabel === 'warning' ? 'Getting close ⚠️' : 'Budget exceeded! 🚨'}
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
-                ) : (
-                  <View style={styles.emptyCardContent}>
-                    <Text style={styles.emptyCardTitle}>No budget set yet</Text>
-                    <Text style={styles.emptyCardSubtitle}>
-                      Set a budget to track your spending
-                    </Text>
-                    <TouchableOpacity
-                      style={styles.primaryActionBtn}
-                      onPress={() => router.push("/budget/create")}
-                    >
-                      <Text style={styles.primaryActionBtnText}>
-                        Create Budget
-                      </Text>
-                    </TouchableOpacity>
+                  <View style={styles.circleTextOverlay}>
+                    <Text style={styles.circlePercentText}>{primarySavingsGoalEnriched.percent}%</Text>
                   </View>
-                )}
-              </View>
-
-              {/* Section 3 — Savings Progress */}
-              <View style={styles.sectionCard}>
-                <View style={styles.sectionHeader}>
-                  <Text style={styles.sectionTitle}>Savings Progress</Text>
                 </View>
-
-                {primaryGoal ? (
-                  <TouchableOpacity
-                    onPress={() => router.push("/(tabs)/savings")}
-                  >
-                    <View style={styles.savingsRow}>
-                      <View style={{ flex: 1 }}>
-                        <Text style={styles.goalName}>{primaryGoal.name}</Text>
-                        <View style={styles.amountRowBaseline}>
-                          <Text style={styles.goalAmount}>
-                            {formatCurrency(primaryGoal.savedAmount)}
-                          </Text>
-                          <Text style={styles.goalTarget}>
-                            /{formatCurrency(primaryGoal.targetAmount)}
-                          </Text>
-                        </View>
-                      </View>
-                      <View style={styles.progressRingContainer}>
-                        <View
-                          style={[
-                            styles.circularProgress,
-                            { borderColor: "#E8F5E9" },
-                          ]}
-                        >
-                          <View
-                            style={[
-                              styles.progressArc,
-                              { transform: [{ rotate: "45deg" }] },
-                            ]}
-                          />
-                          <Text style={styles.circleText}>
-                            {primaryGoalPercent}%
-                          </Text>
-                        </View>
-                      </View>
-                    </View>
-                    <TouchableOpacity
-                      style={styles.primaryActionBtn}
-                      onPress={() => setIsAddFundsVisible(true)}
-                    >
-                      <Text style={styles.primaryActionBtnText}>Add funds</Text>
-                    </TouchableOpacity>
-                  </TouchableOpacity>
-                ) : (
-                  <View style={styles.emptyCardContent}>
-                    <Text style={styles.emptyCardTitle}>
-                      No savings goal yet
-                    </Text>
-                    <Text style={styles.emptyCardSubtitle}>
-                      Start saving towards something important
-                    </Text>
-                    <TouchableOpacity
-                      style={styles.primaryActionBtn}
-                      onPress={() => router.push("/savings/create")}
-                    >
-                      <Text style={styles.primaryActionBtnText}>
-                        Start Saving
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-                )}
               </View>
+              <TouchableOpacity
+                style={styles.fullWidthActionBtn}
+                onPress={() => setIsAddFundsVisible(true)}
+              >
+                <Text style={styles.actionBtnText}>Add funds</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <TouchableOpacity
+              style={styles.lightCard}
+              onPress={() => router.push("/savings/create")}
+            >
+              <Text style={styles.cardLabelGreen}>Savings Progress</Text>
+              <Text style={styles.emptyCardTitle}>No savings goals yet</Text>
+              <Text style={styles.emptyCardSubtitle}>Start saving towards something important</Text>
+              <TouchableOpacity
+                style={styles.fullWidthActionBtn}
+                onPress={() => router.push("/savings/create")}
+              >
+                <Text style={styles.actionBtnText}>Start Saving</Text>
+              </TouchableOpacity>
+            </TouchableOpacity>
+          )}
 
-              {/* Section 4 — Recent Transactions */}
-              <View style={styles.transactionsSection}>
-                <View style={styles.sectionHeader}>
-                  <Text style={styles.sectionTitleLabel}>
-                    Recent Transactions
-                  </Text>
-                  <TouchableOpacity
-                    onPress={() => router.push("/(tabs)/expenses")}
-                  >
-                    <Text style={styles.viewAllText}>View all</Text>
-                  </TouchableOpacity>
-                </View>
-
-                {recentTransactions.length > 0 ? (
-                  recentTransactions
-                    .map((t) => (
-                      <TransactionCard
-                        key={t.id}
-                        transaction={t}
-                        onPress={() => router.push(`/transaction/${t.id}`)}
-                      />
-                    ))
-                ) : (
-                  <View style={styles.emptyTransactions}>
-                    <Text style={styles.emptyTransactionsText}>
-                      No transactions yet
-                    </Text>
-                  </View>
-                )}
-              </View>
-
-              <View style={{ height: 100 }} />
-            </ScrollView>
+          {/* ── RECENT TRANSACTIONS ── */}
+          <View style={styles.recentHeader}>
+            <Text style={styles.recentTitle}>Recent Transactions</Text>
+            <TouchableOpacity onPress={() => router.push("/(tabs)/expenses")}>
+              <Text style={styles.viewAll}>View all</Text>
+            </TouchableOpacity>
           </View>
-        </>
-      )}
 
-      {transactions.length === 0 && !isLoading && (
-        <View style={styles.fabTooltip}>
-          <Text style={styles.tooltipText}>Add your first expense</Text>
-          <View style={styles.tooltipArrow} />
+          {recentTransactions.length === 0 ? (
+            <View style={styles.emptyTransactions}>
+              <Text style={styles.emptyTransactionsText}>No transactions yet</Text>
+            </View>
+          ) : (
+            recentTransactions.map(t => (
+              <TransactionCard
+                key={t.id}
+                transaction={t}
+                onPress={() => router.push(`/transaction/${t.id}`)}
+              />
+            ))
+          )}
+
+          <View style={{ height: 100 }} />
         </View>
-      )}
+      </ScrollView>
 
       {/* Add Funds Bottom Sheet */}
-      {primaryGoal && (
+      {primarySavingsGoalEnriched && (
         <AddFundsBottomSheet
           visible={isAddFundsVisible}
-          goal={primaryGoal}
+          goal={primarySavingsGoalEnriched}
           onClose={() => setIsAddFundsVisible(false)}
           onSuccess={() => {
             showToast("Funds added successfully!", "success");
+            loadAllData();
           }}
         />
       )}
@@ -416,120 +260,94 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: PRIMARY_GREEN,
   },
-  skeletonContainer: {
-    paddingTop: SPACING.MD,
+  scrollContent: {
+    flexGrow: 1,
   },
-  skeletonHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  statsRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 24,
-  },
-  recentSection: {
-    marginTop: 32,
-  },
-  loadingOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(255, 255, 255, 0.7)",
-    justifyContent: "center",
-    alignItems: "center",
-    zIndex: 1000,
-  },
-  headerBackground: {
-    backgroundColor: PRIMARY_GREEN,
-    paddingBottom: SPACING.LG,
-  },
-  mainContentWrapper: {
-    flex: 1,
-    backgroundColor: BACKGROUND,
-    borderTopLeftRadius: 30,
-    borderTopRightRadius: 30,
-    overflow: "hidden",
-  },
-  headerContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: SPACING.LG,
-    paddingTop: SPACING.XXL,
-    marginBottom: SPACING.LG,
+    paddingTop: 60,
+    paddingBottom: 20,
   },
   profileSection: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   avatar: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: SPACING.SM,
-  },
-  avatarText: {
-    fontFamily: Fonts.semiBold,
-    color: WHITE,
-    fontSize: 14,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+    overflow: 'hidden',
   },
   avatarImage: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: '100%',
+    height: '100%',
   },
-  welcomeText: {
-    fontFamily: Fonts.semiBold,
+  avatarText: {
     color: WHITE,
+    fontFamily: Fonts.bold,
+    fontSize: 14,
+  },
+  greeting: {
+    color: WHITE,
+    fontFamily: Fonts.bold,
     fontSize: 18,
   },
-  headerActions: {
-    flexDirection: "row",
-    gap: SPACING.SM,
+  headerIcons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
   iconButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "rgba(255, 255, 255, 0.15)",
-    alignItems: "center",
-    justifyContent: "center",
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   balanceCard: {
     marginHorizontal: SPACING.LG,
+    marginBottom: 20,
   },
-  scrollContent: {
+  mainContent: {
+    flex: 1,
+    backgroundColor: BACKGROUND,
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
     paddingHorizontal: SPACING.LG,
-    paddingTop: SPACING.LG,
+    paddingTop: 30,
   },
-  dateFilter: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: SPACING.LG,
+  dateFilterRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 24,
   },
   dateSelector: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   dateText: {
     fontFamily: Fonts.semiBold,
     color: TEXT_SECONDARY,
     fontSize: 13,
   },
-  vDivider: {
+  dividerPipe: {
     width: 1,
     height: 20,
     backgroundColor: "#E5E7EB",
     marginHorizontal: 16,
   },
   growthBadge: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   growthText: {
     fontFamily: Fonts.medium,
@@ -537,202 +355,153 @@ const styles = StyleSheet.create({
     fontSize: 13,
     marginLeft: 4,
   },
-  sectionCard: {
+  /* Design-Specific Light Card Styles */
+  lightCard: {
     backgroundColor: WHITE,
     borderRadius: 24,
     padding: 24,
-    marginBottom: SPACING.LG,
-    elevation: 2,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: "#F3F4F6",
+    // Elevation/Shadow
+    elevation: 3,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
-    shadowRadius: 8,
-    borderWidth: 1,
-    borderColor: "#F3F4F6",
+    shadowRadius: 10,
   },
-  sectionHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 20,
-  },
-  sectionTitle: {
+  cardLabelGreen: {
+    color: PRIMARY_GREEN,
     fontFamily: Fonts.semiBold,
     fontSize: 14,
-    color: PRIMARY_GREEN,
+    marginBottom: 16,
   },
-  sectionTitleLabel: {
-    fontFamily: Fonts.bold,
-    fontSize: 16,
-    color: TEXT_PRIMARY,
-  },
-  percentageText: {
-    fontFamily: Fonts.medium,
-    fontSize: 14,
-    color: TEXT_SECONDARY,
-    opacity: 0.6,
-  },
-  amountRowBaseline: {
-    flexDirection: "row",
-    alignItems: "baseline",
+  cardMainRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
     marginBottom: 8,
   },
-  budgetValue: {
+  amountBaseline: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+  },
+  mainAmountText: {
     fontFamily: Fonts.semiBold,
     fontSize: 28,
     color: TEXT_PRIMARY,
   },
-  budgetTotal: {
+  limitAmountText: {
+    fontFamily: Fonts.medium,
     fontSize: 18,
     color: TEXT_SECONDARY,
-    fontFamily: Fonts.medium,
     opacity: 0.7,
   },
-  budgetFooter: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 12,
-  },
-  budgetLeft: {
-    fontFamily: Fonts.semiBold,
-    fontSize: 13,
-    color: TEXT_PRIMARY,
-  },
-  budgetStatus: {
-    fontFamily: Fonts.regular,
-    fontSize: 12,
+  percentageTextSide: {
+    fontFamily: Fonts.medium,
+    fontSize: 14,
     color: TEXT_SECONDARY,
     opacity: 0.6,
   },
-  savingsRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 12,
+  cardProgressBar: {
+    marginVertical: 4,
   },
-  goalName: {
+  cardCaptionMuted: {
+    fontFamily: Fonts.regular,
+    fontSize: 13,
+    color: TEXT_SECONDARY,
+    marginTop: 8,
+    opacity: 0.8,
+  },
+  /* Savings Specific Layout */
+  savingsContentRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  goalNameLarge: {
     fontFamily: Fonts.semiBold,
-    fontSize: 18,
+    fontSize: 22,
     color: TEXT_PRIMARY,
     marginBottom: 8,
   },
-  goalAmount: {
+  savingsAmountText: {
     fontFamily: Fonts.semiBold,
     fontSize: 28,
     color: TEXT_PRIMARY,
   },
-  goalTarget: {
+  savingsLimitText: {
+    fontFamily: Fonts.medium,
     fontSize: 18,
     color: "#D1D5DB",
-    fontFamily: Fonts.medium,
   },
-  progressRingContainer: {
-    justifyContent: "center",
-    alignItems: "center",
+  circleProgressWrapper: {
+    position: 'relative',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 16,
   },
-  circularProgress: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    borderWidth: 6,
-    alignItems: "center",
-    justifyContent: "center",
+  circleTextOverlay: {
+    position: 'absolute',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  progressArc: {
-    position: "absolute",
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    borderWidth: 6,
-    borderColor: PRIMARY_GREEN,
-    borderTopColor: "transparent",
-    borderRightColor: "transparent",
-  },
-  circleText: {
+  circlePercentText: {
     fontFamily: Fonts.bold,
     fontSize: 20,
     color: PRIMARY_GREEN,
   },
-  primaryActionBtn: {
+  fullWidthActionBtn: {
     backgroundColor: PRIMARY_GREEN,
     borderRadius: 12,
     height: 52,
-    alignItems: "center",
-    justifyContent: "center",
-    width: "100%",
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
   },
-  primaryActionBtnText: {
-    fontFamily: Fonts.semiBold,
+  actionBtnText: {
     color: WHITE,
+    fontFamily: Fonts.semiBold,
     fontSize: 16,
-  },
-  emptyCardContent: {
-    alignItems: "flex-start",
-    paddingVertical: 8,
   },
   emptyCardTitle: {
     fontFamily: Fonts.semiBold,
     fontSize: 22,
     color: TEXT_PRIMARY,
     marginBottom: 8,
-    textAlign: "left",
   },
   emptyCardSubtitle: {
     fontFamily: Fonts.regular,
     fontSize: 14,
     color: TEXT_SECONDARY,
-    textAlign: "left",
     marginBottom: 24,
     opacity: 0.7,
   },
-  transactionsSection: {
-    marginBottom: SPACING.XL,
-    marginTop: 8,
+  /* Recent Transactions */
+  recentHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 10,
+    marginBottom: 20,
+  },
+  recentTitle: {
+    color: TEXT_PRIMARY,
+    fontFamily: Fonts.bold,
+    fontSize: 18,
+  },
+  viewAll: {
+    color: TEXT_SECONDARY,
+    fontFamily: Fonts.medium,
+    fontSize: 14,
   },
   emptyTransactions: {
     paddingVertical: 20,
   },
   emptyTransactionsText: {
+    color: TEXT_SECONDARY,
     fontFamily: Fonts.bold,
     fontSize: 24,
-    color: TEXT_SECONDARY,
     opacity: 0.5,
-  },
-  fabTooltip: {
-    position: "absolute",
-    bottom: 94,
-    alignSelf: "center",
-    backgroundColor: PRIMARY_GREEN,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 4,
-    zIndex: 100,
-  },
-  tooltipText: {
-    color: WHITE,
-    fontFamily: Fonts.medium,
-    fontSize: 12,
-  },
-  tooltipArrow: {
-    position: "absolute",
-    bottom: -6,
-    left: "50%",
-    marginLeft: -6,
-    width: 12,
-    height: 12,
-    backgroundColor: PRIMARY_GREEN,
-    transform: [{ rotate: "45deg" }],
-  },
-  viewAllText: {
-    fontFamily: Fonts.medium,
-    color: TEXT_SECONDARY,
-    fontSize: 14,
-  },
-
-  loadingOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(255, 255, 255, 0.8)",
-    justifyContent: "center",
-    alignItems: "center",
-    zIndex: 1000,
   },
 });

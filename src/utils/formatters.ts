@@ -102,3 +102,18 @@ export const truncateText = (text: string, maxLength: number): string => {
   if (text.length <= maxLength) return text;
   return text.substring(0, maxLength) + '...';
 };
+
+/**
+ * Formats a currency amount into parts for special UI rendering.
+ * @param amount The currency amount
+ * @returns An object with whole and decimal parts
+ */
+export const formatCurrencyParts = (amount: number): { whole: string; decimal: string } => {
+  if (amount === undefined || amount === null || isNaN(amount)) {
+    return { whole: '₦0', decimal: '.00' };
+  }
+  const abs = Math.abs(amount);
+  const whole = Math.floor(abs).toLocaleString('en-NG');
+  const decimal = (abs % 1).toFixed(2).slice(1); // → ".00" or ".50"
+  return { whole: `₦${whole}`, decimal };
+};

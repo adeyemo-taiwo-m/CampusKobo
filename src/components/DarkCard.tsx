@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { Colors, Fonts, SPACING, WHITE } from "../constants";
 import { ProgressBar } from "./ProgressBar";
+import * as Progress from "react-native-progress";
 
 interface DarkCardProps {
   type: "balance" | "expenses" | "transaction" | "budget" | "savings";
@@ -38,6 +39,9 @@ interface DarkCardProps {
   centered?: boolean;
   style?: StyleProp<ViewStyle>;
   children?: React.ReactNode;
+  showCircularProgress?: boolean;
+  onActionPress?: () => void;
+  actionLabel?: string;
 }
 
 export const DarkCard = ({
@@ -63,6 +67,9 @@ export const DarkCard = ({
   showToggle = false,
   onToggle,
   children,
+  showCircularProgress = false,
+  onActionPress,
+  actionLabel,
 }: DarkCardProps) => {
   const isBalanceType = type === "balance";
   const isTransactionType = type === "transaction";
@@ -72,10 +79,10 @@ export const DarkCard = ({
   return (
     <View style={[styles.outerContainer, style]}>
       <LinearGradient
-        colors={isBudgetType ? ["#27AE60", "#0A4A25"] : ["#2DD673", "#116232"]}
+        colors={["#2DD673", "#116232"]}
         start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }} // Diagonal gradient for more depth
-        style={[styles.gradient, isBudgetType && styles.budgetGradient]}
+        end={{ x: 1, y: 1 }}
+        style={styles.gradient}
       >
         {children ? (
           children
@@ -215,7 +222,7 @@ export const DarkCard = ({
                           />
                         </View>
                         <Text style={styles.budgetCategoryName}>
-                          {categoryName}
+                          {categoryName || label || "Budget"}
                         </Text>
                       </View>
                     )}
@@ -250,14 +257,42 @@ export const DarkCard = ({
                   </View>
 
                   <View style={styles.modernRight}>
-                    <View style={styles.modernProgressBox}>
-                      <Text style={styles.modernProgressPercentLarge}>
-                        {Math.round((progress || 0) * 100)}%
-                      </Text>
-                      <Text style={styles.modernProgressSubtext}>Used</Text>
-                    </View>
+                    {showCircularProgress ? (
+                      <View style={styles.modernCircleWrapper}>
+                        <Progress.Circle
+                          size={65}
+                          progress={progress || 0}
+                          thickness={6}
+                          color={WHITE}
+                          unfilledColor="rgba(255,255,255,0.2)"
+                          borderWidth={0}
+                          strokeCap="round"
+                        />
+                        <View style={styles.modernCircleTextOverlay}>
+                          <Text style={styles.modernCirclePercentText}>
+                            {Math.round((progress || 0) * 100)}%
+                          </Text>
+                        </View>
+                      </View>
+                    ) : (
+                      <View style={styles.modernProgressBox}>
+                        <Text style={styles.modernProgressPercentLarge}>
+                          {Math.round((progress || 0) * 100)}%
+                        </Text>
+                        <Text style={styles.modernProgressSubtext}>Used</Text>
+                      </View>
+                    )}
                   </View>
                 </View>
+
+                {onActionPress && actionLabel && (
+                  <TouchableOpacity
+                    style={styles.modernActionButton}
+                    onPress={onActionPress}
+                  >
+                    <Text style={styles.modernActionText}>{actionLabel}</Text>
+                  </TouchableOpacity>
+                )}
 
                 <View style={styles.modernFooter}>
                   <View style={styles.modernProgressBarTrack}>
@@ -886,5 +921,34 @@ const styles = StyleSheet.create({
   },
   modernFooter: {
     width: "100%",
+  },
+  modernCircleWrapper: {
+    position: 'relative',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modernCircleTextOverlay: {
+    position: 'absolute',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modernCirclePercentText: {
+    fontFamily: Fonts.bold,
+    fontSize: 14,
+    color: WHITE,
+  },
+  modernActionButton: {
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
+    borderRadius: 12,
+    paddingVertical: 10,
+    alignItems: 'center',
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.2)",
+  },
+  modernActionText: {
+    color: WHITE,
+    fontFamily: Fonts.bold,
+    fontSize: 14,
   },
 });

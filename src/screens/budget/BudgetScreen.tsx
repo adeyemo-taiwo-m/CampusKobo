@@ -1,39 +1,35 @@
-import React, { useState } from 'react';
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import React from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  SafeAreaView,
-  StatusBar,
-  Dimensions,
-  Image,
   ActivityIndicator,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import * as Progress from 'react-native-progress';
+  Image,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import * as Progress from "react-native-progress";
+import { DarkCard } from "../../components/DarkCard";
+import { EmptyState } from "../../components/EmptyState";
+import { OfflineBanner } from "../../components/OfflineBanner";
+import { Toast } from "../../components/Toast";
 import {
-  WHITE,
+  ACCENT_GREEN,
+  BACKGROUND,
+  Fonts,
   PRIMARY_GREEN,
+  SPACING,
   TEXT_PRIMARY,
   TEXT_SECONDARY,
-  SPACING,
-  Fonts,
-  BACKGROUND,
-  ACCENT_GREEN,
-} from '../../constants';
-import { OfflineBanner } from '../../components/OfflineBanner';
-import { ProgressBar } from '../../components/ProgressBar';
-import { DarkCard } from '../../components/DarkCard';
-import { EmptyState } from '../../components/EmptyState';
-import { useAppContext } from '../../context/AppContext';
-import { Toast } from '../../components/Toast';
-import { useToast } from '../../hooks/useToast';
-import { formatCurrency, getPercentage, getProgressColor } from '../../utils/formatters';
-
-const { width } = Dimensions.get('window');
+  WHITE,
+} from "../../constants";
+import { useAppContext } from "../../context/AppContext";
+import { useToast } from "../../hooks/useToast";
+import { formatCurrency, getPercentage, getProgressColor } from "../../utils/formatters";
 
 interface Budget {
   id: string;
@@ -46,9 +42,9 @@ interface Budget {
 }
 
 const BudgetCard = ({ budget, onPress }: { budget: Budget; onPress: () => void }) => {
-  const currentProgress = (budget as any).percent / 100;
-  const percentage = (budget as any).percent;
-  const remaining = (budget as any).remaining;
+  const currentProgress = (budget as any).percent / 100 || 0;
+  const percentage = (budget as any).percent || 0;
+  const remaining = (budget as any).remaining || 0;
   const statusColor = getProgressColor(percentage); 
   
   return (
@@ -56,14 +52,14 @@ const BudgetCard = ({ budget, onPress }: { budget: Budget; onPress: () => void }
       <View style={styles.budgetCardContent}>
         <View style={styles.budgetCategoryInfo}>
           <View style={[styles.iconCircle, { backgroundColor: '#E8F5E9' }]}>
-            <Ionicons name={budget.icon} size={22} color={PRIMARY_GREEN} />
+            <Ionicons name={budget.icon || 'wallet-outline'} size={22} color={PRIMARY_GREEN} />
           </View>
           <View style={styles.budgetTextStack}>
             <Text style={styles.categoryNameText}>{budget.category}</Text>
             <View style={styles.amountTextRow}>
                <Text style={styles.spentAmountText}>{formatCurrency(budget.spentAmount)}/{formatCurrency(budget.limitAmount)}</Text>
             </View>
-            <Text style={styles.remainingSubtextRow}>{formatCurrency(remaining)} left • {budget.daysLeft} days remaining</Text>
+            <Text style={styles.remainingSubtextRow}>{formatCurrency(remaining)} left • {budget.daysLeft || 0} days remaining</Text>
           </View>
         </View>
         
@@ -119,7 +115,7 @@ export const BudgetScreen = () => {
     }
   };
 
-  const currentMonth = new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }).toUpperCase();
+  const currentMonthLabel = new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }).toUpperCase();
 
   return (
     <View style={styles.container}>
@@ -170,7 +166,7 @@ export const BudgetScreen = () => {
                 type="expenses"
                 amount={totalBudgetSpent}
                 label="Total Budget"
-                periodLabel={currentMonth}
+                periodLabel={currentMonthLabel}
                 progress={budgetUsedPercent / 100}
                 statusCaption={`You've spent ${budgetUsedPercent}% of your total budget`}
                 style={styles.summaryCard}
@@ -178,8 +174,8 @@ export const BudgetScreen = () => {
             </View>
           ) : (
             <View style={styles.emptyHeaderContent}>
-              <Text style={styles.headerTitleLabelCentered}>Budget</Text>
-              <Text style={styles.emptyHeaderTitle}>No budget set yet</Text>
+               <Text style={styles.headerTitleLabelCentered}>Budget</Text>
+               <Text style={styles.emptyHeaderTitle}>No budget set yet</Text>
             </View>
           )}
         </SafeAreaView>
@@ -228,6 +224,7 @@ export const BudgetScreen = () => {
           <View style={{ height: 120 }} />
         </ScrollView>
       </View>
+
       {/* Loading Overlay */}
       {isLoading && (
         <View style={styles.loadingOverlay}>
@@ -250,16 +247,16 @@ const styles = StyleSheet.create({
     paddingBottom: SPACING.LG,
   },
   headerContent: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: SPACING.LG,
     paddingTop: SPACING.XXL,
     marginBottom: 12,
   },
   profileSection: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   welcomeText: {
     fontFamily: Fonts.bold,
@@ -272,7 +269,7 @@ const styles = StyleSheet.create({
     height: 38,
     borderRadius: 19,
     overflow: 'hidden',
-    backgroundColor: "rgba(255,255,255,0.2)",
+    backgroundColor: 'rgba(255,255,255,0.2)',
   },
   avatarImage: {
     width: 38,
@@ -294,31 +291,34 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.medium,
     color: WHITE,
     fontSize: 16,
-    textAlign: "center",
+    textAlign: 'center',
     marginBottom: 12,
   },
   headerActions: {
-    flexDirection: "row",
+    flexDirection: 'row',
     gap: 12,
   },
   iconButton: {
     width: 38,
     height: 38,
     borderRadius: 19,
-    backgroundColor: "rgba(255,255,255,0.15)",
-    alignItems: "center",
-    justifyContent: "center",
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   summaryCardWrapper: {
     paddingHorizontal: SPACING.LG,
     marginTop: 8,
+  },
+  summaryCard: {
+    // Custom style if needed
   },
   mainContentWrapper: {
     flex: 1,
     backgroundColor: BACKGROUND,
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
-    overflow: "hidden",
+    overflow: 'hidden',
   },
   emptyHeaderContent: {
     alignItems: 'center',
@@ -354,9 +354,6 @@ const styles = StyleSheet.create({
   },
   scrollContainer: {
     flex: 1,
-  },
-  scrollAreaContent: {
-    paddingBottom: 0,
   },
   budgetListContainer: {
     paddingHorizontal: SPACING.LG,
@@ -436,39 +433,11 @@ const styles = StyleSheet.create({
     marginTop: 40,
     paddingHorizontal: SPACING.LG,
   },
-  emptyImgCircle: {
-    width: 220,
-    height: 220,
-    borderRadius: 110,
-    backgroundColor: '#F3F4F6',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 24,
-    overflow: 'hidden',
-  },
-  illustrationImage: {
-    width: '100%',
-    height: '100%',
-  },
-  emptyStateMainText: {
-    fontFamily: Fonts.bold,
-    fontSize: 20,
-    color: TEXT_PRIMARY,
-    marginBottom: 8,
-  },
-  emptyStateSubText: {
-    fontFamily: Fonts.regular,
-    fontSize: 14,
-    color: TEXT_SECONDARY,
-    textAlign: 'center',
-    paddingHorizontal: 20,
-    lineHeight: 20,
-  },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(255, 255, 255, 0.8)",
-    justifyContent: "center",
-    alignItems: "center",
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
     zIndex: 1000,
   },
 });
