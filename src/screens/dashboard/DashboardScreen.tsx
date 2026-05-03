@@ -104,7 +104,8 @@ export default function DashboardScreen() {
   );
 
   // Local Helpers
-  const primaryGoal = primarySavingsGoal as any; // Cast as any if TS complains about percent
+  const primaryGoal = enrichedSavingsGoals.find(g => g.id === primarySavingsGoal?.id) || enrichedSavingsGoals[0];
+  const primaryGoalPercent = primaryGoal?.percent || 0;
 
   const initials = useMemo(() => {
     const name = apiUser?.full_name || user?.name || "CK";
@@ -317,7 +318,7 @@ export default function DashboardScreen() {
                             ]}
                           />
                           <Text style={styles.circleText}>
-                            {primaryGoal.percent}%
+                            {primaryGoalPercent}%
                           </Text>
                         </View>
                       </View>
@@ -606,7 +607,7 @@ const styles = StyleSheet.create({
   savingsRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 24,
+    marginBottom: 12,
   },
   goalName: {
     fontFamily: Fonts.semiBold,

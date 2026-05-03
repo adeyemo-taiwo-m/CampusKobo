@@ -101,6 +101,7 @@ export const DarkCard = ({
                   <Text style={styles.savingsAmount}>
                     ₦{amount.toLocaleString()}
                   </Text>
+                  <Text style={[styles.decimals, { fontSize: 20 }]}>.00</Text>
                   {limitAmount !== undefined && (
                     <Text style={styles.savingsTarget}>
                       /₦{limitAmount.toLocaleString()}
@@ -236,11 +237,16 @@ export const DarkCard = ({
                     <Text style={styles.modernLabel}>
                       {type === "expenses" ? "Total Expense" : "Budget Limit"}
                     </Text>
-                    <Text style={styles.modernAmountLarge}>
-                      {type === "expenses" && !isBalanceVisible
-                        ? "₦ ••••••"
-                        : `₦${amount.toLocaleString()}`}
-                    </Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+                      <Text style={styles.modernAmountLarge}>
+                        {type === "expenses" && !isBalanceVisible
+                          ? "₦ ••••••"
+                          : `₦${amount.toLocaleString()}`}
+                      </Text>
+                      {!(type === "expenses" && !isBalanceVisible) && (
+                        <Text style={[styles.decimals, { fontSize: 24 }]}>.00</Text>
+                      )}
+                    </View>
                   </View>
 
                   <View style={styles.modernRight}>

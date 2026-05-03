@@ -58,9 +58,9 @@ export const SavingsGoalDetailScreen = () => {
   const percent = goal.percent;
   const remaining = goal.remaining;
   const daysLeft = goal.daysLeft;
-  const monthsLeft = goal.monthsLeft;
-  const dailyTarget = goal.dailyTarget;
-  const monthlyTarget = goal.monthlyTarget;
+  const monthsLeft = daysLeft ? Math.ceil(daysLeft / 30) : null;
+  const dailyTarget = daysLeft && daysLeft > 0 ? remaining / daysLeft : null;
+  const monthlyTarget = monthsLeft && monthsLeft > 0 ? remaining / monthsLeft : null;
 
   const deadlineLabel = goal.deadline
     ? new Date(goal.deadline).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
