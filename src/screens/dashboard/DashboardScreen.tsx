@@ -105,33 +105,36 @@ export default function DashboardScreen() {
   }, [transactions, currentMonth, currentYear]);
 
   const totalIncome = useMemo(() => {
-    if (dashboardSummary) return dashboardSummary.total_income;
+    if (dashboardSummary?.total_income !== undefined) return Number(dashboardSummary.total_income);
     return currentMonthTransactions
       .filter((t) => t.type === "income")
       .reduce((sum, t) => sum + t.amount, 0);
   }, [currentMonthTransactions, dashboardSummary]);
 
   const totalExpenses = useMemo(() => {
-    if (dashboardSummary) return dashboardSummary.total_expenses;
+    if (dashboardSummary?.total_expenses !== undefined) return Number(dashboardSummary.total_expenses);
+    if (dashboardSummary?.total_spent !== undefined) return Number(dashboardSummary.total_spent);
     return currentMonthTransactions
       .filter((t) => t.type === "expense")
       .reduce((sum, t) => sum + t.amount, 0);
   }, [currentMonthTransactions, dashboardSummary]);
 
   const totalBalance = useMemo(() => {
-    if (dashboardSummary) return dashboardSummary.total_balance;
+    if (dashboardSummary?.total_balance !== undefined) return Number(dashboardSummary.total_balance);
     return totalIncome - totalExpenses;
   }, [totalIncome, totalExpenses, dashboardSummary]);
 
   const budgetTotal = useMemo(() => {
-    if (dashboardSummary?.monthly_budget)
-      return dashboardSummary.monthly_budget;
+    if (dashboardSummary?.monthly_budget !== undefined)
+      return Number(dashboardSummary.monthly_budget);
     return budgets.reduce((sum, b) => sum + b.limitAmount, 0);
   }, [budgets, dashboardSummary]);
 
   const budgetSpent = useMemo(() => {
     if (dashboardSummary?.budget_spent !== undefined)
-      return dashboardSummary.budget_spent;
+      return Number(dashboardSummary.budget_spent);
+    if (dashboardSummary?.total_spent !== undefined) 
+      return Number(dashboardSummary.total_spent);
     return budgets.reduce((sum, b) => sum + b.spentAmount, 0);
   }, [budgets, dashboardSummary]);
 
