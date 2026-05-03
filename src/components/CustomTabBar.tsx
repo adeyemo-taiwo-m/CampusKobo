@@ -9,11 +9,10 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import Svg, { Path } from "react-native-svg";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Fonts, PRIMARY_GREEN, WHITE } from "../constants";
 
 const { width } = Dimensions.get("window");
-const TAB_BAR_HEIGHT = 65;
 
 const VISIBLE_TABS = ["index", "expenses", "budget", "savings"] as const;
 const TAB_TITLES: Record<string, string> = {
@@ -28,6 +27,7 @@ export const CustomTabBar = ({
   descriptors,
   navigation,
 }: BottomTabBarProps) => {
+  const insets = useSafeAreaInsets();
   const router = useRouter();
   const currentRouteName = state.routes[state.index]?.name;
 
@@ -53,35 +53,12 @@ export const CustomTabBar = ({
     }
   };
 
-  const getPath = () => {
-    const cutoutRadius = 45;
-    const centerX = width / 2;
-    // Creates a smooth curve around the center FAB
-    return `
-      M 0 0
-      H ${centerX - cutoutRadius - 10}
-      C ${centerX - cutoutRadius} 0, ${centerX - cutoutRadius + 5} ${cutoutRadius - 5}, ${centerX} ${cutoutRadius - 5}
-      C ${centerX + cutoutRadius - 5} ${cutoutRadius - 5}, ${centerX + cutoutRadius} 0, ${centerX + cutoutRadius + 10} 0
-      H ${width}
-      V ${TAB_BAR_HEIGHT}
-      H 0
-      Z
-    `;
-  };
+  // Modern floating tab bar padding
+  const bottomPadding = Math.max(insets.bottom, 16);
 
   return (
-    <View style={styles.container}>
-      <View style={styles.svgContainer}>
-        <Svg width={width} height={TAB_BAR_HEIGHT}>
-          <Path
-            d={getPath()}
-            fill={WHITE}
-            stroke="#E5E7EB"
-            strokeWidth={1}
-          />
-        </Svg>
-      </View>
-      <View style={styles.tabsContainer}>
+    <View style={[styles.wrapper, { paddingBottom: bottomPadding }]}>
+      <View style={styles.container}>
         {visibleRoutes.map((route, index) => {
           const { options } = descriptors[route.key];
           const isFocused = state.routes[state.index]?.name === route.name;
@@ -108,10 +85,10 @@ export const CustomTabBar = ({
               iconName = isFocused ? "list" : "list-outline";
               break;
             case "budget":
-              iconName = isFocused ? "stats-chart" : "stats-chart-outline";
+              iconName = isFocused ? "pie-chart" : "pie-chart-outline";
               break;
             case "savings":
-              iconName = isFocused ? "disc" : "disc-outline";
+              iconName = isFocused ? "wallet" : "wallet-outline";
               break;
           }
 
@@ -122,37 +99,34 @@ export const CustomTabBar = ({
               style={styles.tabItem}
               activeOpacity={0.7}
             >
-              {isFocused && <View style={styles.activeIndicator} />}
-              <Ionicons
-                name={iconName}
-                size={22}
-                color={isFocused ? PRIMARY_GREEN : "#6B7280"}
-              />
-              <Text
-                style={[
-                  styles.tabLabel,
-                  { color: isFocused ? PRIMARY_GREEN : "#6B7280" },
-                ]}
-              >
-                {title}
-              </Text>
+              <View style={[styles.iconContainer, isFocused && styles.activeIconContainer]}>
+                <Ionicons
+                  name={iconName}
+                  size={24}
+                  color={isFocused ? PRIMARY_GREEN : "#9CA3AF"}
+                />
+              </View>
+              {isFocused && (
+                <Text style={styles.tabLabel} numberOfLines={1}>
+                  {title}
+                </Text>
+              )}
             </TouchableOpacity>
           );
 
-          // Insert FAB after the second tab (Expenses)
-          if (index === 2) {
+          if (index === 1) { // Insert FAB after the second tab (Expenses)
             return (
               <React.Fragment key="fab-fragment">
+                {tabItem}
                 <View style={styles.fabContainer}>
                   <TouchableOpacity
                     style={styles.fabButton}
-                    activeOpacity={0.8}
+                    activeOpacity={0.9}
                     onPress={handleFabPress}
                   >
                     <Ionicons name="add" size={32} color={WHITE} />
                   </TouchableOpacity>
                 </View>
-                {tabItem}
               </React.Fragment>
             );
           }
@@ -165,59 +139,77 @@ export const CustomTabBar = ({
 };
 
 const styles = StyleSheet.create({
-  container: {
-    backgroundColor: "transparent", // Background handled by SVG
-    height: TAB_BAR_HEIGHT,
-    width: width,
-    overflow: "visible",
-  },
-  svgContainer: {
+  wrapper: {
     position: 'absolute',
-    top: 0,
-    left: 0,
+    bottom: 0,
     width: width,
-    height: TAB_BAR_HEIGHT,
+    alignItems: 'center',
+    zIndex: 1000,
+    elevation: 20,
+    backgroundColor: 'transparent',
   },
-  tabsContainer: {
+  container: {
     flexDirection: "row",
-    height: "100%",
-    width: "100%",
-    justifyContent: "space-around",
+    backgroundColor: WHITE,
+    width: width - 32, // 16 margin on each side
+    height: 70,
+    borderRadius: 35, // Fully rounded pill
+    justifyContent: "space-between",
     alignItems: "center",
-    overflow: "visible",
+    paddingHorizontal: 8,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 8,
+    },
+    shadowOpacity: 0.12,
+    shadowRadius: 16,
+    elevation: 8,
   },
   tabItem: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    paddingTop: 8,
+    height: '100%',
+  },
+  iconContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+  },
+  activeIconContainer: {
+    backgroundColor: `${PRIMARY_GREEN}15`, // Light green background for active icon
   },
   tabLabel: {
     fontSize: 10,
-    marginTop: 4,
-    fontFamily: Fonts.medium,
+    fontFamily: Fonts.semiBold,
+    color: PRIMARY_GREEN,
+    marginTop: 2,
   },
   fabContainer: {
-    flex: 1,
+    width: 64,
     alignItems: "center",
     justifyContent: "center",
-    zIndex: 1,
   },
   fabButton: {
-    width: 68, // Slightly bigger as per visual
-    height: 68,
-    borderRadius: 34,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     backgroundColor: PRIMARY_GREEN,
     justifyContent: "center",
     alignItems: "center",
-    marginTop: -75, // Detach fully from the tab bar background
-  },
-  activeIndicator: {
-    position: 'absolute',
-    top: 0,
-    width: 45,
-    height: 4,
-    backgroundColor: PRIMARY_GREEN,
-    borderRadius: 2,
+    marginTop: -35, // Protrudes outside the pill
+    shadowColor: PRIMARY_GREEN,
+    shadowOffset: {
+      width: 0,
+      height: 6,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+    borderWidth: 4,
+    borderColor: '#F9FAFB', // Outer stroke to blend with background
   },
 });

@@ -24,33 +24,35 @@ export interface ExpenseResponse {
 export const transactionService = {
   getIncome: async (): Promise<Transaction[]> => {
     const response = await apiClient.get(API_ENDPOINTS.INCOME);
-    return (response as any[]).map(item => ({
+    const data = Array.isArray(response) ? response : (response as any)?.data || [];
+    return data.map((item: any) => ({
       id: item.id,
-      amount: item.amount,
+      amount: item.amount || 0,
       type: 'income',
       category: item.category || item.source || 'Other',
       categoryIcon: 'cash-outline',
       categoryColor: '#10B981',
       description: item.description || '',
       note: item.description || '',
-      date: item.date,
-      isRecurring: item.is_recurring,
+      date: item.date || new Date().toISOString(),
+      isRecurring: !!item.is_recurring,
     }));
   },
 
   getExpenses: async (): Promise<Transaction[]> => {
     const response = await apiClient.get(API_ENDPOINTS.EXPENSES);
-    return (response as any[]).map(item => ({
+    const data = Array.isArray(response) ? response : (response as any)?.data || [];
+    return data.map((item: any) => ({
       id: item.id,
-      amount: item.amount,
+      amount: item.amount || 0,
       type: 'expense',
       category: item.category || 'Other',
       categoryIcon: 'cart-outline',
       categoryColor: '#EF4444',
       description: item.description || '',
       note: item.description || '',
-      date: item.date,
-      isRecurring: item.is_recurring,
+      date: item.date || new Date().toISOString(),
+      isRecurring: !!item.is_recurring,
     }));
   },
 

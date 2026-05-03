@@ -46,9 +46,10 @@ interface Budget {
 }
 
 const BudgetCard = ({ budget, onPress }: { budget: Budget; onPress: () => void }) => {
-  const currentProgress = budget.spentAmount / budget.limitAmount;
+  const progressValue = budget.limitAmount > 0 ? budget.spentAmount / budget.limitAmount : 0;
+  const currentProgress = isNaN(progressValue) ? 0 : progressValue;
   const percentage = Math.min(Math.round(currentProgress * 100), 100);
-  const remaining = budget.limitAmount - budget.spentAmount;
+  const remaining = Math.max(0, budget.limitAmount - budget.spentAmount);
 
   // Color logic for budget status
   let statusColor = ACCENT_GREEN; 
@@ -98,7 +99,9 @@ export const BudgetScreen = () => {
   const hasBudgets = budgets.length > 0;
   
   // Icon Mapping function
-  const getIconForCategory = (category: string): keyof typeof Ionicons.glyphMap => {
+  const getIconForCategory = (category: string | undefined | null): keyof typeof Ionicons.glyphMap => {
+    if (!category) return 'wallet-outline';
+    
     switch (category.toLowerCase()) {
       case 'food': return 'restaurant-outline';
       case 'data & airtime':
@@ -142,7 +145,13 @@ export const BudgetScreen = () => {
                 ) : (
                   <View style={styles.initialsAvatar}>
                     <Text style={styles.initialsText}>
-                      {(apiUser?.full_name || user?.name || 'CK').split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2)}
+                      {(apiUser?.full_name || user?.name || 'CK')
+                        .split(' ')
+                        .filter(Boolean)
+                        .map(n => n[0])
+                        .join('')
+                        .toUpperCase()
+                        .substring(0, 2) || 'CK'}
                     </Text>
                   </View>
                 )}
@@ -207,7 +216,7 @@ export const BudgetScreen = () => {
                       key={budget.id} 
                       budget={{
                         ...budget,
-                        icon: getIconForCategory(budget.category),
+                        icon: getIconForCategory(budget.category) || 'wallet-outline',
                         daysLeft: remainingDays,
                         iconColor: '#3CB96A'
                       }} 

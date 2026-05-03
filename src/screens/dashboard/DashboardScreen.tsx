@@ -10,6 +10,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  RefreshControl,
 } from "react-native";
 import { AddFundsBottomSheet } from "../../components/AddFundsBottomSheet";
 import { DarkCard } from "../../components/DarkCard";
@@ -43,6 +44,7 @@ export default function DashboardScreen() {
     toggleBalanceVisibility,
     apiUser,
     dashboardSummary,
+    loadAllData,
   } = useAppContext();
   const [isAddFundsVisible, setIsAddFundsVisible] = useState(false);
   const { toastProps, showToast } = useToast();
@@ -122,14 +124,19 @@ export default function DashboardScreen() {
   }, [totalIncome, totalExpenses, dashboardSummary]);
 
   const budgetTotal = useMemo(() => {
+    if (dashboardSummary?.monthly_budget)
+      return dashboardSummary.monthly_budget;
     return budgets.reduce((sum, b) => sum + b.limitAmount, 0);
-  }, [budgets]);
+  }, [budgets, dashboardSummary]);
 
   const budgetSpent = useMemo(() => {
+    if (dashboardSummary?.budget_spent !== undefined)
+      return dashboardSummary.budget_spent;
     return budgets.reduce((sum, b) => sum + b.spentAmount, 0);
-  }, [budgets]);
+  }, [budgets, dashboardSummary]);
 
-  const budgetProgress = budgetTotal > 0 ? budgetSpent / budgetTotal : 0;
+  const budgetProgress = budgetTotal > 0 ? Math.min(budgetSpent / budgetTotal, 1) : 0;
+  const safeBudgetProgress = isNaN(budgetProgress) ? 0 : budgetProgress;
 
   const primaryGoal = savingsGoals.length > 0 ? savingsGoals[0] : null;
 
@@ -171,11 +178,21 @@ export default function DashboardScreen() {
                         style={styles.avatarImage}
                       />
                     ) : (
-                      <Text style={styles.avatarText}>{initials}</Text>
+                      <Text style={styles.initialsText}>
+                        {(apiUser?.full_name || user?.name || "CK")
+                          .split(" ")
+                          .filter(Boolean)
+                          .map((n) => n[0])
+                          .join("")
+                          .toUpperCase()
+                          .substring(0, 2) || "CK"}
+                      </Text>
                     )}
                   </View>
                   <Text style={styles.welcomeText}>
-                    Hi, {(apiUser?.full_name || user?.name)?.split(" ")[0] || "there"}
+                    Hi,{" "}
+                    {(apiUser?.full_name || user?.name)?.split(" ")[0] ||
+                      "there"}
                   </Text>
                 </TouchableOpacity>
 
@@ -216,6 +233,14 @@ export default function DashboardScreen() {
             <ScrollView
               contentContainerStyle={styles.scrollContent}
               showsVerticalScrollIndicator={false}
+              refreshControl={
+                <RefreshControl
+                  refreshing={isLoading}
+                  onRefresh={loadAllData}
+                  tintColor={PRIMARY_GREEN}
+                  colors={[PRIMARY_GREEN]}
+                />
+              }
             >
               {/* Date Filter Bar */}
               <View style={styles.dateFilter}>
@@ -261,7 +286,7 @@ export default function DashboardScreen() {
                         /{formatCurrency(budgetTotal)}
                       </Text>
                     </View>
-                    <ProgressBar progress={budgetProgress} />
+                    <ProgressBar progress={safeBudgetProgress} />
                     <View style={styles.budgetFooter}>
                       <Text style={styles.budgetLeft}>
                         {formatCurrency(budgetTotal - budgetSpent)} left

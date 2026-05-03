@@ -5,19 +5,20 @@ import { SavingsGoal } from '../types';
 export const savingsService = {
   getSavingsGoals: async (): Promise<SavingsGoal[]> => {
     const response = await apiClient.get(API_ENDPOINTS.SAVINGS_GOALS);
-    return (response as any[]).map(item => ({
+    const data = Array.isArray(response) ? response : (response as any)?.data || [];
+    return data.map((item: any) => ({
       id: item.id,
       name: item.name,
-      targetAmount: item.target_amount,
+      targetAmount: item.target_amount || 0,
       savedAmount: item.current_amount || 0,
       deadline: item.target_date,
       emoji: item.icon || '💰',
       createdAt: item.created_at || new Date().toISOString(),
       contributions: (item.contributions || []).map((c: any) => ({
-        amount: c.amount,
+        amount: c.amount || 0,
         note: c.note || '',
         source: c.source || '',
-        date: c.date,
+        date: c.date || new Date().toISOString(),
       })),
     }));
   },

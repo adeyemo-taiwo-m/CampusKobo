@@ -5,11 +5,12 @@ import { Budget } from '../types';
 export const budgetService = {
   getBudgets: async (): Promise<Budget[]> => {
     const response = await apiClient.get(API_ENDPOINTS.BUDGETS);
-    return (response as any[]).map(item => ({
+    const data = Array.isArray(response) ? response : (response as any)?.data || [];
+    return data.map((item: any) => ({
       id: item.id,
-      category: item.category,
+      category: item.category || 'Other',
       categoryIcon: item.icon || 'restaurant-outline',
-      limitAmount: item.limit_amount,
+      limitAmount: item.limit_amount || 0,
       spentAmount: item.spent_amount || 0,
       period: item.period || 'monthly',
       startDate: item.start_date || new Date().toISOString(),
