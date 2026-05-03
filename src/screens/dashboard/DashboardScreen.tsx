@@ -35,16 +35,26 @@ import { formatCurrency, getPercentage } from "../../utils/formatters";
 export default function DashboardScreen() {
   const router = useRouter();
   const {
+    totalIncomeThisMonth,
+    totalExpensesThisMonth,
+    currentBalance,
+    totalBudgetLimit,
+    totalBudgetSpent,
+    totalBudgetRemaining,
+    budgetUsedPercent,
+    budgetStatusLabel,
+    primarySavingsGoal,
+    enrichedSavingsGoals,
+    recentTransactions,
+    getDaysLeftThisMonth,
     user,
-    transactions,
-    budgets,
-    savingsGoals,
+    apiUser,
     isLoading,
     isBalanceHidden,
     toggleBalanceVisibility,
-    apiUser,
-    dashboardSummary,
     loadAllData,
+    transactions,
+    budgets,
   } = useAppContext();
   const [isAddFundsVisible, setIsAddFundsVisible] = useState(false);
   const { toastProps, showToast } = useToast();
@@ -93,55 +103,8 @@ export default function DashboardScreen() {
     </View>
   );
 
-  // Helper Functions
-  const currentMonth = new Date().getMonth();
-  const currentYear = new Date().getFullYear();
-
-  const currentMonthTransactions = useMemo(() => {
-    return transactions.filter((t) => {
-      const d = new Date(t.date);
-      return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
-    });
-  }, [transactions, currentMonth, currentYear]);
-
-  const totalIncome = useMemo(() => {
-    if (dashboardSummary?.total_income !== undefined) return Number(dashboardSummary.total_income);
-    return currentMonthTransactions
-      .filter((t) => t.type === "income")
-      .reduce((sum, t) => sum + t.amount, 0);
-  }, [currentMonthTransactions, dashboardSummary]);
-
-  const totalExpenses = useMemo(() => {
-    if (dashboardSummary?.total_expenses !== undefined) return Number(dashboardSummary.total_expenses);
-    if (dashboardSummary?.total_spent !== undefined) return Number(dashboardSummary.total_spent);
-    return currentMonthTransactions
-      .filter((t) => t.type === "expense")
-      .reduce((sum, t) => sum + t.amount, 0);
-  }, [currentMonthTransactions, dashboardSummary]);
-
-  const totalBalance = useMemo(() => {
-    if (dashboardSummary?.total_balance !== undefined) return Number(dashboardSummary.total_balance);
-    return totalIncome - totalExpenses;
-  }, [totalIncome, totalExpenses, dashboardSummary]);
-
-  const budgetTotal = useMemo(() => {
-    if (dashboardSummary?.monthly_budget !== undefined)
-      return Number(dashboardSummary.monthly_budget);
-    return budgets.reduce((sum, b) => sum + b.limitAmount, 0);
-  }, [budgets, dashboardSummary]);
-
-  const budgetSpent = useMemo(() => {
-    if (dashboardSummary?.budget_spent !== undefined)
-      return Number(dashboardSummary.budget_spent);
-    if (dashboardSummary?.total_spent !== undefined) 
-      return Number(dashboardSummary.total_spent);
-    return budgets.reduce((sum, b) => sum + b.spentAmount, 0);
-  }, [budgets, dashboardSummary]);
-
-  const budgetProgress = budgetTotal > 0 ? Math.min(budgetSpent / budgetTotal, 1) : 0;
-  const safeBudgetProgress = isNaN(budgetProgress) ? 0 : budgetProgress;
-
-  const primaryGoal = savingsGoals.length > 0 ? savingsGoals[0] : null;
+  // Local Helpers
+  const primaryGoal = primarySavingsGoal as any; // Cast as any if TS complains about percent
 
   const initials = useMemo(() => {
     const name = apiUser?.full_name || user?.name || "CK";
@@ -222,9 +185,9 @@ export default function DashboardScreen() {
               {/* Balance Card Section */}
               <DarkCard
                 type="balance"
-                amount={totalBalance}
-                income={totalIncome}
-                expenses={totalExpenses}
+                amount={currentBalance}
+                income={totalIncomeThisMonth}
+                expenses={totalExpensesThisMonth}
                 isBalanceVisible={!isBalanceHidden}
                 onToggleVisibility={toggleBalanceVisibility}
                 style={styles.balanceCard}
@@ -272,7 +235,7 @@ export default function DashboardScreen() {
                   <Text style={styles.sectionTitle}>Budget</Text>
                   {budgets.length > 0 && (
                     <Text style={styles.percentageText}>
-                      {getPercentage(budgetSpent, budgetTotal)}%
+                      {budgetUsedPercent}%
                     </Text>
                   )}
                 </View>
@@ -283,20 +246,20 @@ export default function DashboardScreen() {
                   >
                     <View style={styles.amountRowBaseline}>
                       <Text style={styles.budgetValue}>
-                        {formatCurrency(budgetSpent)}
+                        {formatCurrency(totalBudgetSpent)}
                       </Text>
                       <Text style={styles.budgetTotal}>
-                        /{formatCurrency(budgetTotal)}
+                        /{formatCurrency(totalBudgetLimit)}
                       </Text>
                     </View>
-                    <ProgressBar progress={safeBudgetProgress} />
+                    <ProgressBar progress={budgetUsedPercent / 100} />
                     <View style={styles.budgetFooter}>
                       <Text style={styles.budgetLeft}>
-                        {formatCurrency(budgetTotal - budgetSpent)} left
+                        {getDaysLeftThisMonth()} days left this month
                       </Text>
                       <Text style={styles.budgetStatus}>
                         {" "}
-                        • {budgetProgress > 0.9 ? "Close to limit" : "On track"}
+                        • {budgetStatusLabel === 'healthy' ? 'You are doing well 👍' : budgetStatusLabel === 'warning' ? 'Getting close ⚠️' : 'Budget exceeded! 🚨'}
                       </Text>
                     </View>
                   </TouchableOpacity>
@@ -354,11 +317,7 @@ export default function DashboardScreen() {
                             ]}
                           />
                           <Text style={styles.circleText}>
-                            {getPercentage(
-                              primaryGoal.savedAmount,
-                              primaryGoal.targetAmount,
-                            )}
-                            %
+                            {primaryGoal.percent}%
                           </Text>
                         </View>
                       </View>
@@ -403,9 +362,8 @@ export default function DashboardScreen() {
                   </TouchableOpacity>
                 </View>
 
-                {transactions.length > 0 ? (
-                  transactions
-                    .slice(0, 5)
+                {recentTransactions.length > 0 ? (
+                  recentTransactions
                     .map((t) => (
                       <TransactionCard
                         key={t.id}

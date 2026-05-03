@@ -31,9 +31,12 @@ export const BudgetDetailScreen = () => {
   const router = useRouter();
   const { id } = useLocalSearchParams();
   const {
-    budgets,
-    transactions: allTransactions,
+    enrichedBudgets,
     deleteBudget,
+    getTransactionsByCategory,
+    getHighestExpenseInCategory,
+    getDailyAverageInCategory,
+    getDaysLeftThisMonth
   } = useAppContext();
   const [showDeleteModal, setShowDeleteModal] = React.useState(false);
   const insets = useSafeAreaInsets();
@@ -46,8 +49,7 @@ export const BudgetDetailScreen = () => {
     }
   };
 
-  // Find budget from context
-  const foundBudget = budgets.find((b) => b.id === id);
+  const foundBudget = enrichedBudgets.find((b: any) => b.id === id);
 
   // Icon Mapping function
   const getIconForCategory = (
@@ -88,26 +90,19 @@ export const BudgetDetailScreen = () => {
   const budget = {
     ...foundBudget,
     icon: getIconForCategory(foundBudget.category),
-    daysLeft: 6, // Mock for now
+    daysLeft: getDaysLeftThisMonth(),
   };
 
-  const progress = budget.spentAmount / budget.limitAmount;
-  const percent = Math.round(progress * 100);
-  const remaining = budget.limitAmount - budget.spentAmount;
+  const progress = budget.percent / 100;
+  const percent = budget.percent;
+  const remaining = budget.remaining;
 
   // Filter transactions for this budget's category
-  const transactions = allTransactions.filter(
-    (t) => t.category.toLowerCase() === budget.category.toLowerCase(),
-  );
+  const transactions = getTransactionsByCategory(budget.category);
 
   // Derived stats
-  const daysElapsed = 30 - budget.daysLeft;
-  const dailyAverage =
-    daysElapsed > 0 ? Math.round(budget.spentAmount / daysElapsed) : 0;
-  const highestSpend = transactions.reduce((max, t) => {
-    const amt = Math.abs(t.amount);
-    return amt > max ? amt : max;
-  }, 0);
+  const dailyAverage = getDailyAverageInCategory(budget.category);
+  const highestSpend = getHighestExpenseInCategory(budget.category);
 
   return (
     <View style={styles.container}>

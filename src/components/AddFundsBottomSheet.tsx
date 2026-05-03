@@ -48,8 +48,8 @@ export const AddFundsBottomSheet = ({
   const [successAnim] = useState(new Animated.Value(0));
   const [showSourceSelector, setShowSourceSelector] = useState(false);
 
-  const progress = goal.targetAmount > 0 ? goal.savedAmount / goal.targetAmount : 0;
-  const percent = Math.round(progress * 100);
+  const percent = (goal as any).percent || 0;
+  const progress = percent / 100;
 
   const numAmount = parseFloat(amount.replace(/[^0-9.]/g, "")) || 0;
   const remainingAfter = Math.max(goal.targetAmount - (goal.savedAmount + numAmount), 0);

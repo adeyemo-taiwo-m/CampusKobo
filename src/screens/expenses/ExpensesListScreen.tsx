@@ -41,16 +41,23 @@ type FilterType = 'This Month' | 'Last Month' | 'This Week' | 'All';
 
 export default function ExpensesListScreen() {
   const router = useRouter();
-  const { transactions, budgets, isLoading, user, apiUser } = useAppContext();
+  const { 
+    transactions, 
+    budgets, 
+    isLoading, 
+    user, 
+    apiUser,
+    totalBudgetLimit,
+    totalBudgetSpent,
+    budgetUsedPercent,
+    totalIncomeThisMonth,
+    totalExpensesThisMonth
+  } = useAppContext();
   const [activeFilter, setActiveFilter] = useState<FilterType>('This Month');
   const [searchQuery, setSearchQuery] = useState('');
   const [isExportVisible, setIsExportVisible] = useState(false);
   const { toastProps, showToast } = useToast();
 
-  // Helper calculation for budget progress
-  const budgetTotal = useMemo(() => budgets.reduce((sum, b) => sum + b.limitAmount, 0), [budgets]);
-  const budgetSpent = useMemo(() => budgets.reduce((sum, b) => sum + b.spentAmount, 0), [budgets]);
-  const budgetProgress = budgetTotal > 0 ? budgetSpent / budgetTotal : 0;
 
   // Filter transactions
   const filteredTransactions = useMemo(() => {
@@ -97,13 +104,7 @@ export default function ExpensesListScreen() {
     return groups;
   }, [filteredTransactions]);
 
-  const totalIncome = useMemo(() => 
-    filteredTransactions.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0), 
-  [filteredTransactions]);
 
-  const totalExpenses = useMemo(() => 
-    filteredTransactions.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0), 
-  [filteredTransactions]);
 
   const handleExport = (format: 'pdf' | 'excel') => {
     setIsExportVisible(false);
@@ -152,10 +153,10 @@ export default function ExpensesListScreen() {
           {/* Reusable Dark Summary Card */}
           <DarkCard
             type="expenses"
-            amount={totalExpenses}
-            income={totalIncome}
-            expenses={totalExpenses}
-            progress={budgetProgress}
+            amount={totalExpensesThisMonth}
+            income={totalIncomeThisMonth}
+            expenses={totalExpensesThisMonth}
+            progress={budgetUsedPercent / 100}
             periodLabel={
               activeFilter === 'This Month' 
                 ? new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }).toUpperCase()
@@ -163,7 +164,7 @@ export default function ExpensesListScreen() {
                 ? subMonths(new Date(), 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }).toUpperCase()
                 : activeFilter.toUpperCase()
             }
-            statusCaption={`You've spent ${getPercentage(budgetSpent, budgetTotal)}% of your monthly budget`}
+            statusCaption={`You've spent ${budgetUsedPercent}% of your monthly budget`}
             style={styles.summaryCard}
           />
         </SafeAreaView>

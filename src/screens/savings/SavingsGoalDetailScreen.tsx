@@ -39,11 +39,11 @@ export const SavingsGoalDetailScreen = () => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams();
-  const { savingsGoals, deleteSavingsGoal } = useAppContext();
+  const { enrichedSavingsGoals, deleteSavingsGoal } = useAppContext();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showAddFunds, setShowAddFunds] = useState(false);
 
-  const goal = savingsGoals.find((g) => g.id === id);
+  const goal = enrichedSavingsGoals.find((g: any) => g.id === id);
 
   if (!goal) {
     return (
@@ -54,20 +54,13 @@ export const SavingsGoalDetailScreen = () => {
   }
 
   // ── Computed values ────────────────────────────────────────────────────────
-  const progress = goal.targetAmount > 0 ? goal.savedAmount / goal.targetAmount : 0;
-  const percent = getPercentage(goal.savedAmount, goal.targetAmount);
-  const remaining = Math.max(goal.targetAmount - goal.savedAmount, 0);
-
-  let daysLeft: number | null = null;
-  let monthsLeft: number | null = null;
-  if (goal.deadline) {
-    const ms = new Date(goal.deadline).getTime() - Date.now();
-    daysLeft = Math.max(Math.ceil(ms / 86400000), 0);
-    monthsLeft = Math.max(Math.ceil(daysLeft / 30), 1);
-  }
-
-  const dailyTarget = daysLeft && daysLeft > 0 ? Math.ceil(remaining / daysLeft) : null;
-  const monthlyTarget = monthsLeft && monthsLeft > 0 ? Math.ceil(remaining / monthsLeft) : null;
+  const progress = goal.percent / 100;
+  const percent = goal.percent;
+  const remaining = goal.remaining;
+  const daysLeft = goal.daysLeft;
+  const monthsLeft = goal.monthsLeft;
+  const dailyTarget = goal.dailyTarget;
+  const monthlyTarget = goal.monthlyTarget;
 
   const deadlineLabel = goal.deadline
     ? new Date(goal.deadline).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })

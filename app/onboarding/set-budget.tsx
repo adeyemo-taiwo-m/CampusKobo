@@ -36,7 +36,7 @@ const BUDGET_SUGGESTIONS = [
 
 export default function SetMonthlyBudgetScreen() {
   const router = useRouter();
-  const { updateUser } = useAppContext();
+  const { addBudget } = useAppContext();
   const [budget, setBudget] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -54,7 +54,15 @@ export default function SetMonthlyBudgetScreen() {
       console.warn("API Budget Setup failed, continuing locally:", error);
     } finally {
       // Always sync locally and move forward
-      updateUser({ monthlyBudget: amount });
+      await addBudget({
+        id: Math.random().toString(36).substring(7),
+        category: 'General',
+        limitAmount: amount,
+        spentAmount: 0,
+        icon: 'wallet-outline',
+        color: '#1A9E3F',
+        period: 'monthly'
+      } as any);
       setIsLoading(false);
       router.push("/onboarding/quick-setup");
     }

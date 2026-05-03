@@ -61,12 +61,16 @@ const getGoalEmoji = (name: string): string => {
 export const SavingsScreen = () => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { savingsGoals, isLoading, user, apiUser } = useAppContext();
+  const { 
+    enrichedSavingsGoals, 
+    isLoading, 
+    user, 
+    apiUser,
+    totalSaved,
+    overallSavingsPercent
+  } = useAppContext();
   const { toastProps, showToast } = useToast();
-  const hasGoals = savingsGoals.length > 0;
-  const totalSaved = savingsGoals.reduce((sum, g) => sum + g.savedAmount, 0);
-  const totalTarget = savingsGoals.reduce((sum, g) => sum + g.targetAmount, 0);
-  const overallProgress = totalTarget > 0 ? totalSaved / totalTarget : 0;
+  const hasGoals = enrichedSavingsGoals.length > 0;
 
   const [selectedGoal, setSelectedGoal] = React.useState<SavingsGoal | null>(null);
   const [showAddFunds, setShowAddFunds] = React.useState(false);
@@ -77,8 +81,8 @@ export const SavingsScreen = () => {
   };
 
   const renderGoalCard = (item: SavingsGoal) => {
-    const progress = item.targetAmount > 0 ? item.savedAmount / item.targetAmount : 0;
-    const percent = getPercentage(item.savedAmount, item.targetAmount);
+    const progress = (item as any).percent / 100;
+    const percent = (item as any).percent;
     const emoji = item.emoji || getGoalEmoji(item.name);
 
     return (
@@ -191,10 +195,10 @@ export const SavingsScreen = () => {
               label="Total Savings"
               periodLabel={
                 hasGoals
-                  ? `Across ${savingsGoals.length} active goals`
+                  ? `Across ${enrichedSavingsGoals.length} active goals`
                   : "No active goals yet"
               }
-              progress={overallProgress}
+              progress={overallSavingsPercent / 100}
             />
           </View>
         </SafeAreaView>
@@ -209,7 +213,7 @@ export const SavingsScreen = () => {
           {hasGoals ? (
             <>
               <Text style={styles.sectionLabel}>My Goals</Text>
-              {savingsGoals.map(renderGoalCard)}
+              {enrichedSavingsGoals.map(renderGoalCard)}
             </>
           ) : (
             <View style={styles.emptyWrapper}>

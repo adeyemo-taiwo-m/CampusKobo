@@ -31,7 +31,7 @@ import { EmptyState } from '../../components/EmptyState';
 import { useAppContext } from '../../context/AppContext';
 import { Toast } from '../../components/Toast';
 import { useToast } from '../../hooks/useToast';
-import { formatCurrency, getPercentage } from '../../utils/formatters';
+import { formatCurrency, getPercentage, getProgressColor } from '../../utils/formatters';
 
 const { width } = Dimensions.get('window');
 
@@ -46,15 +46,10 @@ interface Budget {
 }
 
 const BudgetCard = ({ budget, onPress }: { budget: Budget; onPress: () => void }) => {
-  const progressValue = budget.limitAmount > 0 ? budget.spentAmount / budget.limitAmount : 0;
-  const currentProgress = isNaN(progressValue) ? 0 : progressValue;
-  const percentage = Math.min(Math.round(currentProgress * 100), 100);
-  const remaining = Math.max(0, budget.limitAmount - budget.spentAmount);
-
-  // Color logic for budget status
-  let statusColor = ACCENT_GREEN; 
-  if (currentProgress >= 1.0) statusColor = '#EF4444'; 
-  else if (currentProgress >= 0.7) statusColor = '#F59E0B'; 
+  const currentProgress = (budget as any).percent / 100;
+  const percentage = (budget as any).percent;
+  const remaining = (budget as any).remaining;
+  const statusColor = getProgressColor(percentage); 
   
   return (
     <TouchableOpacity style={styles.budgetCard} onPress={onPress}>
@@ -94,9 +89,18 @@ const BudgetCard = ({ budget, onPress }: { budget: Budget; onPress: () => void }
 
 export const BudgetScreen = () => {
   const router = useRouter();
-  const { budgets, isLoading, user, apiUser } = useAppContext();
+  const { 
+    enrichedBudgets, 
+    isLoading, 
+    user, 
+    apiUser,
+    totalBudgetLimit,
+    totalBudgetSpent,
+    budgetUsedPercent,
+    getDaysLeftThisMonth 
+  } = useAppContext();
   const { toastProps, showToast } = useToast();
-  const hasBudgets = budgets.length > 0;
+  const hasBudgets = enrichedBudgets.length > 0;
   
   // Icon Mapping function
   const getIconForCategory = (category: string | undefined | null): keyof typeof Ionicons.glyphMap => {
@@ -115,16 +119,7 @@ export const BudgetScreen = () => {
     }
   };
 
-  const totalBudget = budgets.reduce((sum, b) => sum + b.limitAmount, 0);
-  const totalSpent = budgets.reduce((sum, b) => sum + b.spentAmount, 0);
-  const totalRemaining = totalBudget - totalSpent;
-  const totalProgress = totalBudget > 0 ? totalSpent / totalBudget : 0;
   const currentMonth = new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }).toUpperCase();
-
-  // Motivational logic
-  let motivationalMessage = "You are doing well 👍";
-  if (totalProgress >= 0.9) motivationalMessage = "Budget exceeded! 🚨";
-  else if (totalProgress >= 0.7) motivationalMessage = "Getting close ⚠️";
 
   return (
     <View style={styles.container}>
@@ -173,11 +168,11 @@ export const BudgetScreen = () => {
               <Text style={styles.headerTitleLabelCentered}>Budget</Text>
               <DarkCard
                 type="expenses"
-                amount={totalSpent}
+                amount={totalBudgetSpent}
                 label="Total Budget"
                 periodLabel={currentMonth}
-                progress={totalProgress}
-                statusCaption={`You've spent ${getPercentage(totalSpent, totalBudget)}% of your total budget`}
+                progress={budgetUsedPercent / 100}
+                statusCaption={`You've spent ${budgetUsedPercent}% of your total budget`}
                 style={styles.summaryCard}
               />
             </View>
@@ -206,18 +201,14 @@ export const BudgetScreen = () => {
 
           {hasBudgets ? (
             <View style={styles.budgetListContainer}>
-                {budgets.map((budget) => {
-                  const today = new Date();
-                  const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
-                  const remainingDays = lastDay - today.getDate();
-                  
+                {enrichedBudgets.map((budget: any) => {
                   return (
                     <BudgetCard 
                       key={budget.id} 
                       budget={{
                         ...budget,
                         icon: getIconForCategory(budget.category) || 'wallet-outline',
-                        daysLeft: remainingDays,
+                        daysLeft: getDaysLeftThisMonth(),
                         iconColor: '#3CB96A'
                       }} 
                       onPress={() => router.push({ pathname: '/budget/detail', params: { id: budget.id } })} 

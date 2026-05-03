@@ -1,5 +1,6 @@
 import React from "react";
 import { StyleSheet, View, ViewStyle } from "react-native";
+import { getProgressColor } from "../utils/formatters";
 
 interface ProgressBarProps {
   progress: number; // 0 to 1
@@ -14,17 +15,12 @@ export const ProgressBar = ({
   backgroundColor = "#F3F4F6",
   fillColor,
 }: ProgressBarProps) => {
-  const getFillColor = () => {
-    if (fillColor) return fillColor;
-    if (progress < 0.7) return "#10B981"; // Green
-    if (progress <= 0.9) return "#F59E0B"; // Yellow
-    return "#EF4444"; // Red
-  };
+  const calculatedFillColor = fillColor || getProgressColor(Math.round(progress * 100));
 
   const fillStyle: ViewStyle = {
     flex: 1,
     width: `${Math.min(100, progress * 100)}%`,
-    backgroundColor: getFillColor(),
+    backgroundColor: calculatedFillColor,
     borderRadius: height / 2,
   };
 

@@ -1,24 +1,23 @@
 import { format, isToday, isYesterday, parseISO, endOfMonth, differenceInDays } from 'date-fns';
 import { PRIMARY_GREEN } from '../constants';
 
-/**
- * Formats a number as a currency string.
- * @param amount The amount to format
- * @param currency The currency code (default: NGN)
- * @returns A formatted currency string (e.g., ₦1,500)
- */
-export const formatCurrency = (amount: number, currency: string = 'NGN'): string => {
-  const symbol = currency === 'NGN' ? '₦' : currency === 'USD' ? '$' : currency;
-  
-  // Use toLocaleString for comma separation
-  const formattedAmount = Math.abs(amount).toLocaleString('en-US', {
+export const formatCurrency = (amount: number, showSymbol: boolean = true): string => {
+  if (isNaN(amount) || amount === null || amount === undefined) return showSymbol ? '₦0' : '0';
+  const formatted = Math.abs(amount).toLocaleString('en-NG', {
     minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
+    maximumFractionDigits: 2,
   });
+  const symbol = showSymbol ? '₦' : '';
+  return `${symbol}${formatted}`;
+};
 
-  const sign = amount < 0 ? '-' : '';
-  
-  return `${sign}${symbol}${formattedAmount}`;
+// Use this when you want negative values to show as red (pass the sign separately to the style)
+export const formatCurrencyWithSign = (amount: number, type: 'income' | 'expense'): string => {
+  const prefix = type === 'income' ? '+₦' : '-₦';
+  return `${prefix}${Math.abs(amount).toLocaleString('en-NG', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  })}`;
 };
 
 /**
@@ -63,12 +62,13 @@ export const formatTime = (dateInput: string | Date): string => {
 /**
  * Returns a color based on the percentage of a budget or savings used.
  * @param percent The percentage used
- * @returns PRIMARY_GREEN, yellow (#F59E0B), or red (#EF4444)
+ * @returns '#1A9E3F', yellow (#F59E0B), or red (#EF4444)
  */
 export const getProgressColor = (percent: number): string => {
-  if (percent < 70) return PRIMARY_GREEN;
-  if (percent < 90) return '#F59E0B';
-  return '#EF4444';
+  if (percent >= 100) return '#EF4444'; // red — exceeded
+  if (percent >= 90) return '#EF4444';  // red — critical
+  if (percent >= 70) return '#F59E0B';  // yellow — warning
+  return '#1A9E3F';                     // green — healthy
 };
 
 /**

@@ -31,7 +31,7 @@ import { formatCurrency, getPercentage } from '../../utils/formatters';
 export default function TransactionDetailScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
-  const { transactions, deleteTransaction, budgets } = useAppContext();
+  const { transactions, deleteTransaction, enrichedBudgets } = useAppContext();
   
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
@@ -53,9 +53,9 @@ export default function TransactionDetailScreen() {
   const dateObj = new Date(transaction.date);
   
   // Find related budget for impact section
-  const relatedBudget = budgets.find(b => b.category === transaction.category);
-  const budgetProgress = relatedBudget ? (relatedBudget.spentAmount / relatedBudget.limitAmount) * 100 : 0;
-  const remainingBudget = relatedBudget ? Math.max(0, relatedBudget.limitAmount - relatedBudget.spentAmount) : 0;
+  const relatedBudget = enrichedBudgets.find((b: any) => b.category === transaction.category);
+  const budgetProgress = relatedBudget ? relatedBudget.percent : 0;
+  const remainingBudget = relatedBudget ? relatedBudget.remaining : 0;
 
   const handleDelete = async () => {
     await deleteTransaction(transaction.id);
@@ -161,7 +161,7 @@ export default function TransactionDetailScreen() {
             <View style={styles.impactWidget}>
               <View style={styles.impactHeader}>
                 <Text style={styles.impactLabel}>Budget Impact: <Text style={styles.impactCategory}>{transaction.category}</Text></Text>
-                <Text style={styles.impactPercent}>{getPercentage(relatedBudget.spentAmount, relatedBudget.limitAmount)}%</Text>
+                <Text style={styles.impactPercent}>{relatedBudget.percent}%</Text>
               </View>
               
               <View style={styles.progressBarBg}>
@@ -169,7 +169,7 @@ export default function TransactionDetailScreen() {
               </View>
               
               <Text style={styles.impactCaption}>
-                You've now used {getPercentage(relatedBudget.spentAmount, relatedBudget.limitAmount)}% of your {transaction.category} budget this month, {formatCurrency(remainingBudget)} left before you hit your limit
+                You've now used {relatedBudget.percent}% of your {transaction.category} budget this month, {formatCurrency(remainingBudget)} left before you hit your limit
               </Text>
             </View>
           )}

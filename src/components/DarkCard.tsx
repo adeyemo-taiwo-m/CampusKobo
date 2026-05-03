@@ -234,7 +234,7 @@ export const DarkCard = ({
                 <View style={styles.modernMainRow}>
                   <View style={styles.modernLeft}>
                     <Text style={styles.modernLabel}>
-                      {type === "expenses" ? "Total Spent" : "Budget Limit"}
+                      {type === "expenses" ? "Total Expense" : "Budget Limit"}
                     </Text>
                     <Text style={styles.modernAmountLarge}>
                       {type === "expenses" && !isBalanceVisible

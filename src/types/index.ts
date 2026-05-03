@@ -93,3 +93,15 @@ export interface GlossaryTerm {
   example: string;
   relatedTerms: string[];
 }
+
+export interface EnrichedBudget extends Budget {
+  percent: number;       // 0–100
+  remaining: number;     // limitAmount - spentAmount, min 0
+  status: "healthy" | "warning" | "critical" | "exceeded";
+}
+
+export interface EnrichedSavingsGoal extends SavingsGoal {
+  percent: number;       // 0–100
+  remaining: number;     // targetAmount - savedAmount, min 0
+  daysLeft: number | null;  // null if no deadline set
+}

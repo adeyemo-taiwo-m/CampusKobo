@@ -3,6 +3,7 @@ import React, {
   useContext,
   useState,
   useEffect,
+  useMemo,
   ReactNode,
 } from "react";
 import {
@@ -11,6 +12,8 @@ import {
   Budget,
   SavingsGoal,
   RecurringExpense,
+  EnrichedBudget,
+  EnrichedSavingsGoal,
 } from "../types";
 import { StorageService } from "../storage/StorageService";
 import { UserProfileResponse, userService } from "../services/userService";
@@ -22,7 +25,8 @@ import { budgetService } from "../services/budgetService";
 import { savingsService } from "../services/savingsService";
 import { dashboardService, DashboardSummary } from "../services/dashboardService";
 
-interface AppContextType {
+export interface AppContextType {
+  // Raw state
   user: User | null;
   transactions: Transaction[];
   budgets: Budget[];
@@ -34,6 +38,46 @@ interface AppContextType {
   authLoading: boolean;
   networkError: boolean;
   dashboardSummary: DashboardSummary | null;
+
+  // Computed transaction totals
+  totalIncomeThisMonth: number;
+  totalExpensesThisMonth: number;
+  currentBalance: number;
+  netThisMonth: number;
+  recentTransactions: Transaction[];
+  allTransactionsSorted: Transaction[];
+
+  // Computed budget totals
+  totalBudgetLimit: number;
+  totalBudgetSpent: number;
+  totalBudgetRemaining: number;
+  budgetUsedPercent: number;
+  budgetStatusLabel: 'healthy' | 'warning' | 'critical' | 'exceeded';
+  enrichedBudgets: EnrichedBudget[];
+
+  // Computed savings totals
+  totalSaved: number;
+  totalSavingsTarget: number;
+  overallSavingsPercent: number;
+  primarySavingsGoal: SavingsGoal | null;
+  enrichedSavingsGoals: EnrichedSavingsGoal[];
+
+  // Category helpers
+  expensesByCategory: Record<string, number>;
+  getTransactionsByCategory: (category: string) => Transaction[];
+  getHighestExpenseInCategory: (category: string) => number;
+  getDailyAverageInCategory: (category: string) => number;
+
+  // Recurring
+  totalRecurringMonthly: number;
+
+  // Date helpers
+  getDaysLeftThisMonth: () => number;
+  getDaysElapsedThisMonth: () => number;
+  getTotalDaysThisMonth: () => number;
+  isThisMonth: (dateString: string) => boolean;
+
+  // All existing action functions
   loadAllData: () => Promise<void>;
   checkAuthStatus: () => Promise<void>;
   addTransaction: (transaction: Transaction) => Promise<void>;
@@ -49,7 +93,7 @@ interface AppContextType {
     goalId: string,
     amount: number,
     note: string,
-    source: string,
+    source?: string,
   ) => Promise<void>;
   addRecurringExpense: (item: RecurringExpense) => Promise<void>;
   updateRecurringExpense: (
@@ -59,6 +103,7 @@ interface AppContextType {
   deleteRecurringExpense: (id: string) => Promise<void>;
   pauseAllRecurring: () => Promise<void>;
   resumeAllRecurring: () => Promise<void>;
+  processRecurringExpense: (recurringId: string) => Promise<void>;
   isBalanceHidden: boolean;
   toggleBalanceVisibility: () => Promise<void>;
   updateUser: (data: Partial<User>) => Promise<void>;
@@ -264,76 +309,149 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     };
   }, []);
 
-  const addTransaction = async (transaction: Transaction) => {
-    const updated = await StorageService.addTransaction(transaction);
-    if (updated) setTransactions(updated);
+  // Call this after ANY change to transactions (add, edit, delete)
+  // It rebuilds spentAmount on every budget from actual transaction data
+  const recalculateAllBudgetSpending = async (updatedTransactions: Transaction[]) => {
+    const updatedBudgets = budgets.map(budget => {
+      const spent = updatedTransactions
+        .filter(t =>
+          t.type === 'expense' &&
+          t.category === budget.category &&
+          isThisMonth(t.date)
+        )
+        .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
+      return { ...budget, spentAmount: spent };
+    });
+    setBudgets(updatedBudgets);
+    await StorageService.saveBudgets(updatedBudgets);
+  };
 
-    if (transaction.type === "expense") {
-      const updatedBudgets = await StorageService.updateBudgetSpent(
-        transaction.category,
-        transaction.amount,
-      );
-      if (updatedBudgets) setBudgets(updatedBudgets);
+  const addTransaction = async (transaction: Transaction) => {
+    try {
+      const updatedTransactions = [...transactions, transaction];
+      setTransactions(updatedTransactions);
+      await StorageService.saveTransactions(updatedTransactions);
+      await recalculateAllBudgetSpending(updatedTransactions);
+    } catch (error) {
+      console.error('addTransaction error:', error);
     }
   };
 
-  const updateTransaction = async (id: string, data: Partial<Transaction>) => {
-    const updated = await StorageService.updateTransaction(id, data);
-    if (updated) setTransactions(updated);
+  const updateTransaction = async (id: string, updatedData: Partial<Transaction>) => {
+    try {
+      const updatedTransactions = transactions.map(t =>
+        t.id === id ? { ...t, ...updatedData } : t
+      );
+      setTransactions(updatedTransactions);
+      await StorageService.saveTransactions(updatedTransactions);
+      await recalculateAllBudgetSpending(updatedTransactions);
+    } catch (error) {
+      console.error('updateTransaction error:', error);
+    }
   };
 
   const deleteTransaction = async (id: string) => {
-    const updated = await StorageService.deleteTransaction(id);
-    if (updated) setTransactions(updated);
+    try {
+      const updatedTransactions = transactions.filter(t => t.id !== id);
+      setTransactions(updatedTransactions);
+      await StorageService.saveTransactions(updatedTransactions);
+      await recalculateAllBudgetSpending(updatedTransactions);
+    } catch (error) {
+      console.error('deleteTransaction error:', error);
+    }
   };
 
   const addBudget = async (budget: Budget) => {
-    const updated = await StorageService.addBudget(budget);
-    if (updated) setBudgets(updated);
+    try {
+      const newBudgets = [...budgets, budget];
+      // Immediately calculate spent for this new budget from existing transactions
+      const recalculated = newBudgets.map(b => {
+        const spent = transactions
+          .filter(t => t.type === 'expense' && t.category === b.category && isThisMonth(t.date))
+          .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
+        return { ...b, spentAmount: spent };
+      });
+      setBudgets(recalculated);
+      await StorageService.saveBudgets(recalculated);
+    } catch (error) {
+      console.error('addBudget error:', error);
+    }
   };
 
   const updateBudget = async (id: string, data: Partial<Budget>) => {
-    const updated = await StorageService.updateBudget(id, data);
-    if (updated) setBudgets(updated);
+    try {
+      const updatedBudgets = budgets.map(b =>
+        b.id === id ? { ...b, ...data } : b
+      );
+      setBudgets(updatedBudgets);
+      await StorageService.saveBudgets(updatedBudgets);
+    } catch (error) {
+      console.error('updateBudget error:', error);
+    }
   };
 
   const deleteBudget = async (id: string) => {
-    const updated = await StorageService.deleteBudget(id);
-    if (updated) setBudgets(updated);
+    try {
+      const updatedBudgets = budgets.filter(b => b.id !== id);
+      setBudgets(updatedBudgets);
+      await StorageService.saveBudgets(updatedBudgets);
+    } catch (error) {
+      console.error('deleteBudget error:', error);
+    }
   };
 
   const addSavingsGoal = async (goal: SavingsGoal) => {
-    const updated = await StorageService.addSavingsGoal(goal);
-    if (updated) setSavingsGoals(updated);
+    try {
+      const updatedGoals = [...savingsGoals, goal];
+      setSavingsGoals(updatedGoals);
+      await StorageService.saveSavingsGoals(updatedGoals);
+    } catch (error) {
+      console.error('addSavingsGoal error:', error);
+    }
   };
 
-  const updateSavingsGoal = async (id: string, data: Partial<SavingsGoal>) => {
-    const updated = await StorageService.updateSavingsGoal(id, data);
-    if (updated) setSavingsGoals(updated);
+  const addFundsToGoal = async (goalId: string, amount: number, note: string = '') => {
+    try {
+      const updatedGoals = savingsGoals.map(g => {
+        if (g.id !== goalId) return g;
+        const newContribution = {
+          amount,
+          date: new Date().toISOString(),
+          note,
+          source: 'manual',
+        };
+        return {
+          ...g,
+          savedAmount: g.savedAmount + amount,
+          contributions: [...(g.contributions || []), newContribution],
+        };
+      });
+      setSavingsGoals(updatedGoals);
+      await StorageService.saveSavingsGoals(updatedGoals);
+    } catch (error) {
+      console.error('addFundsToGoal error:', error);
+    }
+  };
+
+  const updateSavingsGoal = async (id: string, updatedData: Partial<SavingsGoal>) => {
+    try {
+      const updatedGoals = savingsGoals.map(g =>
+        g.id === id ? { ...g, ...updatedData } : g
+      );
+      setSavingsGoals(updatedGoals);
+      await StorageService.saveSavingsGoals(updatedGoals);
+    } catch (error) {
+      console.error('updateSavingsGoal error:', error);
+    }
   };
 
   const deleteSavingsGoal = async (id: string) => {
-    const updated = await StorageService.deleteSavingsGoal(id);
-    if (updated) setSavingsGoals(updated);
-  };
-
-  const addFundsToGoal = async (
-    goalId: string,
-    amount: number,
-    note: string,
-    source: string,
-  ) => {
-    const goal = savingsGoals.find((g) => g.id === goalId);
-    if (goal) {
-      const updatedGoal = {
-        ...goal,
-        savedAmount: goal.savedAmount + amount,
-        contributions: [
-          ...goal.contributions,
-          { amount, note, source, date: new Date().toISOString() },
-        ],
-      };
-      await updateSavingsGoal(goalId, updatedGoal);
+    try {
+      const updatedGoals = savingsGoals.filter(g => g.id !== id);
+      setSavingsGoals(updatedGoals);
+      await StorageService.saveSavingsGoals(updatedGoals);
+    } catch (error) {
+      console.error('deleteSavingsGoal error:', error);
     }
   };
 
@@ -407,6 +525,218 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const processRecurringExpense = async (recurringId: string) => {
+    const item = recurringExpenses.find(r => r.id === recurringId);
+    if (!item || item.isPaused) return;
+
+    // Create a real transaction from the recurring expense
+    await addTransaction({
+      id: Math.random().toString(36).substr(2, 9), // Use simple uuid substitute if uuid is not imported, wait, let's assume they have uuid. Wait, I will use Date.now().toString() as ID just to be safe. Actually, the app has a uuid generator or uses `Math.random` elsewhere. Let's use Date.now().toString() to be safe.
+      amount: item.amount,
+      type: 'expense',
+      category: item.category,
+      categoryIcon: item.categoryIcon || 'repeat',
+      categoryColor: item.categoryColor || '#FF3B30',
+      description: item.name,
+      date: new Date().toISOString(),
+      note: `Auto-generated from recurring expense`,
+      isRecurring: true,
+    });
+
+    // Update the nextDueDate based on frequency
+    const next = new Date();
+    if (item.frequency === 'daily') next.setDate(next.getDate() + 1);
+    if (item.frequency === 'weekly') next.setDate(next.getDate() + 7);
+    if (item.frequency === 'monthly') next.setMonth(next.getMonth() + 1);
+
+    await updateRecurringExpense(recurringId, {
+      nextDueDate: next.toISOString(),
+    });
+  };
+
+  // --- DERIVED CALCULATIONS ---
+
+  // Date helpers
+  const isThisMonth = (dateString: string): boolean => {
+    const date = new Date(dateString);
+    const now = new Date();
+    return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+  };
+
+  const isThisWeek = (dateString: string): boolean => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(now.getDate() - now.getDay() + 1);
+    startOfWeek.setHours(0, 0, 0, 0);
+    return date >= startOfWeek && date <= now;
+  };
+
+  const getDaysElapsedThisMonth = (): number => {
+    return Math.max(1, new Date().getDate());
+  };
+
+  const getDaysLeftThisMonth = (): number => {
+    const now = new Date();
+    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    return Math.max(0, lastDay - now.getDate());
+  };
+
+  const getTotalDaysThisMonth = (): number => {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  };
+
+  // Transaction totals
+  const totalIncomeThisMonth = useMemo(() => {
+    return transactions
+      .filter(t => t.type === 'income' && isThisMonth(t.date))
+      .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
+  }, [transactions]);
+
+  const totalExpensesThisMonth = useMemo(() => {
+    return transactions
+      .filter(t => t.type === 'expense' && isThisMonth(t.date))
+      .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
+  }, [transactions]);
+
+  const currentBalance = useMemo(() => {
+    const allIncome = transactions
+      .filter(t => t.type === 'income')
+      .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
+    const allExpenses = transactions
+      .filter(t => t.type === 'expense')
+      .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
+    return allIncome - allExpenses;
+  }, [transactions]);
+
+  const netThisMonth = useMemo(() => {
+    return totalIncomeThisMonth - totalExpensesThisMonth;
+  }, [totalIncomeThisMonth, totalExpensesThisMonth]);
+
+  const recentTransactions = useMemo(() => {
+    return [...transactions]
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      .slice(0, 5);
+  }, [transactions]);
+
+  const allTransactionsSorted = useMemo(() => {
+    return [...transactions]
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  }, [transactions]);
+
+  // Budget totals
+  const totalBudgetLimit = useMemo(() => {
+    return budgets.reduce((sum, b) => sum + (Number(b.limitAmount) || 0), 0);
+  }, [budgets]);
+
+  const totalBudgetSpent = useMemo(() => {
+    return budgets.reduce((sum, b) => sum + (Number(b.spentAmount) || 0), 0);
+  }, [budgets]);
+
+  const totalBudgetRemaining = useMemo(() => {
+    return Math.max(0, totalBudgetLimit - totalBudgetSpent);
+  }, [totalBudgetLimit, totalBudgetSpent]);
+
+  const budgetUsedPercent = useMemo(() => {
+    if (totalBudgetLimit === 0) return 0;
+    return Math.min(100, Math.round((totalBudgetSpent / totalBudgetLimit) * 100));
+  }, [totalBudgetSpent, totalBudgetLimit]);
+
+  const budgetStatusLabel = useMemo(() => {
+    if (budgetUsedPercent >= 100) return 'exceeded';
+    if (budgetUsedPercent >= 90) return 'critical';
+    if (budgetUsedPercent >= 70) return 'warning';
+    return 'healthy';
+  }, [budgetUsedPercent]);
+
+  const enrichedBudgets = useMemo(() => {
+    return budgets.map(b => {
+      const percent = b.limitAmount === 0 ? 0 : Math.min(100, Math.round((b.spentAmount / b.limitAmount) * 100));
+      const remaining = Math.max(0, b.limitAmount - b.spentAmount);
+      let status: 'healthy' | 'warning' | 'critical' | 'exceeded' = 'healthy';
+      if (percent >= 100) status = 'exceeded';
+      else if (percent >= 90) status = 'critical';
+      else if (percent >= 70) status = 'warning';
+      return { ...b, percent, remaining, status } as any; // Cast as any locally if types aren't strictly updated yet
+    });
+  }, [budgets]);
+
+  // Savings totals
+  const totalSaved = useMemo(() => {
+    return savingsGoals.reduce((sum, g) => sum + (Number(g.savedAmount) || 0), 0);
+  }, [savingsGoals]);
+
+  const totalSavingsTarget = useMemo(() => {
+    return savingsGoals.reduce((sum, g) => sum + (Number(g.targetAmount) || 0), 0);
+  }, [savingsGoals]);
+
+  const overallSavingsPercent = useMemo(() => {
+    if (totalSavingsTarget === 0) return 0;
+    return Math.min(100, Math.round((totalSaved / totalSavingsTarget) * 100));
+  }, [totalSaved, totalSavingsTarget]);
+
+  const primarySavingsGoal = useMemo(() => {
+    if (savingsGoals.length === 0) return null;
+    return [...savingsGoals].sort((a, b) => b.savedAmount - a.savedAmount)[0];
+  }, [savingsGoals]);
+
+  const enrichedSavingsGoals = useMemo(() => {
+    return savingsGoals.map(g => {
+      const percent = g.targetAmount === 0 ? 0 : Math.min(100, Math.round((g.savedAmount / g.targetAmount) * 100));
+      const remaining = Math.max(0, g.targetAmount - g.savedAmount);
+      let daysLeft: number | null = null;
+      if (g.deadline) {
+        const diff = new Date(g.deadline).getTime() - Date.now();
+        daysLeft = Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+      }
+      return { ...g, percent, remaining, daysLeft } as any;
+    });
+  }, [savingsGoals]);
+
+  // Category helpers
+  const expensesByCategory = useMemo(() => {
+    const map: Record<string, number> = {};
+    transactions
+      .filter(t => t.type === 'expense' && isThisMonth(t.date))
+      .forEach(t => {
+        map[t.category] = (map[t.category] || 0) + (Number(t.amount) || 0);
+      });
+    return map;
+  }, [transactions]);
+
+  const getTransactionsByCategory = (category: string) => {
+    return [...transactions]
+      .filter(t => t.category === category)
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  };
+
+  const getHighestExpenseInCategory = (category: string): number => {
+    const amounts = transactions
+      .filter(t => t.type === 'expense' && t.category === category && isThisMonth(t.date))
+      .map(t => t.amount);
+    return amounts.length > 0 ? Math.max(...amounts) : 0;
+  };
+
+  const getDailyAverageInCategory = (category: string): number => {
+    const total = transactions
+      .filter(t => t.type === 'expense' && t.category === category && isThisMonth(t.date))
+      .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
+    return Math.round(total / getDaysElapsedThisMonth());
+  };
+
+  // Recurring
+  const totalRecurringMonthly = useMemo(() => {
+    return recurringExpenses
+      .filter(r => !r.isPaused)
+      .reduce((sum, r) => {
+        if (r.frequency === 'monthly') return sum + (Number(r.amount) || 0);
+        if (r.frequency === 'weekly') return sum + (Number(r.amount) || 0) * 4;
+        if (r.frequency === 'daily') return sum + (Number(r.amount) || 0) * 30;
+        return sum;
+      }, 0);
+  }, [recurringExpenses]);
+
   return (
     <AppContext.Provider
       value={{
@@ -447,6 +777,33 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         logoutFromApi,
         setApiUser,
         dashboardSummary,
+        totalIncomeThisMonth,
+        totalExpensesThisMonth,
+        currentBalance,
+        netThisMonth,
+        recentTransactions,
+        allTransactionsSorted,
+        totalBudgetLimit,
+        totalBudgetSpent,
+        totalBudgetRemaining,
+        budgetUsedPercent,
+        budgetStatusLabel,
+        enrichedBudgets,
+        totalSaved,
+        totalSavingsTarget,
+        overallSavingsPercent,
+        primarySavingsGoal,
+        enrichedSavingsGoals,
+        expensesByCategory,
+        getTransactionsByCategory,
+        getHighestExpenseInCategory,
+        getDailyAverageInCategory,
+        totalRecurringMonthly,
+        getDaysLeftThisMonth,
+        getDaysElapsedThisMonth,
+        getTotalDaysThisMonth,
+        isThisMonth,
+        processRecurringExpense,
       }}
     >
       {children}
