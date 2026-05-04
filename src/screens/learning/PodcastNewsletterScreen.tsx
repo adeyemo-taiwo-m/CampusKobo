@@ -82,7 +82,7 @@ const PodcastNewsletterScreen = () => {
         <PodcastEpisodeCard 
           title="Market Pulse — EP 05: How to invest as a student"
           duration="18 min"
-          image={require('../../../assets/images/podcast-banner.png')}
+          image={<View style={{ backgroundColor: '#E8F5E9', width: '100%', height: 160, alignItems: 'center', justifyContent: 'center' }}><Ionicons name="megaphone-outline" size={60} color={PRIMARY_GREEN} /></View>}
           onPress={() => router.push({
             pathname: '/learning/detail',
             params: { id: 'l-005', type: 'podcast' }
@@ -177,11 +177,7 @@ const PodcastNewsletterScreen = () => {
         <View style={styles.aboutSection}>
           <Text style={styles.sectionTitle}>About BOF OAU</Text>
           <View style={styles.logoContainer}>
-            <Image 
-              source={require('../../../assets/images/bof-logo.png')} 
-              style={styles.bofLogo}
-              resizeMode="contain"
-            />
+            <View style={{ backgroundColor: PRIMARY_GREEN, width: '100%', height: 160, alignItems: 'center', justifyContent: 'center' }}><Ionicons name="mic-outline" size={60} color={WHITE} /></View>
           </View>
           <Text style={styles.aboutDesc}>
             The Students' Professional Bureau of Finance started in 2011 at Obafemi Awolowo University as a response to the gap between academic learning and real-world finance skills.{"\n\n"}
