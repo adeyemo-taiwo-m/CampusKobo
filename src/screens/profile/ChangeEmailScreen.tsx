@@ -3,10 +3,12 @@ import {
   View,
   Text,
   StyleSheet,
+  TouchableOpacity,
   SafeAreaView,
   StatusBar,
-  TouchableOpacity,
   ScrollView,
+  KeyboardAvoidingView,
+  Platform,
   ActivityIndicator,
   Alert,
 } from 'react-native';
@@ -20,28 +22,40 @@ import {
   BACKGROUND,
   Fonts,
 } from '../../constants';
-import { Header } from '../../components/Header';
 import { InputField } from '../../components/InputField';
+import { Button } from '../../components/Button';
 import { authService } from '../../services/authService';
+import { useAppContext } from '../../context/AppContext';
 
 export const ChangeEmailScreen = () => {
   const router = useRouter();
+  const { apiUser } = useAppContext();
+  
+  // Form State
   const [newEmail, setNewEmail] = useState('');
   const [password, setPassword] = useState('');
+  
+  // UI State
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
-  const [showPassword, setShowPassword] = useState(false);
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
 
-  const handleUpdateEmail = async () => {
-    setApiError(null);
-
-    // Basic email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(newEmail)) {
+  const validate = () => {
+    if (!newEmail.includes('@')) {
       setApiError('Please enter a valid email address');
-      return;
+      return false;
     }
+    if (password.length === 0) {
+      setApiError('Current password is required for security');
+      return false;
+    }
+    setApiError(null);
+    return true;
+  };
 
+  const handleSubmit = async () => {
+    if (!validate()) return;
+    
     setIsLoading(true);
     try {
       await authService.changeEmail({
@@ -50,69 +64,91 @@ export const ChangeEmailScreen = () => {
       });
       
       Alert.alert(
-        'Verification Sent',
+        'Email Change Requested',
         `A verification email has been sent to ${newEmail}. Please verify it to complete the change.`,
         [{ text: 'OK', onPress: () => router.back() }]
       );
     } catch (error: any) {
-      setApiError(error.message || 'Failed to update email');
+      console.error('Change email error:', error);
+      setApiError(error.message || 'Failed to request email change. Please check your password.');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const isFormValid = newEmail && password;
+  const isFormValid = newEmail.length > 0 && password.length > 0;
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
-      <Header title="Change Email" showBack={true} onBack={() => router.back()} />
+      
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+          <Ionicons name="chevron-back" size={24} color={TEXT_PRIMARY} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Change Email</Text>
+        <View style={{ width: 40 }} />
+      </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.form}>
-          <Text style={styles.infoText}>
-            To change your email, we need to verify your identity. A verification code will be sent to your new email address.
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
+      >
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          <Text style={styles.description}>
+            Your current email is <Text style={{ fontFamily: Fonts.bold }}>{apiUser?.email || 'not set'}</Text>. 
+            Enter your new email address and confirm with your password.
           </Text>
 
-          <InputField
-            label="New Email Address"
-            placeholder="example@email.com"
-            value={newEmail}
-            onChangeText={setNewEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
-
-          <InputField
-            label="Current Password"
-            placeholder="Confirm your password"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry={!showPassword}
-            rightIcon={showPassword ? 'eye-off-outline' : 'eye-outline'}
-            onRightIconPress={() => setShowPassword(!showPassword)}
-          />
-
           {apiError && (
-            <View style={styles.errorCard}>
-              <Ionicons name="alert-circle" size={20} color={WHITE} />
-              <Text style={styles.errorText}>{apiError}</Text>
+            <View style={styles.apiErrorCard}>
+              <Ionicons name="alert-circle" size={20} color="#EF4444" />
+              <Text style={styles.apiErrorText}>{apiError}</Text>
             </View>
           )}
 
-          <TouchableOpacity
-            style={[styles.saveBtn, (!isFormValid || isLoading) && styles.disabledBtn]}
-            onPress={handleUpdateEmail}
+          <View style={styles.form}>
+            <InputField
+              label="New Email Address"
+              placeholder="Enter new email"
+              value={newEmail}
+              onChangeText={setNewEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              containerStyle={styles.input}
+            />
+
+            <InputField
+              label="Current Password"
+              placeholder="Enter password to confirm"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={!showCurrentPassword}
+              rightIcon={
+                <TouchableOpacity onPress={() => setShowCurrentPassword(!showCurrentPassword)}>
+                  <Ionicons 
+                    name={showCurrentPassword ? "eye-off-outline" : "eye-outline"} 
+                    size={20} 
+                    color={TEXT_SECONDARY} 
+                  />
+                </TouchableOpacity>
+              }
+              containerStyle={styles.input}
+            />
+          </View>
+        </ScrollView>
+
+        <View style={styles.footer}>
+          <Button
+            title={isLoading ? "" : "Update Email"}
+            onPress={handleSubmit}
             disabled={!isFormValid || isLoading}
-          >
-            {isLoading ? (
-              <ActivityIndicator color={WHITE} size="small" />
-            ) : (
-              <Text style={styles.saveBtnText}>Update Email</Text>
-            )}
-          </TouchableOpacity>
+            variant="primary"
+            style={[styles.button, !isFormValid && styles.buttonDisabled]}
+            icon={isLoading ? <ActivityIndicator color={WHITE} /> : null}
+          />
         </View>
-      </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
@@ -122,54 +158,73 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: BACKGROUND,
   },
-  scrollContent: {
-    padding: 20,
-  },
-  form: {
-    backgroundColor: WHITE,
-    borderRadius: 24,
-    padding: 24,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-  },
-  infoText: {
-    fontSize: 14,
-    color: TEXT_SECONDARY,
-    fontFamily: Fonts.regular,
-    lineHeight: 20,
-    marginBottom: 24,
-  },
-  errorCard: {
-    backgroundColor: '#EF4444',
-    padding: 12,
-    borderRadius: 12,
+  header: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 20,
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    height: 60,
   },
-  errorText: {
-    color: WHITE,
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#F3F4F6',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontFamily: Fonts.bold,
+    color: TEXT_PRIMARY,
+  },
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 40,
+  },
+  description: {
+    fontSize: 15,
+    color: TEXT_SECONDARY,
+    fontFamily: Fonts.regular,
+    lineHeight: 22,
+    marginBottom: 24,
+  },
+  apiErrorCard: {
+    backgroundColor: '#FEF2F2',
+    borderRadius: 12,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: '#FEE2E2',
+  },
+  apiErrorText: {
+    color: '#EF4444',
     fontSize: 14,
     fontFamily: Fonts.medium,
-    marginLeft: 8,
+    marginLeft: 10,
     flex: 1,
   },
-  saveBtn: {
-    backgroundColor: PRIMARY_GREEN,
-    paddingVertical: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-    marginTop: 10,
+  form: {
+    gap: 20,
   },
-  disabledBtn: {
-    backgroundColor: '#9CA3AF',
+  input: {
+    height: 56,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
   },
-  saveBtnText: {
-    color: WHITE,
-    fontSize: 16,
-    fontFamily: Fonts.bold,
+  footer: {
+    padding: 20,
+    backgroundColor: BACKGROUND,
+  },
+  button: {
+    height: 56,
+    borderRadius: 16,
+  },
+  buttonDisabled: {
+    opacity: 0.6,
   },
 });

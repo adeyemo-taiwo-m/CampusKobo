@@ -80,18 +80,7 @@ export default function DashboardScreen() {
       <StatusBar barStyle="light-content" />
       <OfflineBanner />
 
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={isLoading}
-            onRefresh={loadAllData}
-            tintColor={WHITE}
-            colors={[PRIMARY_GREEN]}
-          />
-        }
-      >
+      <SafeAreaView>
         {/* ── HEADER ── */}
         <View style={styles.header}>
           <TouchableOpacity 
@@ -127,8 +116,21 @@ export default function DashboardScreen() {
           onToggleVisibility={toggleBalanceVisibility}
           style={styles.balanceCard}
         />
+      </SafeAreaView>
 
-        <View style={styles.mainContent}>
+      <View style={styles.mainContent}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={isLoading}
+              onRefresh={loadAllData}
+              tintColor={PRIMARY_GREEN}
+              colors={[PRIMARY_GREEN]}
+            />
+          }
+        >
           {/* ── DATE FILTER BAR (matches design) ── */}
           <View style={styles.dateFilterRow}>
             <TouchableOpacity style={styles.dateSelector}>
@@ -234,8 +236,8 @@ export default function DashboardScreen() {
           )}
 
           <View style={{ height: 100 }} />
-        </View>
-      </ScrollView>
+        </ScrollView>
+      </View>
 
       {/* Add Funds Bottom Sheet */}
       {primarySavingsGoalEnriched && (
@@ -262,6 +264,8 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
+    paddingHorizontal: SPACING.LG,
+    paddingTop: 30,
   },
   header: {
     flexDirection: 'row',
@@ -321,8 +325,7 @@ const styles = StyleSheet.create({
     backgroundColor: BACKGROUND,
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
-    paddingHorizontal: SPACING.LG,
-    paddingTop: 30,
+    overflow: 'hidden',
   },
   dateFilterRow: {
     flexDirection: 'row',

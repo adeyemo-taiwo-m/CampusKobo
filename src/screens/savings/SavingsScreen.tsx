@@ -17,6 +17,7 @@ import {
   StatusBar,
   Image,
   ActivityIndicator,
+  RefreshControl,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
@@ -209,6 +210,14 @@ export const SavingsScreen = () => {
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
+          refreshControl={
+            <RefreshControl
+              refreshing={isLoading}
+              onRefresh={loadAllData}
+              tintColor={PRIMARY_GREEN}
+              colors={[PRIMARY_GREEN]}
+            />
+          }
         >
           {hasGoals ? (
             <>
