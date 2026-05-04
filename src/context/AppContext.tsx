@@ -558,10 +558,11 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       const hasTokens = await hasValidTokens();
       if (hasTokens) {
         const apiData = {
-          name: goal.name,
+          goal_name: goal.name,
           target_amount: goal.targetAmount,
-          target_date: goal.deadline,
-          icon: goal.emoji || '💰'
+          initial_deposit: goal.savedAmount || 0,
+          target_date: goal.deadline ? goal.deadline.split('T')[0] : null,
+          note: goal.emoji || '💰'
         };
         const response = await savingsService.createSavingsGoal(apiData);
         // Use the ID from the API
@@ -616,10 +617,17 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       const hasTokens = await hasValidTokens();
       if (hasTokens) {
         const apiData: any = {};
-        if (updatedData.name) apiData.name = updatedData.name;
-        if (updatedData.targetAmount !== undefined) apiData.target_amount = updatedData.targetAmount;
-        if (updatedData.deadline) apiData.target_date = updatedData.deadline;
-        if (updatedData.emoji) apiData.icon = updatedData.emoji;
+        const targetGoal = savingsGoals.find(g => String(g.id) === String(id));
+        
+        apiData.goal_name = updatedData.name || targetGoal?.name || 'Goal';
+        apiData.target_amount = updatedData.targetAmount !== undefined ? updatedData.targetAmount : (targetGoal?.targetAmount || 0);
+        apiData.initial_deposit = updatedData.savedAmount !== undefined ? updatedData.savedAmount : (targetGoal?.savedAmount || 0);
+        
+        if (updatedData.deadline) apiData.target_date = updatedData.deadline.split('T')[0];
+        else if (targetGoal?.deadline) apiData.target_date = targetGoal.deadline.split('T')[0];
+        
+        if (updatedData.emoji) apiData.note = updatedData.emoji;
+        else if (targetGoal?.emoji) apiData.note = targetGoal.emoji;
         
         await savingsService.updateSavingsGoal(id, apiData);
       }

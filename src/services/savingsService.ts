@@ -8,11 +8,11 @@ export const savingsService = {
     const data = Array.isArray(response) ? response : (response as any)?.data || [];
     return data.map((item: any) => ({
       id: item.id,
-      name: item.name,
+      name: item.goal_name || item.name || 'Goal',
       targetAmount: item.target_amount || 0,
       savedAmount: item.current_amount || 0,
       deadline: item.target_date,
-      emoji: item.icon || '💰',
+      emoji: item.note || item.icon || '💰',
       createdAt: item.created_at || new Date().toISOString(),
       contributions: (item.contributions || []).map((c: any) => ({
         amount: c.amount || 0,
