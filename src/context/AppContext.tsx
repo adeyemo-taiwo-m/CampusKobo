@@ -287,16 +287,40 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           console.error('❌ Critical Sync Error:', apiError);
         }
       } else {
-        console.log('ℹ️ No active tokens found, skipping API sync.');
+        if (__DEV__) {
+          console.log('🚨 FINAL BUDGETS IN APP STATE:', JSON.stringify(b, null, 2));
+        }
+
+        // Save to local storage for offline use
+        await StorageService.saveTransactions(t);
+        await StorageService.saveBudgets(b);
+        await StorageService.saveSavingsGoals(s);
+        console.error('ℹ️ No active tokens found, skipping API sync.');
       }
 
+      // 3. Update State
       setUserState(u);
-      setTransactions(t);
-      setBudgets(b);
       setSavingsGoals(s);
       setRecurringExpenses(r);
+
+      // Recalculate spending based on the loaded transactions
+      const recalculatedBudgets = b.map((budget: any) => {
+        const budgetCategory = String(budget.category || '').toLowerCase().trim();
+        const spent = t
+          .filter((trans: any) =>
+            trans.type === 'expense' &&
+            String(trans.category || '').toLowerCase().trim() === budgetCategory &&
+            isThisMonth(trans.date)
+          )
+          .reduce((sum: number, trans: any) => sum + (Number(trans.amount) || 0), 0);
+        return { ...budget, spentAmount: spent };
+      });
+      
+      setBudgets(recalculatedBudgets);
+      setTransactions(t);
+      
     } catch (error) {
-      console.error("Error loading data in context:", error);
+      console.error("Error loading data:", error);
     } finally {
       setIsLoading(false);
     }
@@ -345,10 +369,11 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       if (hasTokens) {
         const apiData = {
           amount: Number(transaction.amount),
-          category: transaction.category,
+          title: transaction.category, // Map category to title for backend
+          description: transaction.description || transaction.note || transaction.category,
           date: transaction.date,
-          description: transaction.description || transaction.note || '',
-          is_recurring: !!transaction.isRecurring
+          is_recurring: transaction.isRecurring || false,
+          currency: 'NGN' // Default to NGN as seen in Supabase
         };
 
         if (transaction.type === 'income') {
@@ -376,23 +401,38 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       if (hasTokens) {
         const apiData: any = {};
         if (updatedData.amount !== undefined) apiData.amount = Number(updatedData.amount);
-        if (updatedData.category) apiData.category = updatedData.category;
+        if (updatedData.category) {
+          apiData.title = updatedData.category; // Map category to title for backend
+          apiData.source = updatedData.category; // For income endpoints
+        }
         if (updatedData.date) apiData.date = updatedData.date;
         if (updatedData.description || updatedData.note) apiData.description = updatedData.description || updatedData.note;
         if (updatedData.isRecurring !== undefined) apiData.is_recurring = updatedData.isRecurring;
+        apiData.currency = 'NGN';
 
-        const transactionToUpdate = transactions.find(t => t.id === id);
-        if (transactionToUpdate) {
-          if (transactionToUpdate.type === 'income') {
+        // ALWAYS try to update the backend if we have an ID
+        if (id) {
+          if (__DEV__) console.log(`📝 API UPDATE: Requesting backend update for ID: ${id}`);
+          
+          // We need to know if it's an expense or income to choose the right endpoint
+          // If we can't find it locally, we'll try expense as default or check updatedData
+          const transactionToUpdate = transactions.find(t => String(t.id) === String(id));
+          const type = transactionToUpdate?.type || (id.startsWith('inc') ? 'income' : 'expense');
+
+          if (type === 'income') {
             await transactionService.updateIncome(id, apiData);
           } else {
             await transactionService.updateExpense(id, apiData);
           }
+          
+          if (__DEV__) console.log(`✅ API UPDATE: Successfully updated ${id} on backend`);
+        } else {
+          if (__DEV__) console.warn(`⚠️ API UPDATE SKIPPED: ID "${id}" looks like a local-only ID.`);
         }
       }
 
       const updatedTransactions = transactions.map(t =>
-        t.id === id ? { ...t, ...updatedData } : t
+        String(t.id) === String(id) ? { ...t, ...updatedData } : t
       );
       setTransactions(updatedTransactions);
       await StorageService.saveTransactions(updatedTransactions);
@@ -475,7 +515,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       }
 
       const updatedBudgets = budgets.map(b =>
-        b.id === id ? { ...b, ...data } : b
+        String(b.id) === String(id) ? { ...b, ...data } : b
       );
       setBudgets(updatedBudgets);
       await StorageService.saveBudgets(updatedBudgets);
@@ -492,7 +532,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         await budgetService.deleteBudget(id);
       }
 
-      const updatedBudgets = budgets.filter(b => b.id !== id);
+      const updatedBudgets = budgets.filter(b => String(b.id) !== String(id));
       setBudgets(updatedBudgets);
       await StorageService.saveBudgets(updatedBudgets);
     } catch (error) {
@@ -503,23 +543,47 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const addSavingsGoal = async (goal: SavingsGoal) => {
     try {
+      const hasTokens = await hasValidTokens();
+      if (hasTokens) {
+        const apiData = {
+          name: goal.name,
+          target_amount: goal.targetAmount,
+          target_date: goal.deadline,
+          icon: goal.emoji || '💰'
+        };
+        const response = await savingsService.createSavingsGoal(apiData);
+        // Use the ID from the API
+        goal.id = (response as any).id || (response as any).data?.id || goal.id;
+      }
+
       const updatedGoals = [...savingsGoals, goal];
       setSavingsGoals(updatedGoals);
       await StorageService.saveSavingsGoals(updatedGoals);
     } catch (error) {
       console.error('addSavingsGoal error:', error);
+      throw error;
     }
   };
 
   const addFundsToGoal = async (goalId: string, amount: number, note: string = '') => {
     try {
+      const hasTokens = await hasValidTokens();
+      if (hasTokens) {
+        const apiData = {
+          amount: amount,
+          note: note || 'Goal contribution',
+          source: 'app'
+        };
+        await savingsService.addContribution(goalId, apiData);
+      }
+
       const updatedGoals = savingsGoals.map(g => {
-        if (g.id !== goalId) return g;
+        if (String(g.id) !== String(goalId)) return g;
         const newContribution = {
           amount,
           date: new Date().toISOString(),
           note,
-          source: 'manual',
+          source: 'app',
         };
         return {
           ...g,
@@ -531,28 +595,47 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       await StorageService.saveSavingsGoals(updatedGoals);
     } catch (error) {
       console.error('addFundsToGoal error:', error);
+      throw error;
     }
   };
 
   const updateSavingsGoal = async (id: string, updatedData: Partial<SavingsGoal>) => {
     try {
+      const hasTokens = await hasValidTokens();
+      if (hasTokens) {
+        const apiData: any = {};
+        if (updatedData.name) apiData.name = updatedData.name;
+        if (updatedData.targetAmount !== undefined) apiData.target_amount = updatedData.targetAmount;
+        if (updatedData.deadline) apiData.target_date = updatedData.deadline;
+        if (updatedData.emoji) apiData.icon = updatedData.emoji;
+        
+        await savingsService.updateSavingsGoal(id, apiData);
+      }
+
       const updatedGoals = savingsGoals.map(g =>
-        g.id === id ? { ...g, ...updatedData } : g
+        String(g.id) === String(id) ? { ...g, ...updatedData } : g
       );
       setSavingsGoals(updatedGoals);
       await StorageService.saveSavingsGoals(updatedGoals);
     } catch (error) {
       console.error('updateSavingsGoal error:', error);
+      throw error;
     }
   };
 
   const deleteSavingsGoal = async (id: string) => {
     try {
-      const updatedGoals = savingsGoals.filter(g => g.id !== id);
+      const hasTokens = await hasValidTokens();
+      if (hasTokens) {
+        await savingsService.deleteSavingsGoal(id);
+      }
+
+      const updatedGoals = savingsGoals.filter(g => String(g.id) !== String(id));
       setSavingsGoals(updatedGoals);
       await StorageService.saveSavingsGoals(updatedGoals);
     } catch (error) {
       console.error('deleteSavingsGoal error:', error);
+      throw error;
     }
   };
 

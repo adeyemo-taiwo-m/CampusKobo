@@ -21,7 +21,7 @@ apiClient.interceptors.request.use(
     }
     
     if (__DEV__) {
-      console.log(`[API Request] ${config.method?.toUpperCase()} ${config.url}`);
+      console.log(`[API Request] ${config.method?.toUpperCase()} ${config.url}`, config.data ? { payload: config.data } : '');
     }
     
     return config;
@@ -82,11 +82,10 @@ apiClient.interceptors.response.use(
       // Handle general errors
       const errorMessage = (error.response?.data as any)?.detail || error.message || 'An unexpected error occurred';
       
-      if (error.response?.status === 500) {
-        console.error('[API 500 ERROR]', {
-          url: error.config?.url,
+      if (__DEV__) {
+        console.error(`[API ERROR] ${error.response?.status} - ${error.config?.method?.toUpperCase()} ${error.config?.url}`, {
           data: error.response?.data,
-          status: error.response?.status
+          params: error.config?.params
         });
       }
 

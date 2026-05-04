@@ -65,26 +65,44 @@ export const transactionService = {
   },
 
   createIncome: async (data: any) => {
-    return await apiClient.post(API_ENDPOINTS.INCOME, data);
+    if (__DEV__) console.log('📤 API CREATE INCOME:', data);
+    const response = await apiClient.post(API_ENDPOINTS.INCOME, data);
+    if (__DEV__) console.log('✅ API CREATE INCOME SUCCESS:', response);
+    return response;
   },
 
   createExpense: async (data: any) => {
-    return await apiClient.post(API_ENDPOINTS.EXPENSES, data);
+    if (__DEV__) console.log('📤 API CREATE EXPENSE:', data);
+    const response = await apiClient.post(API_ENDPOINTS.EXPENSES, data);
+    if (__DEV__) console.log('✅ API CREATE EXPENSE SUCCESS:', response);
+    return response;
   },
 
   updateExpense: async (id: string, data: any) => {
-    return await apiClient.put(API_ENDPOINTS.EXPENSE_BY_ID(id), data);
+    if (__DEV__) console.log(`📤 API UPDATE EXPENSE [${id}]:`, data);
+    const response = await apiClient.put(API_ENDPOINTS.EXPENSE_BY_ID(id), data);
+    if (__DEV__) console.log(`✅ API UPDATE EXPENSE SUCCESS [${id}]`);
+    return response;
   },
 
   updateIncome: async (id: string, data: any) => {
-    return await apiClient.put(API_ENDPOINTS.INCOME_BY_ID(id), data);
+    if (__DEV__) console.log(`📤 API UPDATE INCOME [${id}]:`, data);
+    const response = await apiClient.put(API_ENDPOINTS.INCOME_BY_ID(id), data);
+    if (__DEV__) console.log(`✅ API UPDATE INCOME SUCCESS [${id}]`);
+    return response;
   },
 
   deleteExpense: async (id: string) => {
-    return await apiClient.delete(API_ENDPOINTS.EXPENSE_BY_ID(id));
+    if (__DEV__) console.log(`🗑️ API DELETE EXPENSE [${id}]`);
+    const response = await apiClient.delete(API_ENDPOINTS.EXPENSE_BY_ID(id));
+    if (__DEV__) console.log(`✅ API DELETE EXPENSE SUCCESS [${id}]`);
+    return response;
   },
 
   deleteIncome: async (id: string) => {
-    return await apiClient.delete(API_ENDPOINTS.INCOME_BY_ID(id));
+    if (__DEV__) console.log(`🗑️ API DELETE INCOME [${id}]`);
+    const response = await apiClient.delete(API_ENDPOINTS.INCOME_BY_ID(id));
+    if (__DEV__) console.log(`✅ API DELETE INCOME SUCCESS [${id}]`);
+    return response;
   },
 };

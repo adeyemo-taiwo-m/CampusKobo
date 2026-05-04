@@ -54,14 +54,23 @@ export const budgetService = {
   },
 
   createBudget: async (data: any) => {
-    return await apiClient.post(API_ENDPOINTS.BUDGETS, data);
+    if (__DEV__) console.log('📤 API CREATE BUDGET:', data);
+    const response = await apiClient.post(API_ENDPOINTS.BUDGETS, data);
+    if (__DEV__) console.log('✅ API CREATE BUDGET SUCCESS:', response);
+    return response;
   },
 
   updateBudget: async (id: string, data: any) => {
-    return await apiClient.put(API_ENDPOINTS.BUDGET_BY_ID(id), data);
+    if (__DEV__) console.log(`📤 API UPDATE BUDGET [${id}]:`, data);
+    const response = await apiClient.put(API_ENDPOINTS.BUDGET_BY_ID(id), data);
+    if (__DEV__) console.log(`✅ API UPDATE BUDGET SUCCESS [${id}]`);
+    return response;
   },
 
   deleteBudget: async (id: string) => {
-    return await apiClient.delete(API_ENDPOINTS.BUDGET_BY_ID(id));
+    if (__DEV__) console.log(`🗑️ API DELETE BUDGET [${id}]`);
+    const response = await apiClient.delete(API_ENDPOINTS.BUDGET_BY_ID(id));
+    if (__DEV__) console.log(`✅ API DELETE BUDGET SUCCESS [${id}]`);
+    return response;
   },
 };

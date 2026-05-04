@@ -36,7 +36,7 @@ export default function TransactionDetailScreen() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   // Find the transaction
-  const transaction = transactions.find(t => t.id === params.id) as Transaction;
+  const transaction = transactions.find(t => String(t.id) === String(params.id)) as Transaction;
 
   if (!transaction) {
     return (

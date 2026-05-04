@@ -1,0 +1,96 @@
+  const loadAllData = async () => {
+    setIsLoading(true);
+    try {
+      // 1. Load Local Storage Data (for offline fallback)
+      let t = await StorageService.getTransactions();
+      const u = await StorageService.getUser();
+      let b = await StorageService.getBudgets();
+      let s = await StorageService.getSavingsGoals();
+      let r = await StorageService.getRecurringExpenses();
+
+      if (u) {
+        setIsBalanceHidden(!!u.hideBalance);
+        // Migration: Change name from "Ad" or "Adeyemo..." to "Taiwo"
+        if (u.name === 'Ad' || u.name === 'Adeyemo Taiwo M' || u.name === 'Adeyemo') {
+          u.name = 'Taiwo';
+          await StorageService.saveUser(u);
+        }
+      }
+
+      // 2. If Authenticated, Sync with API
+      const hasTokens = await hasValidTokens();
+      console.log('🔑 Auth Check - Has Tokens:', hasTokens);
+
+      if (hasTokens) {
+        try {
+          console.log('🔄 Syncing financial data with API...');
+          const [apiIncome, apiExpenses, apiBudgets, apiSavings, apiSummary] = await Promise.all([
+            transactionService.getIncome().catch((e) => { console.error('Income Sync Error:', e); return []; }),
+            transactionService.getExpenses().catch((e) => { console.error('Expense Sync Error:', e); return []; }),
+            budgetService.getBudgets().catch((e) => { console.error('Budget Sync Error:', e); return []; }),
+            savingsService.getSavingsGoals().catch((e) => { console.error('Savings Sync Error:', e); return []; }),
+            dashboardService.getSummary().catch((e) => { console.error('Summary Sync Error:', e); return null; }),
+          ]);
+
+          console.log('✅ API Sync Complete');
+
+          t = [...apiIncome, ...apiExpenses];
+          b = apiBudgets;
+          s = apiSavings;
+          if (apiSummary) {
+            // Support both 'monthly_budget' and 'budget' field names
+            const totalBudget = apiSummary.monthly_budget || (apiSummary as any).budget || 0;
+            setDashboardSummary({
+              ...apiSummary,
+              monthly_budget: typeof totalBudget === 'string' ? parseFloat(totalBudget) : totalBudget
+            });
+            console.log('📊 Dashboard Data Synced from Backend:', {
+              balance: apiSummary.total_balance,
+              income: apiSummary.total_income,
+              expenses: apiSummary.total_expenses,
+              budget: totalBudget,
+              transactionsCount: t.length,
+              savingsGoalsCount: s.length
+            });
+          }
+
+          if (__DEV__) {
+            console.log('🚨 FINAL BUDGETS IN APP STATE:', JSON.stringify(b, null, 2));
+          }
+
+          // Save to local storage for offline use
+          await StorageService.saveTransactions(t);
+          await StorageService.saveBudgets(b);
+          await StorageService.saveSavingsGoals(s);
+        } catch (apiError) {
+          console.error('ℹ️ No active tokens found, skipping API sync.');
+        }
+      }
+
+      // 3. Update State
+      setUserState(u);
+      setSavingsGoals(s);
+      setRecurringExpenses(r);
+
+      // Recalculate spending based on the loaded transactions
+      const recalculatedBudgets = b.map((budget: any) => {
+        const budgetCategory = String(budget.category || '').toLowerCase().trim();
+        const spent = t
+          .filter((trans: any) =>
+            trans.type === 'expense' &&
+            String(trans.category || '').toLowerCase().trim() === budgetCategory &&
+            isThisMonth(trans.date)
+          )
+          .reduce((sum: number, trans: any) => sum + (Number(trans.amount) || 0), 0);
+        return { ...budget, spentAmount: spent };
+      });
+      
+      setBudgets(recalculatedBudgets);
+      setTransactions(t);
+      
+    } catch (error) {
+      console.error("Error loading data:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };

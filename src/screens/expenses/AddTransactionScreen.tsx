@@ -32,6 +32,7 @@ import { useAppContext } from '../../context/AppContext';
 import { Transaction } from '../../types';
 
 export default function AddTransactionScreen() {
+  if (__DEV__) console.log('🚀 AddTransactionScreen Component Rendered');
   const router = useRouter();
   const params = useLocalSearchParams();
   const { addTransaction, updateTransaction } = useAppContext();
@@ -60,13 +61,28 @@ export default function AddTransactionScreen() {
   const [validationErrors, setValidationErrors] = useState<Record<string, boolean>>({});
 
   const handleSave = async () => {
+    if (__DEV__) console.log('💾 handleSave started. isEditMode:', isEditMode);
     if (isProcessing) return;
 
     // Basic validation
     const errors: Record<string, boolean> = {};
-    if (!amount || parseFloat(amount) <= 0) errors.amount = true;
-    if (!category) errors.category = true;
-    if (category?.name === 'Others' && !customCategoryName) errors.customCategory = true;
+    const cleanAmount = amount.replace(/[^0-9.]/g, ''); // Strip commas, currency, etc.
+    const parsedAmount = parseFloat(cleanAmount);
+
+    if (__DEV__) console.log('📊 Validation check:', { amount, cleanAmount, parsedAmount, category: category?.name });
+
+    if (!cleanAmount || isNaN(parsedAmount) || parsedAmount <= 0) {
+      errors.amount = true;
+      if (__DEV__) console.warn('❌ Validation failed: Invalid amount');
+    }
+    if (!category) {
+      errors.category = true;
+      if (__DEV__) console.warn('❌ Validation failed: No category selected');
+    }
+    if (category?.name === 'Others' && !customCategoryName) {
+      errors.customCategory = true;
+      if (__DEV__) console.warn('❌ Validation failed: Custom category name missing');
+    }
 
     if (Object.keys(errors).length > 0) {
       setValidationErrors(errors);
@@ -77,7 +93,7 @@ export default function AddTransactionScreen() {
     try {
       const transactionData: Transaction = {
         id: isEditMode ? editTransaction.id : Math.random().toString(36).substring(7),
-        amount: parseFloat(amount),
+        amount: parsedAmount,
         type: type,
         category: category?.name === 'Others' ? customCategoryName : category!.name,
         categoryIcon: category!.icon,
@@ -88,14 +104,19 @@ export default function AddTransactionScreen() {
         isRecurring: isEditMode ? editTransaction.isRecurring : false,
       };
 
+      if (__DEV__) console.log('📦 Sending to sync:', transactionData);
+
       if (isEditMode) {
         await updateTransaction(editTransaction.id, transactionData);
+        if (__DEV__) console.log('✨ updateTransaction finished');
         setShowSuccess(true);
       } else {
         await addTransaction(transactionData);
+        if (__DEV__) console.log('✨ addTransaction finished');
         setShowSuccess(true);
       }
     } catch (error) {
+      if (__DEV__) console.error('🔥 handleSave error:', error);
       showToast("Failed to save transaction. Please try again.", "error");
     } finally {
       setIsProcessing(false);
@@ -387,7 +408,12 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     padding: 16,
+    paddingBottom: Platform.OS === 'ios' ? 32 : 16,
     backgroundColor: BACKGROUND,
+    zIndex: 9999,
+    elevation: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#F3F4F6',
   },
   saveButton: {
     height: 56,
