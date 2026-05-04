@@ -32,8 +32,8 @@ export const transactionService = {
       category: item.category || item.source || 'Other',
       categoryIcon: 'cash-outline',
       categoryColor: '#10B981',
-      description: item.description || '',
-      note: item.description || '',
+      description: item.note || item.description || '',
+      note: item.note || item.description || '',
       date: item.date || new Date().toISOString(),
       isRecurring: !!item.is_recurring,
     }));

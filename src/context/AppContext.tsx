@@ -377,7 +377,13 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         };
 
         if (transaction.type === 'income') {
-          const response = await transactionService.createIncome({ ...apiData, source: transaction.category });
+          const incomePayload = {
+            amount: Number(transaction.amount),
+            category: transaction.category,
+            date: transaction.date.split('T')[0], // format: date
+            note: transaction.description || transaction.note || null
+          };
+          const response = await transactionService.createIncome(incomePayload);
           transaction.id = (response as any).id || (response as any).data?.id || transaction.id;
         } else {
           const response = await transactionService.createExpense(apiData);
@@ -420,7 +426,13 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           const type = transactionToUpdate?.type || (id.startsWith('inc') ? 'income' : 'expense');
 
           if (type === 'income') {
-            await transactionService.updateIncome(id, apiData);
+            const incomePayload = {
+              amount: Number(updatedData.amount !== undefined ? updatedData.amount : transactionToUpdate?.amount),
+              category: updatedData.category || transactionToUpdate?.category || 'Other',
+              date: updatedData.date ? updatedData.date.split('T')[0] : (transactionToUpdate?.date || new Date().toISOString()).split('T')[0],
+              note: updatedData.description || updatedData.note || transactionToUpdate?.note || null
+            };
+            await transactionService.updateIncome(id, incomePayload);
           } else {
             await transactionService.updateExpense(id, apiData);
           }
