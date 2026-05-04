@@ -35,9 +35,9 @@ function InnerLayout() {
       if (isAuthenticated && inAuthGroup) {
         // Redirect to tabs if authenticated and in onboarding
         router.replace('/(tabs)');
-      } else if (!isAuthenticated && !inAuthGroup && segments[0] !== '(auth)') {
-        // Redirect to splash if not authenticated and not in onboarding
-        // Note: segments[0] can be empty on root, handled by index.tsx
+      } else if (!isAuthenticated && !inAuthGroup) {
+        // Redirect to onboarding if not authenticated and not in onboarding
+        router.replace('/onboarding/splash');
       }
     }
   }, [isAuthenticated, authLoading, segments]);

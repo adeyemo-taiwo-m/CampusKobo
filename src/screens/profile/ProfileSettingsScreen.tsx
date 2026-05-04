@@ -71,7 +71,7 @@ const SettingsRow = ({
 export const ProfileSettingsScreen = () => {
   const router = useRouter();
   const { 
-    logoutFromApi, 
+    logout, 
     user, 
     updateUser, 
     isLoading: contextLoading,
@@ -108,8 +108,8 @@ export const ProfileSettingsScreen = () => {
       style: 'destructive',
       onPress: async () => {
         try {
-          await logoutFromApi();
-          // The navigator will handle the redirect automatically based on isAuthenticated
+          await logout();
+          // The layout will now handle the redirect automatically
         } catch (error) {
           console.error('Logout error:', error);
           Alert.alert('Error', 'Failed to log out properly. Please try again.');

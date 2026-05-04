@@ -67,4 +67,4 @@ export const TOKEN_KEYS = {
   TOKEN_EXPIRY: 'campuskobo_token_expiry',
 };
 
-export const API_TIMEOUT = 15000; // 15 seconds
+export const API_TIMEOUT = 30000; // 30 seconds

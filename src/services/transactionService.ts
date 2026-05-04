@@ -42,6 +42,14 @@ export const transactionService = {
   getExpenses: async (): Promise<Transaction[]> => {
     const response = await apiClient.get(API_ENDPOINTS.EXPENSES);
     const data = Array.isArray(response) ? response : (response as any)?.data || [];
+    
+    if (__DEV__) {
+      console.log(`📦 SYNC: Received ${data.length} expenses from API`);
+      data.forEach((item: any, index: number) => {
+        console.log(`   [${index}] ${item.category || item.source}: ${item.amount} (${item.date || 'no date'}) - ${item.description || 'no desc'}`);
+      });
+    }
+
     return data.map((item: any) => ({
       id: item.id,
       amount: item.amount || 0,

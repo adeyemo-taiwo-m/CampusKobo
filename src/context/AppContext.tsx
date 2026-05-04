@@ -366,6 +366,20 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const addBudget = async (budget: Budget) => {
     try {
+      const hasTokens = await hasValidTokens();
+      if (hasTokens) {
+        const apiData = {
+          category: budget.category,
+          limit_amount: budget.limitAmount,
+          period: budget.period || 'monthly',
+          color: budget.color || '#3CB96A',
+          icon: budget.categoryIcon || 'restaurant-outline'
+        };
+        const response = await budgetService.createBudget(apiData);
+        // Use the ID from the API
+        budget.id = (response as any).id || budget.id;
+      }
+
       const newBudgets = [...budgets, budget];
       // Immediately calculate spent for this new budget from existing transactions
       const recalculated = newBudgets.map(b => {
@@ -378,11 +392,22 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       await StorageService.saveBudgets(recalculated);
     } catch (error) {
       console.error('addBudget error:', error);
+      throw error; // Rethrow to show in UI
     }
   };
 
   const updateBudget = async (id: string, data: Partial<Budget>) => {
     try {
+      const hasTokens = await hasValidTokens();
+      if (hasTokens) {
+        const apiData: any = {};
+        if (data.category) apiData.category = data.category;
+        if (data.limitAmount !== undefined) apiData.limit_amount = data.limitAmount;
+        if (data.period) apiData.period = data.period;
+        
+        await budgetService.updateBudget(id, apiData);
+      }
+
       const updatedBudgets = budgets.map(b =>
         b.id === id ? { ...b, ...data } : b
       );
@@ -390,16 +415,23 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       await StorageService.saveBudgets(updatedBudgets);
     } catch (error) {
       console.error('updateBudget error:', error);
+      throw error;
     }
   };
 
   const deleteBudget = async (id: string) => {
     try {
+      const hasTokens = await hasValidTokens();
+      if (hasTokens) {
+        await budgetService.deleteBudget(id);
+      }
+
       const updatedBudgets = budgets.filter(b => b.id !== id);
       setBudgets(updatedBudgets);
       await StorageService.saveBudgets(updatedBudgets);
     } catch (error) {
       console.error('deleteBudget error:', error);
+      throw error;
     }
   };
 

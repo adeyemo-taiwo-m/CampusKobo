@@ -11,6 +11,7 @@ import {
   Image,
   Alert,
   ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -51,12 +52,26 @@ export default function ExpensesListScreen() {
     totalBudgetSpent,
     budgetUsedPercent,
     totalIncomeThisMonth,
-    totalExpensesThisMonth
+    totalExpensesThisMonth,
+    loadAllData
   } = useAppContext();
   const [activeFilter, setActiveFilter] = useState<FilterType>('This Month');
   const [searchQuery, setSearchQuery] = useState('');
   const [isExportVisible, setIsExportVisible] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const { toastProps, showToast } = useToast();
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await loadAllData();
+      showToast('Data synced with backend', 'success');
+    } catch (error) {
+      showToast('Sync failed. Check your connection.', 'error');
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
 
   // Filter transactions
@@ -139,6 +154,9 @@ export default function ExpensesListScreen() {
             </TouchableOpacity>
             
             <View style={styles.headerActions}>
+              <TouchableOpacity style={styles.iconButton} onPress={handleRefresh}>
+                <Ionicons name="refresh-outline" size={22} color={WHITE} />
+              </TouchableOpacity>
               <TouchableOpacity style={styles.iconButton} onPress={() => router.push("/learning")}>
                 <Ionicons name="school-outline" size={22} color={WHITE} />
               </TouchableOpacity>
@@ -171,7 +189,18 @@ export default function ExpensesListScreen() {
       </View>
 
       <View style={styles.mainContentWrapper}>
-        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <ScrollView 
+          contentContainerStyle={styles.scrollContent} 
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl 
+              refreshing={refreshing} 
+              onRefresh={handleRefresh} 
+              tintColor={PRIMARY_GREEN}
+              colors={[PRIMARY_GREEN]}
+            />
+          }
+        >
           {/* Filter Chips */}
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filtersWrapper}>
             {(['This Month', 'This Week', 'Last Month', 'All'] as FilterType[]).map(filter => (

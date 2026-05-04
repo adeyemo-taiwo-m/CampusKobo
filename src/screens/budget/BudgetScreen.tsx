@@ -11,6 +11,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  RefreshControl,
 } from "react-native";
 import * as Progress from "react-native-progress";
 import { DarkCard } from "../../components/DarkCard";
@@ -93,10 +94,24 @@ export const BudgetScreen = () => {
     totalBudgetLimit,
     totalBudgetSpent,
     budgetUsedPercent,
-    getDaysLeftThisMonth 
+    getDaysLeftThisMonth,
+    loadAllData
   } = useAppContext();
   const { toastProps, showToast } = useToast();
+  const [refreshing, setRefreshing] = React.useState(false);
   const hasBudgets = enrichedBudgets.length > 0;
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await loadAllData();
+      showToast('Budgets synced', 'success');
+    } catch (error) {
+      showToast('Sync failed', 'error');
+    } finally {
+      setRefreshing(false);
+    }
+  };
   
   // Icon Mapping function
   const getIconForCategory = (category: string | undefined | null): keyof typeof Ionicons.glyphMap => {
@@ -150,6 +165,9 @@ export const BudgetScreen = () => {
               <Text style={styles.welcomeText}>Hi, {(apiUser?.full_name || user?.name)?.split(' ')[0] || 'there'}</Text>
             </TouchableOpacity>
             <View style={styles.headerActions}>
+              <TouchableOpacity style={styles.iconButton} onPress={handleRefresh}>
+                <Ionicons name="refresh-outline" size={22} color={WHITE} />
+              </TouchableOpacity>
               <TouchableOpacity style={styles.iconButton} onPress={() => router.push("/learning")}>
                 <Ionicons name="school-outline" size={22} color={WHITE} />
               </TouchableOpacity>
@@ -187,6 +205,14 @@ export const BudgetScreen = () => {
           style={styles.scrollContainer}
           contentContainerStyle={styles.listAreaContainer}
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              tintColor={PRIMARY_GREEN}
+              colors={[PRIMARY_GREEN]}
+            />
+          }
         >
           <View style={styles.panelHeaderRow}>
             <Text style={styles.panelHeaderText}>Active Budgets</Text>
