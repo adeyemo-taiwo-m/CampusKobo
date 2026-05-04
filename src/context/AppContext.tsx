@@ -352,9 +352,11 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         };
 
         if (transaction.type === 'income') {
-          await transactionService.createIncome({ ...apiData, source: transaction.category });
+          const response = await transactionService.createIncome({ ...apiData, source: transaction.category });
+          transaction.id = (response as any).id || (response as any).data?.id || transaction.id;
         } else {
-          await transactionService.createExpense(apiData);
+          const response = await transactionService.createExpense(apiData);
+          transaction.id = (response as any).id || (response as any).data?.id || transaction.id;
         }
       }
 
@@ -403,15 +405,18 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const deleteTransaction = async (id: string) => {
     try {
-      const transactionToDelete = transactions.find(t => t.id === id);
+      const transactionToDelete = transactions.find(t => String(t.id) === String(id));
       if (transactionToDelete) {
         const hasTokens = await hasValidTokens();
         if (hasTokens) {
+          if (__DEV__) console.log(`🗑️ API DELETE: Requesting deletion of ${transactionToDelete.type} with ID: ${id}`);
+          
           if (transactionToDelete.type === 'income') {
             await transactionService.deleteIncome(id);
           } else {
             await transactionService.deleteExpense(id);
           }
+          if (__DEV__) console.log(`✅ API DELETE: Successfully removed ${id} from backend`);
         }
       }
 
@@ -438,7 +443,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         };
         const response = await budgetService.createBudget(apiData);
         // Use the ID from the API
-        budget.id = (response as any).id || budget.id;
+        budget.id = (response as any).id || (response as any).data?.id || budget.id;
       }
 
       const newBudgets = [...budgets, budget];
