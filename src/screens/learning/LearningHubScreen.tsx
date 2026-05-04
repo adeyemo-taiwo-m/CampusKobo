@@ -133,12 +133,8 @@ export const LearningHubScreen = () => {
                   params: { id: item.id, type: item.type }
                 })}
               >
-                <View style={styles.featuredImagePlaceholder}>
-                  <Image 
-                    source={require('../../../assets/images/featured-learning.png')} 
-                    style={styles.featuredIllustration}
-                    contentFit="contain"
-                  />
+                <View style={[styles.featuredImagePlaceholder, { backgroundColor: '#F0F9F4' }]}>
+                  <Ionicons name="school-outline" size={80} color={PRIMARY_GREEN} />
                 </View>
                 <View style={styles.featuredInfo}>
                   <View style={styles.chipSmall}>
@@ -202,21 +198,6 @@ export const LearningHubScreen = () => {
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>Latest</Text>
           {latestContent.map((item, index) => {
-            // Map specific assets based on index or title
-            let imageSource = require('../../../assets/images/featured-learning.png');
-            if (index === 0) imageSource = require('../../../assets/images/latest-1.svg');
-            if (index === 1) imageSource = require('../../../assets/images/latest-2.svg');
-            if (index === 2) imageSource = require('../../../assets/images/latest-3.svg');
-            
-            // Fallback to title-based logic if index > 2
-            if (index > 2) {
-              if (item.title.toLowerCase().includes('run out of money') || item.title.toLowerCase().includes('sapa')) {
-                imageSource = require('../../../assets/images/sapa.png');
-              } else if (item.title.toLowerCase().includes('stock') || item.title.toLowerCase().includes('invest')) {
-                imageSource = require('../../../assets/images/stocks.png');
-              }
-            }
-
             return (
               <TouchableOpacity 
                 key={item.id} 
@@ -226,11 +207,11 @@ export const LearningHubScreen = () => {
                   params: { id: item.id, type: item.type }
                 })}
               >
-                <View style={styles.latestImagePlaceholder}>
-                  <Image 
-                    source={imageSource} 
-                    style={styles.latestIllustration} 
-                    contentFit="cover"
+                <View style={[styles.latestImagePlaceholder, { backgroundColor: '#F0F9F4' }]}>
+                  <Ionicons 
+                    name={item.type === 'article' ? 'document-text' : 'play-circle'} 
+                    size={30} 
+                    color={PRIMARY_GREEN} 
                   />
                 </View>
                 <View style={styles.latestInfo}>
@@ -278,11 +259,7 @@ export const LearningHubScreen = () => {
               >
                 <View style={styles.podcastIconWrapper}>
                    <View style={styles.podcastIconCircle}>
-                      <Image 
-                        source={require('../../../assets/images/Market Pulse.svg')} 
-                        style={styles.podcastLogo} 
-                        contentFit="contain"
-                      />
+                      <MaterialCommunityIcons name="podcasts" size={28} color={WHITE} />
                    </View>
                 </View>
                 <Text style={styles.podcastEpText}>EP 0{pod.episodeNumber} • {pod.title}</Text>

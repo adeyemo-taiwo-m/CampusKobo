@@ -55,12 +55,9 @@ export const PodcastListScreen = () => {
               onPress={() => router.push({ pathname: '/learning/detail', params: { id: item.id, type: 'podcast' } })}
             >
               <View style={styles.episodeLeft}>
-                 <View style={styles.thumb}>
-                    <Image 
-                      source={require('../../../assets/images/market-pulse.png')} 
-                      style={styles.thumbLogo} 
-                    />
-                 </View>
+                    <View style={[styles.podcastIconCircle, { backgroundColor: PRIMARY_GREEN, alignItems: 'center', justifyContent: 'center' }]}>
+                      <Ionicons name="headset-outline" size={30} color={WHITE} />
+                    </View>
                  <View style={styles.info}>
                     <Text style={styles.epTitle}>{item.title}</Text>
                     <Text style={styles.epMeta}>{item.duration} • Episode 01</Text>

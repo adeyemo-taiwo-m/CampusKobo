@@ -154,13 +154,9 @@ export default function RecurringExpensesScreen() {
           ) : (
             /* STATE 3 — EMPTY STATE with asset image */
             <View style={styles.emptyState}>
-              <View style={styles.illustrationContainer}>
-                 <Image 
-                   source={require("../../../assets/images/no-recurring.svg")} 
-                   style={styles.emptyImage}
-                   contentFit="contain"
-                 />
-              </View>
+                <View style={[styles.illustration, { backgroundColor: '#F0F9F4', borderRadius: 60, width: 120, height: 120, alignItems: 'center', justifyContent: 'center' }]}>
+                   <Ionicons name="calendar-outline" size={60} color={PRIMARY_GREEN} />
+                </View>
               <Text style={styles.emptyHeading}>No recurring expenses yet</Text>
               <Text style={styles.emptySubtext}>
                 Add bills that repeat automatically like data, transport or rent

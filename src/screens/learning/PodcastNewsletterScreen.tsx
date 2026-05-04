@@ -111,11 +111,8 @@ const PodcastNewsletterScreen = () => {
                   params: { id: item.id, type: 'podcast' }
                 })}
               >
-                <View style={styles.podcastThumb}>
-                  <Image 
-                    source={require('../../../assets/images/market-pulse.png')} 
-                    style={styles.podcastLogo} 
-                  />
+                <View style={[styles.podcastThumb, { backgroundColor: PRIMARY_GREEN, alignItems: 'center', justifyContent: 'center' }]}>
+                  <Ionicons name="headset-outline" size={24} color={WHITE} />
                 </View>
                 <View style={styles.podcastInfo}>
                   <Text style={styles.podcastEp}>EP 0{5 - index}</Text>

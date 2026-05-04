@@ -128,11 +128,9 @@ const LearningContentDetailScreen = () => {
 
   const renderArticle = () => (
     <>
-      <Image 
-        source={require('../../../assets/images/learning-article.png')} 
-        style={styles.heroImage}
-        resizeMode="cover"
-      />
+      <View style={[styles.heroImage, { backgroundColor: '#F0F9F4', alignItems: 'center', justifyContent: 'center' }]}>
+        <Ionicons name="document-text-outline" size={80} color={PRIMARY_GREEN} />
+      </View>
       
       <View style={styles.contentPadding}>
         <View style={styles.categoryChip}>
@@ -161,11 +159,15 @@ const LearningContentDetailScreen = () => {
           <Text style={styles.relatedHeader}>You Might Also Like</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.relatedScroll}>
             <TouchableOpacity style={styles.relatedCard}>
-              <Image source={require('../../../assets/images/learning-related1.png')} style={styles.relatedImage} />
+              <View style={[styles.relatedImage, { backgroundColor: '#F0F9F4', alignItems: 'center', justifyContent: 'center' }]}>
+                <Ionicons name="bulb-outline" size={30} color={PRIMARY_GREEN} />
+              </View>
               <Text style={styles.relatedTitle} numberOfLines={2}>How to save on a student budget</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.relatedCard}>
-              <Image source={require('../../../assets/images/learning-related2.png')} style={styles.relatedImage} />
+              <View style={[styles.relatedImage, { backgroundColor: '#F0F9F4', alignItems: 'center', justifyContent: 'center' }]}>
+                <Ionicons name="trending-up-outline" size={30} color={PRIMARY_GREEN} />
+              </View>
               <Text style={styles.relatedTitle} numberOfLines={2}>Understanding investment risks</Text>
             </TouchableOpacity>
           </ScrollView>
@@ -177,11 +179,9 @@ const LearningContentDetailScreen = () => {
   const renderVideo = () => (
     <>
       <View style={styles.videoPlayer}>
-        <Image 
-          source={require('../../../assets/images/market-pulse.png')} 
-          style={styles.videoThumbnail}
-          resizeMode="cover"
-        />
+        <View style={[styles.videoThumbnail, { backgroundColor: '#111', alignItems: 'center', justifyContent: 'center' }]}>
+           <Ionicons name="play-circle-outline" size={80} color={WHITE} />
+        </View>
         <View style={styles.videoOverlay}>
           <TouchableOpacity style={styles.playButtonLarge}>
             <Ionicons name="play" size={40} color={WHITE} />
@@ -241,15 +241,21 @@ const LearningContentDetailScreen = () => {
           <Text style={styles.relatedHeader}>You Might Also Like</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.relatedScroll}>
             <TouchableOpacity style={styles.relatedCard}>
-              <Image source={require('../../../assets/images/learning-article.png')} style={styles.relatedImage} />
+               <View style={[styles.relatedImage, { backgroundColor: '#F0F9F4', alignItems: 'center', justifyContent: 'center' }]}>
+                <Ionicons name="book-outline" size={30} color={PRIMARY_GREEN} />
+              </View>
               <Text style={styles.relatedTitle} numberOfLines={2}>How to stop overspending</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.relatedCard}>
-              <Image source={require('../../../assets/images/learning-related1.png')} style={styles.relatedImage} />
+              <View style={[styles.relatedImage, { backgroundColor: '#F0F9F4', alignItems: 'center', justifyContent: 'center' }]}>
+                <Ionicons name="save-outline" size={30} color={PRIMARY_GREEN} />
+              </View>
               <Text style={styles.relatedTitle} numberOfLines={2}>Saving: Simple Hacks</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.relatedCard}>
-              <Image source={require('../../../assets/images/market-pulse.png')} style={styles.relatedImage} />
+              <View style={[styles.relatedImage, { backgroundColor: '#F0F9F4', alignItems: 'center', justifyContent: 'center' }]}>
+                <Ionicons name="trending-up-outline" size={30} color={PRIMARY_GREEN} />
+              </View>
               <Text style={styles.relatedTitle} numberOfLines={2}>Investing Basics</Text>
             </TouchableOpacity>
           </ScrollView>
@@ -261,11 +267,9 @@ const LearningContentDetailScreen = () => {
   const renderPodcast = () => (
     <View style={styles.podcastContainer}>
       <View style={styles.coverArtContainer}>
-        <Image 
-          source={require('../../../assets/images/market-pulse.png')} 
-          style={styles.coverArtImage}
-          resizeMode="cover"
-        />
+        <View style={[styles.coverArtImage, { backgroundColor: PRIMARY_GREEN, alignItems: 'center', justifyContent: 'center' }]}>
+          <Ionicons name="mic-outline" size={100} color={WHITE} />
+        </View>
       </View>
 
       <View style={styles.contentPadding}>
@@ -323,11 +327,8 @@ const LearningContentDetailScreen = () => {
             { id: '4', title: 'Saving on a Student Budget', duration: '12 min' },
           ].map((item) => (
             <TouchableOpacity key={item.id} style={styles.episodeItem}>
-              <View style={styles.episodeCover}>
-                <Image 
-                  source={require('../../../assets/images/market-pulse.png')} 
-                  style={styles.episodeLogo} 
-                />
+              <View style={[styles.episodeCover, { backgroundColor: PRIMARY_GREEN, alignItems: 'center', justifyContent: 'center' }]}>
+                <Ionicons name="headset-outline" size={24} color={WHITE} />
               </View>
               <View style={styles.episodeInfo}>
                 <Text style={styles.episodeTitle}>{item.title}</Text>

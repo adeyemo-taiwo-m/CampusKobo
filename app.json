@@ -49,6 +49,12 @@
         "projectId": "a041dcdc-30ee-4d33-917c-260f761a38ad"
       }
     },
-    "owner": "adeyemotaiwom"
+    "owner": "adeyemotaiwom",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/a041dcdc-30ee-4d33-917c-260f761a38ad"
+    }
   }
 }
