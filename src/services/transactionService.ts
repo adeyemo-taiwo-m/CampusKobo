@@ -54,7 +54,7 @@ export const transactionService = {
       id: item.id,
       amount: item.amount || 0,
       type: 'expense',
-      category: item.category || 'Other',
+      category: item.category || item.category_name || item.category_id || 'Other',
       categoryIcon: 'cart-outline',
       categoryColor: '#EF4444',
       description: item.description || '',
@@ -70,5 +70,21 @@ export const transactionService = {
 
   createExpense: async (data: any) => {
     return await apiClient.post(API_ENDPOINTS.EXPENSES, data);
+  },
+
+  updateExpense: async (id: string, data: any) => {
+    return await apiClient.put(API_ENDPOINTS.EXPENSE_BY_ID(id), data);
+  },
+
+  updateIncome: async (id: string, data: any) => {
+    return await apiClient.put(API_ENDPOINTS.INCOME_BY_ID(id), data);
+  },
+
+  deleteExpense: async (id: string) => {
+    return await apiClient.delete(API_ENDPOINTS.EXPENSE_BY_ID(id));
+  },
+
+  deleteIncome: async (id: string) => {
+    return await apiClient.delete(API_ENDPOINTS.INCOME_BY_ID(id));
   },
 };

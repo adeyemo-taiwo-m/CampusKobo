@@ -257,15 +257,24 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           b = apiBudgets;
           s = apiSavings;
           if (apiSummary) {
-            setDashboardSummary(apiSummary);
+            // Support both 'monthly_budget' and 'budget' field names
+            const totalBudget = apiSummary.monthly_budget || (apiSummary as any).budget || 0;
+            setDashboardSummary({
+              ...apiSummary,
+              monthly_budget: typeof totalBudget === 'string' ? parseFloat(totalBudget) : totalBudget
+            });
             console.log('📊 Dashboard Data Synced from Backend:', {
               balance: apiSummary.total_balance,
               income: apiSummary.total_income,
               expenses: apiSummary.total_expenses,
-              budget: apiSummary.monthly_budget,
+              budget: totalBudget,
               transactionsCount: t.length,
               savingsGoalsCount: s.length
             });
+          }
+
+          if (__DEV__) {
+            console.log('🚨 FINAL BUDGETS IN APP STATE:', JSON.stringify(b, null, 2));
           }
 
           // Save to local storage for offline use
@@ -316,10 +325,11 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   // It rebuilds spentAmount on every budget from actual transaction data
   const recalculateAllBudgetSpending = async (updatedTransactions: Transaction[]) => {
     const updatedBudgets = budgets.map(budget => {
+      const budgetCategory = String(budget.category).toLowerCase().trim();
       const spent = updatedTransactions
         .filter(t =>
           t.type === 'expense' &&
-          t.category === budget.category &&
+          String(t.category).toLowerCase().trim() === budgetCategory &&
           isThisMonth(t.date)
         )
         .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
@@ -331,17 +341,54 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const addTransaction = async (transaction: Transaction) => {
     try {
+      const hasTokens = await hasValidTokens();
+      if (hasTokens) {
+        const apiData = {
+          amount: Number(transaction.amount),
+          category: transaction.category,
+          date: transaction.date,
+          description: transaction.description || transaction.note || '',
+          is_recurring: !!transaction.isRecurring
+        };
+
+        if (transaction.type === 'income') {
+          await transactionService.createIncome({ ...apiData, source: transaction.category });
+        } else {
+          await transactionService.createExpense(apiData);
+        }
+      }
+
       const updatedTransactions = [...transactions, transaction];
       setTransactions(updatedTransactions);
       await StorageService.saveTransactions(updatedTransactions);
       await recalculateAllBudgetSpending(updatedTransactions);
     } catch (error) {
       console.error('addTransaction error:', error);
+      throw error;
     }
   };
 
   const updateTransaction = async (id: string, updatedData: Partial<Transaction>) => {
     try {
+      const hasTokens = await hasValidTokens();
+      if (hasTokens) {
+        const apiData: any = {};
+        if (updatedData.amount !== undefined) apiData.amount = Number(updatedData.amount);
+        if (updatedData.category) apiData.category = updatedData.category;
+        if (updatedData.date) apiData.date = updatedData.date;
+        if (updatedData.description || updatedData.note) apiData.description = updatedData.description || updatedData.note;
+        if (updatedData.isRecurring !== undefined) apiData.is_recurring = updatedData.isRecurring;
+
+        const transactionToUpdate = transactions.find(t => t.id === id);
+        if (transactionToUpdate) {
+          if (transactionToUpdate.type === 'income') {
+            await transactionService.updateIncome(id, apiData);
+          } else {
+            await transactionService.updateExpense(id, apiData);
+          }
+        }
+      }
+
       const updatedTransactions = transactions.map(t =>
         t.id === id ? { ...t, ...updatedData } : t
       );
@@ -350,17 +397,31 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       await recalculateAllBudgetSpending(updatedTransactions);
     } catch (error) {
       console.error('updateTransaction error:', error);
+      throw error;
     }
   };
 
   const deleteTransaction = async (id: string) => {
     try {
+      const transactionToDelete = transactions.find(t => t.id === id);
+      if (transactionToDelete) {
+        const hasTokens = await hasValidTokens();
+        if (hasTokens) {
+          if (transactionToDelete.type === 'income') {
+            await transactionService.deleteIncome(id);
+          } else {
+            await transactionService.deleteExpense(id);
+          }
+        }
+      }
+
       const updatedTransactions = transactions.filter(t => t.id !== id);
       setTransactions(updatedTransactions);
       await StorageService.saveTransactions(updatedTransactions);
       await recalculateAllBudgetSpending(updatedTransactions);
     } catch (error) {
       console.error('deleteTransaction error:', error);
+      throw error;
     }
   };
 
