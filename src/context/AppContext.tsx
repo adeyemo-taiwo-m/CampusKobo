@@ -486,12 +486,16 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     try {
       const hasTokens = await hasValidTokens();
       if (hasTokens) {
+        const now = new Date();
+        const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+        const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
+
         const apiData = {
-          category: budget.category,
-          limit_amount: budget.limitAmount,
-          period: budget.period || 'monthly',
-          color: budget.color || '#3CB96A',
-          icon: budget.categoryIcon || 'restaurant-outline'
+          name: budget.category,
+          amount: budget.limitAmount,
+          period_start: firstDay,
+          period_end: lastDay,
+          currency: 'NGN'
         };
         const response = await budgetService.createBudget(apiData);
         // Use the ID from the API
@@ -519,9 +523,18 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       const hasTokens = await hasValidTokens();
       if (hasTokens) {
         const apiData: any = {};
-        if (data.category) apiData.category = data.category;
-        if (data.limitAmount !== undefined) apiData.limit_amount = data.limitAmount;
-        if (data.period) apiData.period = data.period;
+        const targetBudget = budgets.find(b => String(b.id) === String(id));
+        
+        apiData.name = data.category || targetBudget?.category || 'Budget';
+        apiData.amount = data.limitAmount !== undefined ? data.limitAmount : (targetBudget?.limitAmount || 0);
+        
+        const now = new Date();
+        const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+        const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
+        
+        apiData.period_start = firstDay;
+        apiData.period_end = lastDay;
+        apiData.currency = 'NGN';
         
         await budgetService.updateBudget(id, apiData);
       }
