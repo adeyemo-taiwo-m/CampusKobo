@@ -25,7 +25,7 @@ interface InputFieldProps extends Omit<TextInputProps, 'onChangeText'> {
   placeholder: string;
   state?: InputState;
   value: string;
-  onChangeText: (text: string) => void;
+  onChangeText?: (text: string) => void;
   error?: string;
   successMessage?: string;
   prefix?: string;
