@@ -30,6 +30,7 @@ import {
 import { ProgressBar } from '../../components/ProgressBar';
 import { DarkCard } from '../../components/DarkCard';
 import { Button } from '../../components/Button';
+import { SecondaryHeader } from '../../components/SecondaryHeader';
 import { DeleteConfirmModal } from '../../components/DeleteConfirmModal';
 import { AddFundsBottomSheet } from '../../components/AddFundsBottomSheet';
 import { formatCurrency, getPercentage } from '../../utils/formatters';
@@ -104,33 +105,26 @@ export const SavingsGoalDetailScreen = () => {
       <StatusBar barStyle="light-content" backgroundColor={PRIMARY_GREEN} />
 
       {/* ── Green Hero Region (~40% of screen) ──────────────────────────── */}
-      <View style={[styles.heroRegion, { paddingTop: insets.top + 8 }]}>
-
-        {/* Header row */}
-        <View style={styles.headerRow}>
-          {/* Back button: circular white/light */}
-          <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
-            <Ionicons name="chevron-back" size={18} color={TEXT_PRIMARY} />
-          </TouchableOpacity>
-
-          <Text style={styles.headerTitle}>Savings Goal Details</Text>
-
-          {/* Edit button using existing Button component */}
-          <Button
-            title="Edit"
-            variant="secondary"
-            size="sm"
-            fullWidth={false}
-            textStyle={{ color: PRIMARY_GREEN }}
-            onPress={() =>
-              router.push({
-                pathname: '/savings/create' as any,
-                params: { goal: JSON.stringify(goal) },
-              })
-            }
-          />
-
-        </View>
+      <View style={[styles.heroRegion, { paddingTop: insets.top }]}>
+        <SecondaryHeader 
+          title="Savings Goal Details"
+          variant="dark"
+          rightElement={
+            <Button
+              title="Edit"
+              variant="secondary"
+              size="sm"
+              fullWidth={false}
+              textStyle={{ color: PRIMARY_GREEN }}
+              onPress={() =>
+                router.push({
+                  pathname: '/savings/create' as any,
+                  params: { goal: JSON.stringify(goal) },
+                })
+              }
+            />
+          }
+        />
 
         {/* Hero card using DarkCard component */}
         <View style={styles.summaryCardWrapper}>

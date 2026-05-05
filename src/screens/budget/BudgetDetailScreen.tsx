@@ -23,6 +23,7 @@ import {
 } from "../../constants";
 import { DarkCard } from "../../components/DarkCard";
 import { Button } from "../../components/Button";
+import { SecondaryHeader } from "../../components/SecondaryHeader";
 import { TransactionCard } from "../../components/TransactionCard";
 import { DeleteConfirmModal } from "../../components/DeleteConfirmModal";
 import { useAppContext } from "../../context/AppContext";
@@ -109,30 +110,26 @@ export const BudgetDetailScreen = () => {
       <StatusBar barStyle="light-content" backgroundColor="#0B5E2F" />
 
       {/* Green Hero Header — insets applied manually via useSafeAreaInsets */}
-      <View style={[styles.headerHeroRegion, { paddingTop: insets.top + 10 }]}>
-        {/* Top nav row */}
-        <View style={styles.headerRow}>
-          <TouchableOpacity
-            onPress={() => router.back()}
-            style={styles.headerBackBtn}
-          >
-            <Ionicons name="chevron-back" size={20} color={WHITE} />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Budget Details</Text>
-          <Button
-            title="Edit"
-            variant="secondary"
-            size="sm"
-            fullWidth={false}
-            textStyle={{ color: PRIMARY_GREEN }}
-            onPress={() =>
-              router.push({
-                pathname: "/budget/create",
-                params: { budget: JSON.stringify(budget) },
-              })
-            }
-          />
-        </View>
+      <View style={[styles.headerHeroRegion, { paddingTop: insets.top }]}>
+        <SecondaryHeader 
+          title="Budget Details"
+          variant="dark"
+          rightElement={
+            <Button
+              title="Edit"
+              variant="secondary"
+              size="sm"
+              fullWidth={false}
+              textStyle={{ color: PRIMARY_GREEN }}
+              onPress={() =>
+                router.push({
+                  pathname: "/budget/create",
+                  params: { budget: JSON.stringify(budget) },
+                })
+              }
+            />
+          }
+        />
 
         {/* DarkCard — budget variant */}
         <View style={styles.summaryCardWrapper}>

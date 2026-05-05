@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   WHITE,
   PRIMARY_GREEN,
@@ -22,7 +23,7 @@ import {
   SPACING,
   BORDER_GRAY,
 } from '../../constants';
-import { Header } from '../../components/Header';
+import { SecondaryHeader } from '../../components/SecondaryHeader';
 import { Button } from '../../components/Button';
 import { InputField } from '../../components/InputField';
 import { SelectField } from '../../components/SelectField';
@@ -38,6 +39,7 @@ const PERIOD_OPTIONS = ['Monthly', 'Termly'];
 
 export const CreateBudgetScreen = () => {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { budget: budgetParam } = useLocalSearchParams();
   const { addBudget, updateBudget } = useAppContext();
   const { toastProps, showToast } = useToast();
@@ -111,11 +113,9 @@ export const CreateBudgetScreen = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Header 
+    <View style={[styles.container, { paddingTop: insets.top }]}>
+      <SecondaryHeader 
         title={isEditing ? "Edit Budget" : "Create Budget"} 
-        showBack={true} 
-        onBack={() => router.back()}
       />
 
       {/* Success Modal — overlays the form */}
@@ -269,7 +269,7 @@ export const CreateBudgetScreen = () => {
         </TouchableWithoutFeedback>
       </Modal>
       <Toast {...toastProps} />
-    </SafeAreaView>
+    </View>
   );
 };
 

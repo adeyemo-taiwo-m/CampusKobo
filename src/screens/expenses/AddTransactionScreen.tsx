@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { 
   PRIMARY_GREEN, 
   WHITE, 
@@ -24,6 +25,7 @@ import {
 } from '../../constants';
 import { InputField } from '../../components/InputField';
 import { Button } from '../../components/Button';
+import { SecondaryHeader } from '../../components/SecondaryHeader';
 import { SuccessModal } from '../../components/SuccessScreen';
 import { Toast } from '../../components/Toast';
 import { CategoryBottomSheet } from '../../components/CategoryBottomSheet';
@@ -34,6 +36,7 @@ import { Transaction } from '../../types';
 export default function AddTransactionScreen() {
   if (__DEV__) console.log('🚀 AddTransactionScreen Component Rendered');
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const params = useLocalSearchParams();
   const { addTransaction, updateTransaction } = useAppContext();
   const { toastProps, showToast } = useToast();
@@ -124,7 +127,7 @@ export default function AddTransactionScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <StatusBar barStyle="dark-content" />
       
       {/* Success Modal */}
@@ -139,18 +142,9 @@ export default function AddTransactionScreen() {
       />
       
       {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity 
-          style={styles.backButton} 
-          onPress={() => router.back()}
-        >
-          <Ionicons name="chevron-back" size={20} color={TEXT_PRIMARY} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>
-          {isEditMode ? 'Edit Transaction' : 'Add Transaction'}
-        </Text>
-        <View style={{ width: 40 }} />
-      </View>
+      <SecondaryHeader 
+        title={isEditMode ? 'Edit Transaction' : 'Add Transaction'} 
+      />
 
       <KeyboardAvoidingView 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -290,7 +284,7 @@ export default function AddTransactionScreen() {
         }}
       />
       <Toast {...toastProps} />
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -300,11 +294,11 @@ const styles = StyleSheet.create({
     backgroundColor: BACKGROUND,
   },
   header: {
-    height: 64,
+    height: 72,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
   },
   backButton: {
     width: 40,
