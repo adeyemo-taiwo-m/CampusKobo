@@ -94,11 +94,19 @@ const Finance101SeriesScreen = () => {
     setIsAboutExpanded(!isAboutExpanded);
   };
 
+  if (isLoadingLearning) {
+    return (
+      <SafeAreaView style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <Text style={{ fontFamily: Fonts.medium, color: TEXT_SECONDARY }}>Loading series...</Text>
+      </SafeAreaView>
+    );
+  }
+
   const getStatusIcon = (episode: any) => {
-    if (episode.isCompleted) return <Ionicons name="checkmark-circle" size={28} color={PRIMARY_GREEN} />;
-    if (episode.isInProgress) return <Ionicons name="play-circle" size={28} color={PRIMARY_GREEN} />;
-    if (episode.isLocked) return <Ionicons name="lock-closed" size={24} color="#D1D5DB" />;
-    return <View style={styles.notStartedIcon} />;
+    if (episode.isCompleted) return <Ionicons name="checkmark-circle" size={26} color={PRIMARY_GREEN} />;
+    if (episode.isInProgress) return <Ionicons name="play-circle" size={26} color={PRIMARY_GREEN} />;
+    if (episode.isLocked) return <Ionicons name="lock-closed" size={22} color="#D1D5DB" />;
+    return <Ionicons name="ellipse-outline" size={22} color="#D1D5DB" />;
   };
 
 
