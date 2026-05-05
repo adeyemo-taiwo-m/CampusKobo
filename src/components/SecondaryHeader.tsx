@@ -1,14 +1,9 @@
-import React from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import React from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { TEXT_PRIMARY, WHITE, Fonts } from "../constants";
+import { Fonts, TEXT_PRIMARY, WHITE } from "../constants";
 
 interface SecondaryHeaderProps {
   title: string;
@@ -18,12 +13,12 @@ interface SecondaryHeaderProps {
   rightElement?: React.ReactNode;
 }
 
-export const SecondaryHeader = ({ 
-  title, 
-  onBack, 
+export const SecondaryHeader = ({
+  title,
+  onBack,
   backgroundColor = "transparent",
   variant = "light",
-  rightElement
+  rightElement,
 }: SecondaryHeaderProps) => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -39,11 +34,14 @@ export const SecondaryHeader = ({
       >
         <Ionicons name="chevron-back" size={20} color={iconColor} />
       </TouchableOpacity>
-      
-      <Text style={[styles.headerTitle, { color: textColor }]} numberOfLines={1}>
+
+      <Text
+        style={[styles.headerTitle, { color: textColor }]}
+        numberOfLines={1}
+      >
         {title}
       </Text>
-      
+
       <View style={styles.rightSection}>
         {rightElement || <View style={styles.spacer} />}
       </View>

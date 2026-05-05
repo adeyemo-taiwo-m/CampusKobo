@@ -24,7 +24,7 @@ export default function LoginScreen() {
   const [apiError, setApiError] = useState<string | null>(null);
 
   const handleLogin = async () => {
-    if (!email || !password) return;
+    if (isLoading || !email || !password) return;
     
     setApiError(null);
     setIsLoading(true);
@@ -102,12 +102,10 @@ export default function LoginScreen() {
 
         <View style={styles.footer}>
           <Button 
-            title={isLoading ? "" : "Log In"} 
+            title={isLoading ? "Logging in..." : "Log In"} 
             onPress={handleLogin} 
-            disabled={!email || !password || isLoading}
-          >
-            {isLoading && <ActivityIndicator size="small" color={WHITE} />}
-          </Button>
+            disabled={!email || !password}
+          />
           
           <View style={styles.signupLinkContainer}>
             <Text style={styles.footerText}>Don't have an account? </Text>

@@ -39,6 +39,7 @@ export default function SignUpScreen() {
   };
 
   const handleSignUp = async () => {
+    if (isLoading) return;
     setApiError(null);
     if (validate()) {
       setIsLoading(true);
@@ -143,12 +144,10 @@ export default function SignUpScreen() {
 
         <View style={styles.footer}>
           <Button 
-            title={isLoading ? "" : "Create Account"} 
+            title={isLoading ? "Creating account..." : "Create Account"} 
             onPress={handleSignUp} 
-            disabled={!name || !email || !password || isLoading}
-          >
-            {isLoading && <ActivityIndicator size="small" color={WHITE} />}
-          </Button>
+            disabled={!name || !email || !password}
+          />
           
           <View style={styles.loginLinkContainer}>
             <Text style={styles.footerText}>Already have an account? </Text>

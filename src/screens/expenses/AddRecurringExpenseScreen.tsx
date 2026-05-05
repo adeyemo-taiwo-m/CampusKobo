@@ -1,50 +1,56 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  TouchableOpacity, 
-  SafeAreaView, 
-  ScrollView,
+import { Ionicons } from "@expo/vector-icons";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import React, { useEffect, useState } from "react";
+import {
   KeyboardAvoidingView,
   Platform,
-  StatusBar
-} from 'react-native';
-import { useRouter, Stack, useLocalSearchParams } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { 
-  PRIMARY_GREEN, 
-  WHITE, 
-  TEXT_PRIMARY, 
-  TEXT_SECONDARY, 
-  SPACING, 
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { Button } from "../../components/Button";
+import { CategoryBottomSheet } from "../../components/CategoryBottomSheet";
+import { DatePickerModal } from "../../components/DatePickerModal";
+import { InputField } from "../../components/InputField";
+import { SuccessModal } from "../../components/SuccessScreen";
+import {
+  BACKGROUND,
   Fonts,
-  BORDER_GRAY,
-  BACKGROUND 
-} from '../../constants';
-import { InputField } from '../../components/InputField';
-import { Button } from '../../components/Button';
-import { CategoryBottomSheet } from '../../components/CategoryBottomSheet';
-import { SuccessModal } from '../../components/SuccessScreen';
-import { DatePickerModal } from '../../components/DatePickerModal';
-import { useAppContext } from '../../context/AppContext';
-import { RecurringExpense } from '../../types';
+  PRIMARY_GREEN,
+  TEXT_PRIMARY,
+  TEXT_SECONDARY,
+  WHITE,
+} from "../../constants";
+import { useAppContext } from "../../context/AppContext";
+import { RecurringExpense } from "../../types";
 
 export default function AddRecurringExpenseScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const { addRecurringExpense, updateRecurringExpense } = useAppContext();
-  
-  const editExpense = params.recurringExpense ? JSON.parse(params.recurringExpense as string) : null;
+
+  const editExpense = params.recurringExpense
+    ? JSON.parse(params.recurringExpense as string)
+    : null;
   const isEditMode = !!editExpense;
-  
+
   // Form State
-  const [amount, setAmount] = useState('');
-  const [name, setName] = useState('');
-  const [category, setCategory] = useState<{name: string, icon: string, color: string} | null>(null);
-  const [frequency, setFrequency] = useState<'daily' | 'weekly' | 'monthly'>('monthly');
+  const [amount, setAmount] = useState("");
+  const [name, setName] = useState("");
+  const [category, setCategory] = useState<{
+    name: string;
+    icon: string;
+    color: string;
+  } | null>(null);
+  const [frequency, setFrequency] = useState<"daily" | "weekly" | "monthly">(
+    "monthly",
+  );
   const [startDate, setStartDate] = useState(new Date());
-  const [note, setNote] = useState('');
+  const [note, setNote] = useState("");
 
   // UI State
   const [isCategorySheetVisible, setIsCategorySheetVisible] = useState(false);
@@ -68,7 +74,7 @@ export default function AddRecurringExpenseScreen() {
       setCategory({
         name: editExpense.category,
         icon: editExpense.categoryIcon,
-        color: editExpense.categoryColor
+        color: editExpense.categoryColor,
       });
     }
   }, [isEditMode]);
@@ -77,9 +83,9 @@ export default function AddRecurringExpenseScreen() {
   const calculateNextDue = () => {
     const next = new Date(startDate);
     if (!startDate) return next;
-    if (frequency === 'daily') next.setDate(next.getDate() + 1);
-    else if (frequency === 'weekly') next.setDate(next.getDate() + 7);
-    else if (frequency === 'monthly') next.setMonth(next.getMonth() + 1);
+    if (frequency === "daily") next.setDate(next.getDate() + 1);
+    else if (frequency === "weekly") next.setDate(next.getDate() + 7);
+    else if (frequency === "monthly") next.setMonth(next.getMonth() + 1);
     return next;
   };
 
@@ -117,35 +123,41 @@ export default function AddRecurringExpenseScreen() {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
       <Stack.Screen options={{ headerShown: false }} />
-      
+
       {/* Success Modal */}
-      <SuccessModal 
+      <SuccessModal
         isVisible={showSuccess}
         title={isEditMode ? "Changes Saved!" : "Recurring Expense Added!"}
-        subtitle={isEditMode ? "Your recurring payment details have been updated." : "Your recurring payment has been scheduled successfully."}
+        subtitle={
+          isEditMode
+            ? "Your recurring payment details have been updated."
+            : "Your recurring payment has been scheduled successfully."
+        }
         onDone={() => {
           setShowSuccess(false);
           router.back();
         }}
       />
-      
+
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity 
-          style={styles.backButton} 
+        <TouchableOpacity
+          style={styles.backButton}
           onPress={() => router.back()}
         >
           <Ionicons name="chevron-back" size={20} color={TEXT_PRIMARY} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>{isEditMode ? 'Edit Recurring Expense' : 'Add Recurring Expense'}</Text>
+        <Text style={styles.headerTitle}>
+          {isEditMode ? "Edit Recurring Expense" : "Add Recurring Expense"}
+        </Text>
         <View style={{ width: 40 }} />
       </View>
 
-      <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1 }}
       >
-        <ScrollView 
+        <ScrollView
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
         >
@@ -153,11 +165,11 @@ export default function AddRecurringExpenseScreen() {
           <View style={styles.dateGroup}>
             <Ionicons name="calendar-outline" size={16} color={PRIMARY_GREEN} />
             <Text style={styles.dateLabelText}>
-              {new Date().toLocaleDateString('en-GB', { 
-                weekday: 'short', 
-                day: '2-digit', 
-                month: 'short', 
-                year: '2-digit' 
+              {new Date().toLocaleDateString("en-GB", {
+                weekday: "short",
+                day: "2-digit",
+                month: "short",
+                year: "2-digit",
               })}
             </Text>
           </View>
@@ -187,7 +199,7 @@ export default function AddRecurringExpenseScreen() {
               outerContainerStyle={styles.fieldGroup}
             />
 
-            <TouchableOpacity 
+            <TouchableOpacity
               activeOpacity={0.8}
               onPress={() => setIsCategorySheetVisible(true)}
               style={styles.fieldGroup}
@@ -195,10 +207,12 @@ export default function AddRecurringExpenseScreen() {
               <InputField
                 label="Category"
                 placeholder="Choose a category"
-                value={category?.name || ''}
+                value={category?.name || ""}
                 editable={false}
                 pointerEvents="none"
-                rightIcon={<Ionicons name="chevron-down" size={20} color="#9CA3AF" />}
+                rightIcon={
+                  <Ionicons name="chevron-down" size={20} color="#9CA3AF" />
+                }
                 containerStyle={styles.inputField}
                 labelStyle={styles.fieldLabel}
               />
@@ -208,19 +222,25 @@ export default function AddRecurringExpenseScreen() {
             <View style={styles.fieldGroup}>
               <Text style={styles.fieldLabel}>Repeats</Text>
               <View style={styles.frequencyRow}>
-                {(['daily', 'weekly', 'monthly'] as const).map((freq) => (
+                {(["daily", "weekly", "monthly"] as const).map((freq) => (
                   <TouchableOpacity
                     key={freq}
                     style={[
                       styles.freqChip,
-                      frequency === freq ? styles.activeFreqChip : styles.inactiveFreqChip
+                      frequency === freq
+                        ? styles.activeFreqChip
+                        : styles.inactiveFreqChip,
                     ]}
                     onPress={() => setFrequency(freq)}
                   >
-                    <Text style={[
-                      styles.freqChipText,
-                      frequency === freq ? styles.activeFreqText : styles.inactiveFreqText
-                    ]}>
+                    <Text
+                      style={[
+                        styles.freqChipText,
+                        frequency === freq
+                          ? styles.activeFreqText
+                          : styles.inactiveFreqText,
+                      ]}
+                    >
                       {freq.charAt(0).toUpperCase() + freq.slice(1)}
                     </Text>
                   </TouchableOpacity>
@@ -229,17 +249,27 @@ export default function AddRecurringExpenseScreen() {
             </View>
 
             <View style={styles.rowFields}>
-              <TouchableOpacity 
+              <TouchableOpacity
                 activeOpacity={0.8}
                 onPress={handleDatePress}
                 style={[styles.fieldGroup, { flex: 1, marginRight: 8 }]}
               >
                 <InputField
                   label="Starts on"
-                  value={startDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  value={startDate.toLocaleDateString("en-GB", {
+                    day: "numeric",
+                    month: "short",
+                    year: "numeric",
+                  })}
                   editable={false}
                   pointerEvents="none"
-                  rightIcon={<Ionicons name="calendar-outline" size={20} color={PRIMARY_GREEN} />}
+                  rightIcon={
+                    <Ionicons
+                      name="calendar-outline"
+                      size={20}
+                      color={PRIMARY_GREEN}
+                    />
+                  }
                   containerStyle={styles.inputField}
                   labelStyle={styles.fieldLabel}
                 />
@@ -247,10 +277,23 @@ export default function AddRecurringExpenseScreen() {
               <View style={[styles.fieldGroup, { flex: 1, marginLeft: 8 }]}>
                 <InputField
                   label="Next due"
-                  value={nextDueDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  value={nextDueDate.toLocaleDateString("en-GB", {
+                    day: "numeric",
+                    month: "short",
+                    year: "numeric",
+                  })}
                   editable={false}
-                  rightIcon={<Ionicons name="calendar-outline" size={20} color="#E5E7EB" />}
-                  containerStyle={[styles.inputField, { backgroundColor: '#F9FAFB' }]}
+                  rightIcon={
+                    <Ionicons
+                      name="calendar-outline"
+                      size={20}
+                      color="#E5E7EB"
+                    />
+                  }
+                  containerStyle={[
+                    styles.inputField,
+                    { backgroundColor: "#F9FAFB" },
+                  ]}
                   labelStyle={styles.fieldLabel}
                 />
               </View>
@@ -272,7 +315,7 @@ export default function AddRecurringExpenseScreen() {
 
       {/* Save Button */}
       <View style={styles.footer}>
-        <Button 
+        <Button
           title={isEditMode ? "Save Changes" : "Add Recurring Expense"}
           onPress={handleSave}
           variant="primary"
@@ -281,7 +324,7 @@ export default function AddRecurringExpenseScreen() {
         />
       </View>
 
-      <CategoryBottomSheet 
+      <CategoryBottomSheet
         isVisible={isCategorySheetVisible}
         type="expense"
         onClose={() => setIsCategorySheetVisible(false)}
@@ -305,23 +348,23 @@ const styles = StyleSheet.create({
   },
   header: {
     height: 64,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 16,
   },
   backButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#E5E5EA',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "#E5E5EA",
+    alignItems: "center",
+    justifyContent: "center",
   },
   headerTitle: {
     fontSize: 18,
     fontFamily: Fonts.semiBold,
-    color: '#000000',
+    color: "#000000",
   },
   scrollContent: {
     paddingHorizontal: 16,
@@ -329,16 +372,16 @@ const styles = StyleSheet.create({
     paddingBottom: 100,
   },
   dateGroup: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "center",
     gap: 8,
     marginBottom: 24,
   },
   dateLabelText: {
     fontSize: 15,
     fontFamily: Fonts.regular,
-    color: '#4B5563',
+    color: "#4B5563",
   },
   formSection: {
     gap: 0,
@@ -349,12 +392,12 @@ const styles = StyleSheet.create({
   fieldLabel: {
     fontSize: 14,
     fontFamily: Fonts.regular,
-    color: '#374151',
+    color: "#374151",
     marginBottom: 8,
   },
   inputField: {
     height: 52,
-    borderColor: '#E0E0E0',
+    borderColor: "#E0E0E0",
     borderRadius: 12,
   },
   amountPrefix: {
@@ -363,15 +406,15 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.semiBold,
   },
   frequencyRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 12,
   },
   freqChip: {
     flex: 1,
     height: 44,
     borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     borderWidth: 1,
   },
   activeFreqChip: {
@@ -380,7 +423,7 @@ const styles = StyleSheet.create({
   },
   inactiveFreqChip: {
     backgroundColor: WHITE,
-    borderColor: '#E0E0E0',
+    borderColor: "#E0E0E0",
   },
   freqChipText: {
     fontSize: 14,
@@ -393,15 +436,15 @@ const styles = StyleSheet.create({
     color: TEXT_SECONDARY,
   },
   rowFields: {
-    flexDirection: 'row',
+    flexDirection: "row",
   },
   textArea: {
     height: 90,
-    textAlignVertical: 'top',
+    textAlignVertical: "top",
     paddingTop: 12,
   },
   footer: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
@@ -411,5 +454,5 @@ const styles = StyleSheet.create({
   saveButton: {
     height: 56,
     borderRadius: 16,
-  }
+  },
 });

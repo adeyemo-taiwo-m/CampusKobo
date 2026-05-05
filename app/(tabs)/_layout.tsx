@@ -1,6 +1,6 @@
-import { Tabs } from 'expo-router';
-import React from 'react';
-import { CustomTabBar } from '../../src/components/CustomTabBar';
+import { Tabs } from "expo-router";
+import React from "react";
+import { CustomTabBar } from "../../src/components/CustomTabBar";
 
 export default function TabLayout() {
   return (
@@ -8,31 +8,13 @@ export default function TabLayout() {
       tabBar={(props) => <CustomTabBar {...props} />}
       screenOptions={{
         headerShown: false,
-      }}>
-      <Tabs.Screen
-        name="index"
-        options={{ title: 'Home' }}
-      />
-      <Tabs.Screen
-        name="expenses"
-        options={{ title: 'Expenses' }}
-      />
-      <Tabs.Screen
-        name="savings"
-        options={{ title: 'Savings' }}
-      />
-      <Tabs.Screen
-        name="budget"
-        options={{ title: 'Budget' }}
-      />
+      }}
+    >
+      <Tabs.Screen name="index" options={{ title: "Home" }} />
+      <Tabs.Screen name="expenses" options={{ title: "Expenses" }} />
+      <Tabs.Screen name="savings" options={{ title: "Savings" }} />
+      <Tabs.Screen name="budget" options={{ title: "Budget" }} />
       {/* Primary Sub-screens with persistent nav bar */}
-      <Tabs.Screen
-        name="recurring"
-        options={{ 
-          href: null,
-          title: 'Recurring Expenses' 
-        }}
-      />
     </Tabs>
   );
 }

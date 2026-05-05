@@ -1,63 +1,65 @@
-import React, { useState, useMemo } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  ScrollView, 
-  TouchableOpacity, 
-  SafeAreaView, 
-  StatusBar, 
-  TextInput,
-  Image,
-  Alert,
+import { Ionicons } from "@expo/vector-icons";
+import {
+  format,
+  isThisMonth,
+  isThisWeek,
+  isToday,
+  isYesterday,
+  subMonths,
+} from "date-fns";
+import { useRouter } from "expo-router";
+import React, { useMemo, useState } from "react";
+import {
   ActivityIndicator,
+  Alert,
   RefreshControl,
-} from 'react-native';
-import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { MainHeader } from '../../components/MainHeader';
-import { 
-  PRIMARY_GREEN, 
-  WHITE, 
-  TEXT_PRIMARY, 
-  TEXT_SECONDARY, 
-  SPACING, 
-  Fonts,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { DarkCard } from "../../components/DarkCard";
+import { EmptyState } from "../../components/EmptyState";
+import { ExportBottomSheet } from "../../components/ExportBottomSheet";
+import { InputField } from "../../components/InputField";
+import { MainHeader } from "../../components/MainHeader";
+import { OfflineBanner } from "../../components/OfflineBanner";
+import { Toast } from "../../components/Toast";
+import { TransactionCard } from "../../components/TransactionCard";
+import {
+  BACKGROUND,
   BORDER_GRAY,
-  BACKGROUND 
-} from '../../constants';
-import { useAppContext } from '../../context/AppContext';
-import { DarkCard } from '../../components/DarkCard';
-import { TransactionCard } from '../../components/TransactionCard';
-import { OfflineBanner } from '../../components/OfflineBanner';
-import { ProgressBar } from '../../components/ProgressBar';
-import { EmptyState } from '../../components/EmptyState';
-import { InputField } from '../../components/InputField';
-import { ExportBottomSheet } from '../../components/ExportBottomSheet';
-import { Toast } from '../../components/Toast';
-import { useToast } from '../../hooks/useToast';
-import { formatCurrency, getPercentage } from '../../utils/formatters';
-import { format, isToday, isYesterday, isThisWeek, isThisMonth, subMonths } from 'date-fns';
+  Fonts,
+  PRIMARY_GREEN,
+  SPACING,
+  TEXT_PRIMARY,
+  TEXT_SECONDARY,
+  WHITE,
+} from "../../constants";
+import { useAppContext } from "../../context/AppContext";
+import { useToast } from "../../hooks/useToast";
 
-type FilterType = 'This Month' | 'Last Month' | 'This Week' | 'All';
+type FilterType = "This Month" | "Last Month" | "This Week" | "All";
 
 export default function ExpensesListScreen() {
   const router = useRouter();
-  const { 
-    transactions, 
-    budgets, 
-    isLoading, 
-    user, 
+  const {
+    transactions,
+    budgets,
+    isLoading,
+    user,
     apiUser,
     totalBudgetLimit,
     totalBudgetSpent,
     budgetUsedPercent,
     totalIncomeThisMonth,
     totalExpensesThisMonth,
-    loadAllData
+    loadAllData,
   } = useAppContext();
-  const [activeFilter, setActiveFilter] = useState<FilterType>('This Month');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [activeFilter, setActiveFilter] = useState<FilterType>("This Month");
+  const [searchQuery, setSearchQuery] = useState("");
   const [isExportVisible, setIsExportVisible] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const { toastProps, showToast } = useToast();
@@ -66,14 +68,13 @@ export default function ExpensesListScreen() {
     setRefreshing(true);
     try {
       await loadAllData();
-      showToast('Data synced with backend', 'success');
+      showToast("Data synced with backend", "success");
     } catch (error) {
-      showToast('Sync failed. Check your connection.', 'error');
+      showToast("Sync failed. Check your connection.", "error");
     } finally {
       setRefreshing(false);
     }
   };
-
 
   // Filter transactions
   const filteredTransactions = useMemo(() => {
@@ -81,103 +82,133 @@ export default function ExpensesListScreen() {
 
     // Status Filter
     const now = new Date();
-    if (activeFilter === 'This Month') {
-      list = list.filter(t => isThisMonth(new Date(t.date)));
-    } else if (activeFilter === 'Last Month') {
+    if (activeFilter === "This Month") {
+      list = list.filter((t) => isThisMonth(new Date(t.date)));
+    } else if (activeFilter === "Last Month") {
       const lastMonth = subMonths(now, 1);
-      list = list.filter(t => {
+      list = list.filter((t) => {
         const d = new Date(t.date);
-        return d.getMonth() === lastMonth.getMonth() && d.getFullYear() === lastMonth.getFullYear();
+        return (
+          d.getMonth() === lastMonth.getMonth() &&
+          d.getFullYear() === lastMonth.getFullYear()
+        );
       });
-    } else if (activeFilter === 'This Week') {
-      list = list.filter(t => isThisWeek(new Date(t.date)));
+    } else if (activeFilter === "This Week") {
+      list = list.filter((t) => isThisWeek(new Date(t.date)));
     }
 
     // Search Filter
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
-      list = list.filter(t => 
-        t.description.toLowerCase().includes(query) || 
-        t.category.toLowerCase().includes(query)
+      list = list.filter(
+        (t) =>
+          t.description.toLowerCase().includes(query) ||
+          t.category.toLowerCase().includes(query),
       );
     }
 
-    return list.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    return list.sort(
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+    );
   }, [transactions, activeFilter, searchQuery]);
 
   // Group by date
   const groupedTransactions = useMemo(() => {
     const groups: { [key: string]: typeof transactions } = {};
-    filteredTransactions.forEach(t => {
+    filteredTransactions.forEach((t) => {
       const date = new Date(t.date);
-      let dateLabel = format(date, 'MMM d, yyyy');
-      if (isToday(date)) dateLabel = 'Today';
-      else if (isYesterday(date)) dateLabel = 'Yesterday';
-      
+      let dateLabel = format(date, "MMM d, yyyy");
+      if (isToday(date)) dateLabel = "Today";
+      else if (isYesterday(date)) dateLabel = "Yesterday";
+
       if (!groups[dateLabel]) groups[dateLabel] = [];
       groups[dateLabel].push(t);
     });
     return groups;
   }, [filteredTransactions]);
 
-
-
-  const handleExport = (format: 'pdf' | 'excel') => {
+  const handleExport = (format: "pdf" | "excel") => {
     setIsExportVisible(false);
-    Alert.alert('Export feature coming soon', `Exporting as ${format.toUpperCase()}...`);
+    Alert.alert(
+      "Export feature coming soon",
+      `Exporting as ${format.toUpperCase()}...`,
+    );
   };
 
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
       <OfflineBanner />
-      
+
       {/* ── Green Hero Region ─────────────────────── */}
       <View style={styles.headerBackground}>
         <MainHeader title="Expenses" />
 
-          {/* Reusable Dark Summary Card */}
-          <DarkCard
-            type="expenses"
-            amount={totalExpensesThisMonth}
-            income={totalIncomeThisMonth}
-            expenses={totalExpensesThisMonth}
-            progress={budgetUsedPercent / 100}
-            periodLabel={
-              activeFilter === 'This Month' 
-                ? new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }).toUpperCase()
-                : activeFilter === 'Last Month'
-                ? subMonths(new Date(), 1).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }).toUpperCase()
+        {/* Reusable Dark Summary Card */}
+        <DarkCard
+          type="expenses"
+          amount={totalExpensesThisMonth}
+          income={totalIncomeThisMonth}
+          expenses={totalExpensesThisMonth}
+          progress={budgetUsedPercent / 100}
+          periodLabel={
+            activeFilter === "This Month"
+              ? new Date()
+                  .toLocaleDateString("en-US", {
+                    month: "long",
+                    year: "numeric",
+                  })
+                  .toUpperCase()
+              : activeFilter === "Last Month"
+                ? subMonths(new Date(), 1)
+                    .toLocaleDateString("en-US", {
+                      month: "long",
+                      year: "numeric",
+                    })
+                    .toUpperCase()
                 : activeFilter.toUpperCase()
-            }
-            statusCaption={`You've spent ${budgetUsedPercent}% of your monthly budget`}
-            style={styles.summaryCard}
-          />
-        </View>
-
+          }
+          statusCaption={`You've spent ${budgetUsedPercent}% of your monthly budget`}
+          style={styles.summaryCard}
+        />
+      </View>
 
       <View style={styles.mainContentWrapper}>
-        <ScrollView 
-          contentContainerStyle={styles.scrollContent} 
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
           refreshControl={
-            <RefreshControl 
-              refreshing={refreshing} 
-              onRefresh={handleRefresh} 
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
               tintColor={PRIMARY_GREEN}
               colors={[PRIMARY_GREEN]}
             />
           }
         >
           {/* Filter Chips */}
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filtersWrapper}>
-            {(['This Month', 'This Week', 'Last Month', 'All'] as FilterType[]).map(filter => (
-              <TouchableOpacity 
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.filtersWrapper}
+          >
+            {(
+              ["This Month", "This Week", "Last Month", "All"] as FilterType[]
+            ).map((filter) => (
+              <TouchableOpacity
                 key={filter}
-                style={[styles.filterChip, activeFilter === filter && styles.activeFilterChip]}
+                style={[
+                  styles.filterChip,
+                  activeFilter === filter && styles.activeFilterChip,
+                ]}
                 onPress={() => setActiveFilter(filter)}
               >
-                <Text style={[styles.filterText, activeFilter === filter && styles.activeFilterText]}>
+                <Text
+                  style={[
+                    styles.filterText,
+                    activeFilter === filter && styles.activeFilterText,
+                  ]}
+                >
                   {filter}
                 </Text>
               </TouchableOpacity>
@@ -194,19 +225,35 @@ export default function ExpensesListScreen() {
                 prefix="" // No prefix needed here
                 style={styles.searchInputCustom}
                 outerContainerStyle={styles.searchFieldOuter}
-                leftIcon={<Ionicons name="search-outline" size={20} color={TEXT_SECONDARY} />}
+                leftIcon={
+                  <Ionicons
+                    name="search-outline"
+                    size={20}
+                    color={TEXT_SECONDARY}
+                  />
+                }
               />
             </View>
-            <TouchableOpacity style={styles.actionButton} onPress={() => router.push("/(tabs)/recurring")}>
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={() => router.push("/expenses/recurring")}
+            >
               <Ionicons name="repeat" size={22} color={PRIMARY_GREEN} />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.actionButton} onPress={() => setIsExportVisible(true)}>
-              <Ionicons name="document-text-outline" size={22} color={PRIMARY_GREEN} />
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={() => setIsExportVisible(true)}
+            >
+              <Ionicons
+                name="document-text-outline"
+                size={22}
+                color={PRIMARY_GREEN}
+              />
             </TouchableOpacity>
           </View>
 
           {/* Export Bottom Sheet */}
-          <ExportBottomSheet 
+          <ExportBottomSheet
             isVisible={isExportVisible}
             onClose={() => setIsExportVisible(false)}
             onExport={handleExport}
@@ -217,8 +264,8 @@ export default function ExpensesListScreen() {
             Object.entries(groupedTransactions).map(([date, items]) => (
               <View key={date} style={styles.dateGroup}>
                 <Text style={styles.dateHeader}>{date}</Text>
-                {items.map(item => (
-                  <TransactionCard 
+                {items.map((item) => (
+                  <TransactionCard
                     key={item.id}
                     transaction={item}
                     onPress={() => router.push(`/transaction/${item.id}`)}
@@ -227,7 +274,7 @@ export default function ExpensesListScreen() {
               </View>
             ))
           ) : (
-            <EmptyState 
+            <EmptyState
               icon="receipt-outline"
               title="No transactions found"
               subtitle="Try adjusting your filters or adding a new record"
@@ -287,7 +334,7 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 19,
-    overflow: 'hidden',
+    overflow: "hidden",
     backgroundColor: "rgba(255,255,255,0.2)",
   },
   avatarImage: {
@@ -297,9 +344,9 @@ const styles = StyleSheet.create({
   initialsAvatar: {
     width: 38,
     height: 38,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "rgba(255,255,255,0.2)",
+    alignItems: "center",
+    justifyContent: "center",
   },
   initialsText: {
     color: WHITE,
@@ -338,8 +385,8 @@ const styles = StyleSheet.create({
   filterChip: {
     paddingHorizontal: 18,
     height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     borderRadius: 20,
     backgroundColor: WHITE,
     borderWidth: 1,
@@ -359,7 +406,7 @@ const styles = StyleSheet.create({
     color: WHITE,
   },
   searchSection: {
-    flexDirection: 'row',
+    flexDirection: "row",
     paddingHorizontal: SPACING.LG,
     gap: 10,
     marginBottom: 24,
@@ -378,9 +425,9 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 16,
-    backgroundColor: '#F9FAFB',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "#F9FAFB",
+    alignItems: "center",
+    justifyContent: "center",
     borderWidth: 1,
     borderColor: BORDER_GRAY,
   },
