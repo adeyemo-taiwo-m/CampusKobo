@@ -224,9 +224,6 @@ const GlossaryScreen = () => {
         <View style={styles.listSection}>
           {Object.keys(termsByLetter).sort().map(letter => {
             const terms = termsByLetter[letter];
-            const isExpanded = expandedSections[letter];
-            const displayTerms = isExpanded ? terms : terms.slice(0, 2);
-            const remainingCount = terms.length - 2;
 
             return (
               <View 
@@ -241,17 +238,7 @@ const GlossaryScreen = () => {
                   <Text style={styles.letterHeaderText}>{letter}</Text>
                 </View>
                 <View style={styles.termsContainer}>
-                  {displayTerms.map(renderTermRow)}
-                  {terms.length > 2 && (
-                    <TouchableOpacity 
-                      style={styles.seeMoreBtn}
-                      onPress={() => toggleSection(letter)}
-                    >
-                      <Text style={styles.seeMoreText}>
-                        {isExpanded ? 'See less ↑' : `See more (${remainingCount}) →`}
-                      </Text>
-                    </TouchableOpacity>
-                  )}
+                  {terms.map(renderTermRow)}
                 </View>
               </View>
             );
@@ -309,11 +296,11 @@ const GlossaryScreen = () => {
                       </View>
                     )}
 
-                    {selectedTerm.relatedTerms && selectedTerm.relatedTerms.length > 0 && (
+                    {(selectedTerm.related_terms || selectedTerm.relatedTerms)?.length > 0 && (
                       <View style={styles.modalSection}>
                         <Text style={styles.modalLabel}>Related terms:</Text>
                         <View style={styles.tagContainer}>
-                          {selectedTerm.relatedTerms.map(tag => (
+                          {(selectedTerm.related_terms || selectedTerm.relatedTerms).map(tag => (
                             <TouchableOpacity 
                               key={tag} 
                               style={styles.tag}

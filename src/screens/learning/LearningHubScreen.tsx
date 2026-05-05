@@ -372,37 +372,46 @@ export const LearningHubScreen = () => {
         <View style={[styles.section, { marginBottom: 100 }]}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionLabel}>Financial Glossary</Text>
-            <TouchableOpacity onPress={() => router.push('/learning/glossary')}>
+            <TouchableOpacity 
+              onPress={() => router.push('/learning/glossary')}
+              style={{ padding: 10, marginRight: -10 }}
+            >
               <Text style={styles.viewAll}>View all</Text>
             </TouchableOpacity>
           </View>
 
           <View style={styles.glossaryList}>
-            {STATIC_GLOSSARY_TERMS.slice(0, 3).map((term, index) => (
-              <TouchableOpacity 
-                key={term.id}
-                style={[
-                  styles.glossaryRow,
-                  index < 2 && styles.glossaryDivider
-                ]}
-                onPress={() => router.push('/learning/glossary')}
-              >
-                <View style={styles.glossaryIconBox}>
-                  <Ionicons 
-                    name={index === 0 ? 'wallet' : index === 1 ? 'book' : 'receipt'} 
-                    size={24} 
-                    color={PRIMARY_GREEN} 
-                  />
-                </View>
-                <View style={styles.glossaryTextContent}>
-                  <Text style={styles.glossaryTerm}>{term.term}</Text>
-                  <Text style={styles.glossaryDef} numberOfLines={2}>
-                    {term.definition}
-                  </Text>
-                </View>
-                <Ionicons name="chevron-forward" size={20} color="#D1D5DB" />
-              </TouchableOpacity>
-            ))}
+            {glossaryTerms.length > 0 ? (
+              glossaryTerms.slice(0, 3).map((term, index) => (
+                <TouchableOpacity 
+                  key={term.id}
+                  style={[
+                    styles.glossaryRow,
+                    index < 2 && index < glossaryTerms.length - 1 && styles.glossaryDivider
+                  ]}
+                  onPress={() => router.push('/learning/glossary')}
+                >
+                  <View style={styles.glossaryIconBox}>
+                    <Ionicons 
+                      name={index === 0 ? 'wallet' : index === 1 ? 'book' : 'receipt'} 
+                      size={24} 
+                      color={PRIMARY_GREEN} 
+                    />
+                  </View>
+                  <View style={styles.glossaryTextContent}>
+                    <Text style={styles.glossaryTerm}>{term.term}</Text>
+                    <Text style={styles.glossaryDef} numberOfLines={2}>
+                      {term.definition}
+                    </Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={20} color="#D1D5DB" />
+                </TouchableOpacity>
+              ))
+            ) : (
+              <View style={{ padding: 20, alignItems: 'center' }}>
+                <Text style={styles.glossaryDef}>No terms found in Supabase.</Text>
+              </View>
+            )}
           </View>
         </View>
 
