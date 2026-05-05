@@ -29,6 +29,7 @@ import { SecondaryHeader } from '../../components/SecondaryHeader';
 import { SuccessModal } from '../../components/SuccessScreen';
 import { Toast } from '../../components/Toast';
 import { CategoryBottomSheet } from '../../components/CategoryBottomSheet';
+import { DatePickerModal } from '../../components/DatePickerModal';
 import { useToast } from '../../hooks/useToast';
 import { useAppContext } from '../../context/AppContext';
 import { Transaction } from '../../types';
@@ -55,11 +56,17 @@ export default function AddTransactionScreen() {
       color: editTransaction.categoryColor 
     } : null
   );
-  const [description, setDescription] = useState(editTransaction?.description || '');  const [customCategoryName, setCustomCategoryName] = useState('');
+  const [description, setDescription] = useState(editTransaction?.description || '');
+  const [customCategoryName, setCustomCategoryName] = useState('');
+  const [selectedDate, setSelectedDate] = useState<Date>(
+    params.initialDate ? new Date(params.initialDate as string) : 
+    (editTransaction ? new Date(editTransaction.date) : new Date())
+  );
   
   // UI & Validation State
   const [isProcessing, setIsProcessing] = useState(false);
   const [isCategorySheetVisible, setIsCategorySheetVisible] = useState(false);
+  const [isDatePickerVisible, setIsDatePickerVisible] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [validationErrors, setValidationErrors] = useState<Record<string, boolean>>({});
 
@@ -103,7 +110,7 @@ export default function AddTransactionScreen() {
         categoryColor: category!.color,
         description: description || (category?.name === 'Others' ? customCategoryName : category!.name),
         note: description,
-        date: isEditMode ? editTransaction.date : new Date().toISOString(),
+        date: selectedDate.toISOString(),
         isRecurring: isEditMode ? editTransaction.isRecurring : false,
       };
 
@@ -156,17 +163,21 @@ export default function AddTransactionScreen() {
           keyboardShouldPersistTaps="handled"
         >
           {/* Date Group */}
-          <View style={styles.dateGroup}>
+          <TouchableOpacity 
+            style={styles.dateGroup}
+            onPress={() => setIsDatePickerVisible(true)}
+          >
             <Ionicons name="calendar-outline" size={16} color={PRIMARY_GREEN} />
             <Text style={styles.dateLabelText}>
-              {new Date().toLocaleDateString('en-GB', { 
+              {selectedDate.toLocaleDateString('en-GB', { 
                 weekday: 'short', 
                 day: '2-digit', 
                 month: 'short', 
                 year: '2-digit' 
               })}
             </Text>
-          </View>
+            <Ionicons name="chevron-down" size={12} color="#9CA3AF" />
+          </TouchableOpacity>
 
           {/* Toggle Tabs (Dot style) */}
           <View style={styles.radioGroup}>
@@ -283,6 +294,13 @@ export default function AddTransactionScreen() {
           setCategory(cat);
           if (validationErrors.category) setValidationErrors({...validationErrors, category: false});
         }}
+      />
+
+      <DatePickerModal
+        isVisible={isDatePickerVisible}
+        onClose={() => setIsDatePickerVisible(false)}
+        selectedDate={selectedDate}
+        onSelect={setSelectedDate}
       />
       <Toast {...toastProps} />
     </View>

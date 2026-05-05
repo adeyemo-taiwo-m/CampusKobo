@@ -11,10 +11,10 @@ interface DatePickerModalProps {
 }
 
 export const DatePickerModal = ({ isVisible, onClose, onSelect, selectedDate }: DatePickerModalProps) => {
-  // Generate dates for the next 30 days
+  // Generate dates for the past 30 days (including today)
   const dates = Array.from({ length: 30 }, (_, i) => {
     const d = new Date();
-    d.setDate(d.getDate() + i);
+    d.setDate(d.getDate() - (29 - i)); // -29 to 0 (today)
     return d;
   });
 

@@ -28,6 +28,7 @@ import { MainHeader } from "../../components/MainHeader";
 import { OfflineBanner } from "../../components/OfflineBanner";
 import { Toast } from "../../components/Toast";
 import { TransactionCard } from "../../components/TransactionCard";
+import { DatePickerModal } from "../../components/DatePickerModal";
 import {
   BACKGROUND,
   BORDER_GRAY,
@@ -61,6 +62,8 @@ export default function ExpensesListScreen() {
   const [activeFilter, setActiveFilter] = useState<FilterType>("This Month");
   const [searchQuery, setSearchQuery] = useState("");
   const [isExportVisible, setIsExportVisible] = useState(false);
+  const [isDatePickerVisible, setIsDatePickerVisible] = useState(false);
+  const [selectedPastDate, setSelectedPastDate] = useState(new Date());
   const [refreshing, setRefreshing] = useState(false);
   const { toastProps, showToast } = useToast();
 
@@ -151,6 +154,7 @@ export default function ExpensesListScreen() {
           income={totalIncomeThisMonth}
           expenses={totalExpensesThisMonth}
           progress={budgetUsedPercent / 100}
+          onPeriodPress={() => setIsDatePickerVisible(true)}
           periodLabel={
             activeFilter === "This Month"
               ? new Date()
@@ -292,6 +296,19 @@ export default function ExpensesListScreen() {
       )}
 
       <Toast {...toastProps} />
+
+      <DatePickerModal
+        isVisible={isDatePickerVisible}
+        onClose={() => setIsDatePickerVisible(false)}
+        selectedDate={selectedPastDate}
+        onSelect={(date) => {
+          setSelectedPastDate(date);
+          router.push({
+            pathname: "/transaction",
+            params: { initialDate: date.toISOString() }
+          });
+        }}
+      />
     </View>
   );
 }

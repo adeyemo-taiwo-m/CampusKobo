@@ -43,6 +43,7 @@ interface DarkCardProps {
   showCircularProgress?: boolean;
   onActionPress?: () => void;
   actionLabel?: string;
+  onPeriodPress?: () => void;
 }
 
 export const DarkCard = ({
@@ -71,6 +72,7 @@ export const DarkCard = ({
   showCircularProgress = false,
   onActionPress,
   actionLabel,
+  onPeriodPress,
 }: DarkCardProps) => {
   const isBalanceType = type === "balance";
   const isTransactionType = type === "transaction";
@@ -208,11 +210,18 @@ export const DarkCard = ({
                 <View style={styles.modernHeader}>
                   <View style={styles.modernHeaderLeft}>
                     {type === "expenses" ? (
-                      <View style={styles.modernPeriodPill}>
+                      <TouchableOpacity 
+                        style={styles.modernPeriodPill}
+                        onPress={onPeriodPress}
+                        disabled={!onPeriodPress}
+                      >
                         <Text style={styles.modernPeriodPillText}>
                           {periodLabel}
                         </Text>
-                      </View>
+                        {onPeriodPress && (
+                          <Ionicons name="chevron-down" size={12} color="rgba(255,255,255,0.7)" style={{ marginLeft: 4 }} />
+                        )}
+                      </TouchableOpacity>
                     ) : (
                       <View style={styles.budgetCategoryHeader}>
                         <View style={styles.budgetCategoryIconCircle}>
