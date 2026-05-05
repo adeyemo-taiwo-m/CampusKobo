@@ -1,5 +1,5 @@
 // UPDATE 2026-04-25: Amended to match precise design spec:
-//  - Hero: full #1A9E3F green bg ~40% screen, darker semi-transparent card
+//  - Hero: full PRIMARY_GREEN bg ~40% screen, darker semi-transparent card
 //  - Edit btn: white rectangle bg + PRIMARY_GREEN text
 //  - Progress bar: white fill, dark track
 //  - Motivation: #E8F5E9 pill (borderRadius 30), solid green dot, no border

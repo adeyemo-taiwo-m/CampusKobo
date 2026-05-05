@@ -62,13 +62,13 @@ export const formatTime = (dateInput: string | Date): string => {
 /**
  * Returns a color based on the percentage of a budget or savings used.
  * @param percent The percentage used
- * @returns '#1A9E3F', yellow (#F59E0B), or red (#EF4444)
+ * @returns PRIMARY_GREEN, yellow (#F59E0B), or red (#EF4444)
  */
 export const getProgressColor = (percent: number): string => {
   if (percent >= 100) return '#EF4444'; // red — exceeded
   if (percent >= 90) return '#EF4444';  // red — critical
   if (percent >= 70) return '#F59E0B';  // yellow — warning
-  return '#1A9E3F';                     // green — healthy
+  return PRIMARY_GREEN;                     // green — healthy
 };
 
 /**
