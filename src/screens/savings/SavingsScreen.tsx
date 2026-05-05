@@ -21,7 +21,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { MainHeader } from "../../components/MainHeader";
 import {
   BACKGROUND,
   WHITE,
@@ -61,7 +61,7 @@ const getGoalEmoji = (name: string): string => {
 
 export const SavingsScreen = () => {
   const router = useRouter();
-  const insets = useSafeAreaInsets();
+
   const { 
     enrichedSavingsGoals, 
     isLoading, 
@@ -150,44 +150,7 @@ export const SavingsScreen = () => {
 
       {/* ── Green Hero Region ─────────────────────── */}
       <View style={styles.heroRegion}>
-        <SafeAreaView>
-          {/* Header row */}
-          <View style={styles.headerContent}>
-            <TouchableOpacity
-              style={styles.profileSection}
-              onPress={() => router.push("/profile")}
-            >
-              <View style={styles.avatar}>
-                {apiUser?.avatar_url ? (
-                  <Image source={{ uri: apiUser.avatar_url }} style={styles.avatarImage} />
-                ) : (
-                  <View style={styles.initialsAvatar}>
-                    <Text style={styles.initialsText}>
-                      {(apiUser?.full_name || user?.name || 'CK').split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2)}
-                    </Text>
-                  </View>
-                )}
-              </View>
-              <Text style={styles.welcomeText}>Hi, {(apiUser?.full_name || user?.name)?.split(' ')[0] || 'there'}</Text>
-            </TouchableOpacity>
-
-            <View style={styles.headerActions}>
-              <TouchableOpacity
-                style={styles.iconButton}
-                onPress={() => router.push("/learning")}
-              >
-                <Ionicons name="school-outline" size={22} color={WHITE} />
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.iconButton}
-                onPress={() => router.push("/profile/notifications")}
-              >
-                <Ionicons name="notifications-outline" size={22} color={WHITE} />
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          <Text style={styles.headerTitleLabelCentered}>Savings</Text>
+        <MainHeader title="Savings" />
 
           {/* Savings specific DarkCard summary */}
           <View style={styles.cardWrapper}>
@@ -203,8 +166,8 @@ export const SavingsScreen = () => {
               progress={overallSavingsPercent / 100}
             />
           </View>
-        </SafeAreaView>
-      </View>
+        </View>
+
 
       {/* ── White Body ───────────────────────────── */}
       <View style={styles.body}>
@@ -237,14 +200,7 @@ export const SavingsScreen = () => {
         </ScrollView>
       </View>
 
-      {/* Floating Action Button */}
-      <TouchableOpacity
-        style={styles.fab}
-        onPress={() => router.push("/savings/create")}
-        activeOpacity={0.8}
-      >
-        <Ionicons name="add" size={32} color={WHITE} />
-      </TouchableOpacity>
+
 
       {/* Add Funds Bottom Sheet */}
       {selectedGoal && (
@@ -289,7 +245,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: SPACING.LG,
-    paddingTop: 8, // Reduced since it's inside SafeAreaView
+    paddingTop: 12, 
     marginBottom: 12,
   },
   profileSection: {
@@ -465,22 +421,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingTop: 40,
   },
-  fab: {
-    position: "absolute",
-    right: 20,
-    bottom: 30,
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: PRIMARY_GREEN,
-    alignItems: "center",
-    justifyContent: "center",
-    elevation: 8,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-  },
+
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: "rgba(255, 255, 255, 0.8)",

@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { MainHeader } from '../../components/MainHeader';
 import { 
   PRIMARY_GREEN, 
   WHITE, 
@@ -131,42 +132,9 @@ export default function ExpensesListScreen() {
       <StatusBar barStyle="light-content" />
       <OfflineBanner />
       
-      {/* Header same as Dashboard */}
+      {/* ── Green Hero Region ─────────────────────── */}
       <View style={styles.headerBackground}>
-        <SafeAreaView>
-          <View style={styles.headerContent}>
-            <TouchableOpacity 
-              style={styles.profileSection}
-              onPress={() => router.push("/profile")}
-            >
-              <View style={styles.avatar}>
-                {apiUser?.avatar_url ? (
-                  <Image source={{ uri: apiUser.avatar_url }} style={styles.avatarImage} />
-                ) : (
-                  <View style={styles.initialsAvatar}>
-                    <Text style={styles.initialsText}>
-                      {(apiUser?.full_name || user?.name || 'CK').split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2)}
-                    </Text>
-                  </View>
-                )}
-              </View>
-              <Text style={styles.welcomeText}>Hi, {(apiUser?.full_name || user?.name)?.split(' ')[0] || 'there'}</Text>
-            </TouchableOpacity>
-            
-            <View style={styles.headerActions}>
-              <TouchableOpacity style={styles.iconButton} onPress={handleRefresh}>
-                <Ionicons name="refresh-outline" size={22} color={WHITE} />
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.iconButton} onPress={() => router.push("/learning")}>
-                <Ionicons name="school-outline" size={22} color={WHITE} />
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.iconButton} onPress={() => router.push("/profile/notifications")}>
-                <Ionicons name="notifications-outline" size={22} color={WHITE} />
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          <Text style={styles.headerTitleLabelCentered}>Expenses</Text>
+        <MainHeader title="Expenses" />
 
           {/* Reusable Dark Summary Card */}
           <DarkCard
@@ -185,8 +153,8 @@ export default function ExpensesListScreen() {
             statusCaption={`You've spent ${budgetUsedPercent}% of your monthly budget`}
             style={styles.summaryCard}
           />
-        </SafeAreaView>
-      </View>
+        </View>
+
 
       <View style={styles.mainContentWrapper}>
         <ScrollView 

@@ -12,6 +12,7 @@ import {
   View,
   RefreshControl,
 } from "react-native";
+import { MainHeader } from "../../components/MainHeader";
 import { AddFundsBottomSheet } from "../../components/AddFundsBottomSheet";
 import { DarkCard } from "../../components/DarkCard";
 import { OfflineBanner } from "../../components/OfflineBanner";
@@ -53,7 +54,6 @@ export default function DashboardScreen() {
     isBalanceHidden,
     toggleBalanceVisibility,
   } = useAppContext();
-
   const [isAddFundsVisible, setIsAddFundsVisible] = useState(false);
   const { toastProps, showToast } = useToast();
 
@@ -80,31 +80,7 @@ export default function DashboardScreen() {
       <StatusBar barStyle="light-content" />
       <OfflineBanner />
 
-      <SafeAreaView>
-        {/* ── HEADER ── */}
-        <View style={styles.header}>
-          <TouchableOpacity 
-            style={styles.profileSection}
-            onPress={() => router.push("/profile")}
-          >
-            <View style={styles.avatar}>
-              {apiUser?.avatar_url ? (
-                <Image source={{ uri: apiUser.avatar_url }} style={styles.avatarImage} />
-              ) : (
-                <Text style={styles.avatarText}>{initials}</Text>
-              )}
-            </View>
-            <Text style={styles.greeting}>Hi, {firstName}</Text>
-          </TouchableOpacity>
-          <View style={styles.headerIcons}>
-            <TouchableOpacity style={styles.iconButton} onPress={() => router.push("/learning")}>
-              <Ionicons name="school-outline" size={24} color={WHITE} />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.iconButton} onPress={() => router.push("/profile/notifications")}>
-              <Ionicons name="notifications-outline" size={24} color={WHITE} />
-            </TouchableOpacity>
-          </View>
-        </View>
+      <MainHeader />
 
         {/* ── BALANCE CARD ── */}
         <DarkCard
@@ -116,7 +92,7 @@ export default function DashboardScreen() {
           onToggleVisibility={toggleBalanceVisibility}
           style={styles.balanceCard}
         />
-      </SafeAreaView>
+
 
       <View style={styles.mainContent}>
         <ScrollView

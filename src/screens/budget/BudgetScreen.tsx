@@ -14,6 +14,7 @@ import {
   RefreshControl,
 } from "react-native";
 import * as Progress from "react-native-progress";
+import { MainHeader } from "../../components/MainHeader";
 import { DarkCard } from "../../components/DarkCard";
 import { EmptyState } from "../../components/EmptyState";
 import { OfflineBanner } from "../../components/OfflineBanner";
@@ -139,47 +140,10 @@ export const BudgetScreen = () => {
       
       {/* Seamless Header Hero Region */}
       <View style={styles.headerBackground}>
-        <SafeAreaView>
-          <View style={styles.headerContent}>
-            <TouchableOpacity 
-              style={styles.profileSection}
-              onPress={() => router.push("/profile")}
-            >
-              <View style={styles.avatar}>
-                {apiUser?.avatar_url ? (
-                  <Image source={{ uri: apiUser.avatar_url }} style={styles.avatarImage} />
-                ) : (
-                  <View style={styles.initialsAvatar}>
-                    <Text style={styles.initialsText}>
-                      {(apiUser?.full_name || user?.name || 'CK')
-                        .split(' ')
-                        .filter(Boolean)
-                        .map(n => n[0])
-                        .join('')
-                        .toUpperCase()
-                        .substring(0, 2) || 'CK'}
-                    </Text>
-                  </View>
-                )}
-              </View>
-              <Text style={styles.welcomeText}>Hi, {(apiUser?.full_name || user?.name)?.split(' ')[0] || 'there'}</Text>
-            </TouchableOpacity>
-            <View style={styles.headerActions}>
-              <TouchableOpacity style={styles.iconButton} onPress={handleRefresh}>
-                <Ionicons name="refresh-outline" size={22} color={WHITE} />
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.iconButton} onPress={() => router.push("/learning")}>
-                <Ionicons name="school-outline" size={22} color={WHITE} />
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.iconButton} onPress={() => router.push("/profile/notifications")}>
-                <Ionicons name="notifications-outline" size={22} color={WHITE} />
-              </TouchableOpacity>
-            </View>
-          </View>
+        <MainHeader title="Budget" />
           
           {hasBudgets ? (
             <View style={styles.summaryCardWrapper}>
-              <Text style={styles.headerTitleLabelCentered}>Budget</Text>
               <DarkCard
                 type="expenses"
                 amount={totalBudgetSpent}
@@ -192,11 +156,9 @@ export const BudgetScreen = () => {
             </View>
           ) : (
             <View style={styles.emptyHeaderContent}>
-               <Text style={styles.headerTitleLabelCentered}>Budget</Text>
                <Text style={styles.emptyHeaderTitle}>No budget set yet</Text>
             </View>
           )}
-        </SafeAreaView>
       </View>
 
       {/* Main Budget List Area wrapped in curved container */}
