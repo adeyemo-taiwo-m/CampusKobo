@@ -48,6 +48,7 @@ export const LearningHubScreen = () => {
     featuredContent,
     loadLearningData,
     getFilteredContent,
+    glossaryTerms,
   } = useLearningContext();
 
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -331,39 +332,41 @@ export const LearningHubScreen = () => {
         </View>
 
         {/* From BOF OAU */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionLabel}>From BOF OAU</Text>
-            <TouchableOpacity onPress={() => router.push('/learning/podcast')}>
-              <Text style={styles.viewAll}>View all</Text>
-            </TouchableOpacity>
-          </View>
-          
-          <ScrollView 
-            horizontal 
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.podcastContainer}
-          >
-            {podcasts.map((pod, index) => (
-              <TouchableOpacity 
-                key={pod.id}
-                style={styles.podcastCard}
-                onPress={() => router.push({
-                  pathname: '/learning/detail' as any,
-                  params: { id: pod.id, type: 'podcast' }
-                })}
-              >
-                <View style={styles.podcastIconWrapper}>
-                   <View style={styles.podcastIconCircle}>
-                      <MaterialCommunityIcons name="podcasts" size={28} color={WHITE} />
-                   </View>
-                </View>
-                <Text style={styles.podcastEpText}>EP 0{pod.episode_number} • {pod.title}</Text>
-                <Text style={styles.podcastAction}>Listen now →</Text>
+        {podcasts.length > 0 && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionLabel}>From BOF OAU</Text>
+              <TouchableOpacity onPress={() => router.push('/learning/podcast')}>
+                <Text style={styles.viewAll}>View all</Text>
               </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
+            </View>
+            
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.podcastContainer}
+            >
+              {podcasts.map((pod, index) => (
+                <TouchableOpacity 
+                  key={pod.id}
+                  style={styles.podcastCard}
+                  onPress={() => router.push({
+                    pathname: '/learning/detail' as any,
+                    params: { id: pod.id, type: 'podcast' }
+                  })}
+                >
+                  <View style={styles.podcastIconWrapper}>
+                    <View style={styles.podcastIconCircle}>
+                      <MaterialCommunityIcons name="podcast" size={28} color={WHITE} />
+                    </View>
+                  </View>
+                  <Text style={styles.podcastEpText}>EP 0{pod.episode_number} • {pod.title}</Text>
+                  <Text style={styles.podcastAction}>Listen Now →</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        )}
 
         {/* Financial Glossary */}
         <View style={[styles.section, { marginBottom: 100 }]}>
