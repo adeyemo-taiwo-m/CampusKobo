@@ -7,6 +7,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { TEXT_PRIMARY, WHITE, Fonts } from "../constants";
 
 interface SecondaryHeaderProps {
@@ -25,12 +26,13 @@ export const SecondaryHeader = ({
   rightElement
 }: SecondaryHeaderProps) => {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const isDark = variant === "dark";
   const iconColor = isDark ? WHITE : TEXT_PRIMARY;
   const textColor = isDark ? WHITE : "#000000";
 
   return (
-    <View style={[styles.header, { backgroundColor }]}>
+    <View style={[styles.header, { backgroundColor, paddingTop: insets.top }]}>
       <TouchableOpacity
         style={[styles.backButton, isDark && styles.backButtonDark]}
         onPress={onBack || (() => router.back())}
@@ -42,18 +44,22 @@ export const SecondaryHeader = ({
         {title}
       </Text>
       
-      {rightElement || <View style={styles.spacer} />}
+      <View style={styles.rightSection}>
+        {rightElement || <View style={styles.spacer} />}
+      </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   header: {
-    height: 72,
+    width: "100%",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 20,
+    paddingBottom: 16,
+    minHeight: 64,
   },
   backButton: {
     width: 40,
@@ -71,6 +77,11 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.semiBold,
     textAlign: "center",
     flex: 1,
+  },
+  rightSection: {
+    width: 40,
+    alignItems: "flex-end",
+    justifyContent: "center",
   },
   spacer: {
     width: 40,

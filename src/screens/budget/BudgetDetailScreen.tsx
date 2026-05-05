@@ -110,7 +110,7 @@ export const BudgetDetailScreen = () => {
       <StatusBar barStyle="light-content" backgroundColor="#0B5E2F" />
 
       {/* Green Hero Header — insets applied manually via useSafeAreaInsets */}
-      <View style={[styles.headerHeroRegion, { paddingTop: insets.top }]}>
+      <View style={styles.headerHeroRegion}>
         <SecondaryHeader 
           title="Budget Details"
           variant="dark"

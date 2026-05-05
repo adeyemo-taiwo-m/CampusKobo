@@ -127,7 +127,7 @@ export default function AddTransactionScreen() {
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={styles.container}>
       <StatusBar barStyle="dark-content" />
       
       {/* Success Modal */}

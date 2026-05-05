@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView, StatusBar, Dimensions, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, StatusBar, Dimensions, Alert } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { MainHeader } from '../../components/MainHeader';
 import { 
   PRIMARY_GREEN, 
   WHITE, 
@@ -24,6 +26,7 @@ const { width } = Dimensions.get('window');
 
 export default function RecurringExpensesScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { recurringExpenses, user, deleteRecurringExpense, pauseAllRecurring, resumeAllRecurring, updateRecurringExpense } = useAppContext();
 
   // Calculate sum of active recurring expenses only
@@ -104,36 +107,28 @@ export default function RecurringExpensesScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" />
+    <View style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor={PRIMARY_GREEN} />
       <Stack.Screen options={{ headerShown: false }} />
-      
-      {/* SECTION 2 — NAVIGATION BAR */}
-      <View style={styles.header}>
-        <TouchableOpacity 
-          style={styles.backButton} 
-          onPress={() => router.back()}
-        >
-          <Ionicons name="chevron-back" size={20} color={WHITE} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Recurring Expenses</Text>
-        <View style={{ width: 40 }} />
-      </View>
+      {/* ── Green Hero Region ─────────────────────── */}
+      <View style={styles.heroRegion}>
+        <SecondaryHeader title="Recurring Expenses" variant="dark" />
 
-      <View style={styles.mainContainer}>
-        {/* SECTION 3 — SUMMARY CARD using DarkCard */}
-        <DarkCard
-          type="expenses"
-          amount={activeSum}
-          income={0}
-          expenses={activeSum}
-          hideIncomeExpenses={true}
-          periodLabel="Recurring this month"
-          progress={progress}
-          statusCaption="This will be deducted automatically every month"
-          progressLabel={`${getPercentage(activeSum, budgetLimit)}% of monthly budget taken`}
-          style={styles.summaryCard}
-        />
+        <View style={styles.summaryCardWrapper}>
+          <DarkCard
+            type="expenses"
+            amount={activeSum}
+            income={0}
+            expenses={activeSum}
+            hideIncomeExpenses={true}
+            periodLabel="Recurring this month"
+            progress={progress}
+            statusCaption="This will be deducted automatically every month"
+            progressLabel={`${getPercentage(activeSum, budgetLimit)}% of monthly budget taken`}
+            style={styles.summaryCard}
+          />
+        </View>
+      </View>
 
         {/* SECTION 4 — WHITE BOTTOM CARD */}
         <View style={styles.whiteCard}>
@@ -175,7 +170,7 @@ export default function RecurringExpensesScreen() {
           style={styles.ctaButton}
         />
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -184,33 +179,16 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: PRIMARY_GREEN,
   },
-  header: {
-    height: 64,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+  heroRegion: {
+    backgroundColor: PRIMARY_GREEN,
+    paddingBottom: 20,
+  },
+  summaryCardWrapper: {
     paddingHorizontal: 16,
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#16773d',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontFamily: Fonts.bold,
-    color: WHITE,
-  },
-  mainContainer: {
-    flex: 1,
+    marginTop: 10,
   },
   summaryCard: {
-    marginHorizontal: 16,
-    marginTop: 0,
-    marginBottom: 12,
+    marginBottom: 0,
   },
   whiteCard: {
     flex: 1,

@@ -248,7 +248,7 @@ export const CreateSavingsGoalScreen = () => {
   const fieldState = (val: string) => !!val;
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={styles.container}>
       {/* ── Custom Header ──────────────────────────────── */}
       <SecondaryHeader
         title={isEditing ? "Edit Savings Goal" : "Create Savings Goal"}

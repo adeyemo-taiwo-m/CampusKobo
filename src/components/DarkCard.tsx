@@ -107,11 +107,9 @@ export const DarkCard = ({
                 {/* Amount / Target */}
                 <View style={styles.savingsAmountRow}>
                   <Text style={styles.savingsAmount}>
-                    {formatCurrencyParts(amount).whole}
+                    ₦{Math.floor(amount).toLocaleString()}
                   </Text>
-                  <Text style={[styles.decimals, { fontSize: 24 }]}>
-                    {formatCurrencyParts(amount).decimal}
-                  </Text>
+                  <Text style={styles.decimals}>.00</Text>
                   {limitAmount !== undefined && (
                     <Text style={styles.savingsTarget}>
                       /₦{Math.floor(limitAmount).toLocaleString()}
@@ -148,7 +146,7 @@ export const DarkCard = ({
                   <View style={styles.balanceAmountWrapper}>
                     <Text style={styles.amountTextLarge}>
                       {isBalanceVisible
-                        ? `₦${Math.max(0, amount).toLocaleString()}`
+                        ? `₦${Math.floor(Math.max(0, amount)).toLocaleString()}`
                         : "₦ ••••••"}
                     </Text>
                     {isBalanceVisible && (
@@ -180,7 +178,7 @@ export const DarkCard = ({
                           <Text style={styles.statLabelSmall}>Income</Text>
                         </View>
                         <Text style={styles.statValueLarge}>
-                          +₦{income.toLocaleString()}
+                          +₦{Math.floor(income).toLocaleString()}
                         </Text>
                       </View>
 
@@ -197,7 +195,7 @@ export const DarkCard = ({
                           <Text style={styles.statLabelSmall}>Expenses</Text>
                         </View>
                         <Text style={styles.statValueLarge}>
-                          −₦{expenses.toLocaleString()}
+                          −₦{Math.floor(expenses).toLocaleString()}
                         </Text>
                       </View>
                     </View>
@@ -251,10 +249,10 @@ export const DarkCard = ({
                       <Text style={styles.modernAmountLarge}>
                         {type === "expenses" && !isBalanceVisible
                           ? "₦ ••••••"
-                          : `₦${amount.toLocaleString()}`}
+                          : `₦${Math.floor(amount).toLocaleString()}`}
                       </Text>
                       {!(type === "expenses" && !isBalanceVisible) && (
-                        <Text style={[styles.decimals, { fontSize: 24 }]}>.00</Text>
+                        <Text style={styles.decimals}>.00</Text>
                       )}
                     </View>
                   </View>
@@ -334,9 +332,10 @@ export const DarkCard = ({
                       ]}
                     >
                       {isTransactionType
-                        ? `${isIncome ? "+" : "−"}₦${amount.toLocaleString()}`
-                        : `₦${amount.toLocaleString()}`}
+                        ? `${isIncome ? "+" : "−"}₦${Math.floor(amount).toLocaleString()}`
+                        : `₦${Math.floor(amount).toLocaleString()}`}
                     </Text>
+                    <Text style={styles.decimals}>.00</Text>
                   </View>
 
                   {isTransactionType && (
@@ -497,8 +496,9 @@ const styles = StyleSheet.create({
     alignItems: "baseline",
   },
   decimals: {
-    fontSize: 24,
+    fontSize: 16,
     color: "rgba(255, 255, 255, 0.7)",
+    marginBottom: 4, // Subtle adjustment for baseline alignment
   },
   spentLabel: {
     fontSize: 18,
