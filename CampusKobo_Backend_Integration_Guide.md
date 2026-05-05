@@ -860,7 +860,7 @@ Paste this instruction into your agent:
 > When the screen mounts (in the existing `useEffect`):
 >
 > 1. Try to call `onboardingService.getProgress()` to verify onboarding is recorded on the server
-> 2. Log the result but do not block or crash based on the result
+> 2. Log the result but do not block or crash based on t he result
 > 3. Keep all existing behavior exactly as-is (confetti, timer, etc.)
 >
 > No visual changes needed — this is a silent sync step only."

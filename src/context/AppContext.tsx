@@ -371,9 +371,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           amount: Number(transaction.amount),
           title: transaction.category, // Map category to title for backend
           description: transaction.description || transaction.note || transaction.category,
-          date: transaction.date,
+          spent_on: transaction.date.split('T')[0], // format: YYYY-MM-DD
           is_recurring: transaction.isRecurring || false,
-          currency: 'NGN' // Default to NGN as seen in Supabase
+          currency: 'NGN', // Default to NGN as seen in Supabase
+          status: 'completed' // Required field in schema
         };
 
         if (transaction.type === 'income') {
@@ -409,12 +410,17 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         if (updatedData.amount !== undefined) apiData.amount = Number(updatedData.amount);
         if (updatedData.category) {
           apiData.title = updatedData.category; // Map category to title for backend
+          apiData.category_name = updatedData.category; 
           apiData.source = updatedData.category; // For income endpoints
         }
-        if (updatedData.date) apiData.date = updatedData.date;
+        if (updatedData.date) {
+          apiData.spent_on = updatedData.date.split('T')[0];
+          apiData.date = updatedData.date.split('T')[0]; // Keep for income compatibility
+        }
         if (updatedData.description || updatedData.note) apiData.description = updatedData.description || updatedData.note;
         if (updatedData.isRecurring !== undefined) apiData.is_recurring = updatedData.isRecurring;
         apiData.currency = 'NGN';
+        apiData.status = 'completed';
 
         // ALWAYS try to update the backend if we have an ID
         if (id) {
@@ -429,12 +435,22 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
             const incomePayload = {
               amount: Number(updatedData.amount !== undefined ? updatedData.amount : transactionToUpdate?.amount),
               category: updatedData.category || transactionToUpdate?.category || 'Other',
-              date: updatedData.date ? updatedData.date.split('T')[0] : (transactionToUpdate?.date || new Date().toISOString()).split('T')[0],
+              date: (updatedData.date || transactionToUpdate?.date || new Date().toISOString()).split('T')[0],
               note: updatedData.description || updatedData.note || transactionToUpdate?.note || null
             };
             await transactionService.updateIncome(id, incomePayload);
           } else {
-            await transactionService.updateExpense(id, apiData);
+            // For expenses, use the schema fields
+            const expensePayload = {
+              amount: Number(updatedData.amount !== undefined ? updatedData.amount : transactionToUpdate?.amount),
+              title: updatedData.category || transactionToUpdate?.category || 'Expense',
+              description: updatedData.description || updatedData.note || transactionToUpdate?.note || transactionToUpdate?.description || '',
+              spent_on: (updatedData.date || transactionToUpdate?.date || new Date().toISOString()).split('T')[0],
+              is_recurring: updatedData.isRecurring !== undefined ? updatedData.isRecurring : (transactionToUpdate?.isRecurring || false),
+              currency: 'NGN',
+              status: 'completed'
+            };
+            await transactionService.updateExpense(id, expensePayload);
           }
           
           if (__DEV__) console.log(`✅ API UPDATE: Successfully updated ${id} on backend`);

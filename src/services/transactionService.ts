@@ -27,7 +27,7 @@ export const transactionService = {
     const data = Array.isArray(response) ? response : (response as any)?.data || [];
     return data.map((item: any) => ({
       id: item.id,
-      amount: item.amount || 0,
+      amount: Number(item.amount) || 0,
       type: 'income',
       category: item.category || item.source || 'Other',
       categoryIcon: 'cash-outline',
@@ -52,14 +52,14 @@ export const transactionService = {
 
     return data.map((item: any) => ({
       id: item.id,
-      amount: item.amount || 0,
+      amount: Number(item.amount) || 0,
       type: 'expense',
-      category: item.category || item.category_name || item.category_id || 'Other',
+      category: item.category_name || item.category || item.title || 'Other',
       categoryIcon: 'cart-outline',
       categoryColor: '#EF4444',
-      description: item.description || '',
+      description: item.description || item.title || '',
       note: item.description || '',
-      date: item.date || new Date().toISOString(),
+      date: item.spent_on || item.date || new Date().toISOString(),
       isRecurring: !!item.is_recurring,
     }));
   },
