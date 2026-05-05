@@ -108,11 +108,11 @@ export default function RecurringExpensesScreen() {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={BACKGROUND} />
+      <StatusBar barStyle="light-content" backgroundColor={PRIMARY_GREEN} />
       <Stack.Screen options={{ headerShown: false }} />
       {/* ── Green Hero Region ─────────────────────── */}
       <View style={styles.heroRegion}>
-        <SecondaryHeader title="Recurring Expenses" variant="light" />
+        <SecondaryHeader title="Recurring Expenses" variant="dark" />
 
         <View style={styles.summaryCardWrapper}>
           <DarkCard
@@ -175,10 +175,10 @@ export default function RecurringExpensesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: BACKGROUND,
+    backgroundColor: PRIMARY_GREEN,
   },
   heroRegion: {
-    backgroundColor: BACKGROUND,
+    backgroundColor: PRIMARY_GREEN,
     paddingBottom: 20,
   },
   summaryCardWrapper: {

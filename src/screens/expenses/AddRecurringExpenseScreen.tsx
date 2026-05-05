@@ -122,7 +122,7 @@ export default function AddRecurringExpenseScreen() {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle="dark-content" backgroundColor={BACKGROUND} />
       <Stack.Screen options={{ headerShown: false }} />
 
       {/* Success Modal */}
@@ -142,6 +142,7 @@ export default function AddRecurringExpenseScreen() {
 
       <SecondaryHeader 
         title={isEditMode ? "Edit Recurring Expense" : "Add Recurring Expense"} 
+        backgroundColor={BACKGROUND}
       />
 
       <KeyboardAvoidingView

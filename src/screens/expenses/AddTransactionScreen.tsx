@@ -144,6 +144,7 @@ export default function AddTransactionScreen() {
       {/* Header */}
       <SecondaryHeader 
         title={isEditMode ? 'Edit Transaction' : 'Add Transaction'} 
+        backgroundColor={BACKGROUND}
       />
 
       <KeyboardAvoidingView 
