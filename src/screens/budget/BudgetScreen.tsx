@@ -59,7 +59,8 @@ const BudgetCard = ({ budget, onPress }: { budget: Budget; onPress: () => void }
           <View style={styles.budgetTextStack}>
             <Text style={styles.categoryNameText}>{budget.category}</Text>
             <View style={styles.amountTextRow}>
-               <Text style={styles.spentAmountText}>{formatCurrency(budget.spentAmount)}/{formatCurrency(budget.limitAmount)}</Text>
+               <Text style={[styles.spentAmountText, { color: PRIMARY_GREEN }]}>{formatCurrency(budget.spentAmount)}</Text>
+               <Text style={styles.limitAmountText}>/{formatCurrency(budget.limitAmount)}</Text>
             </View>
             <Text style={styles.remainingSubtextRow}>{formatCurrency(remaining)} left • {budget.daysLeft || 0} days remaining</Text>
           </View>
@@ -394,9 +395,16 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   spentAmountText: {
-    fontFamily: Fonts.medium,
-    fontSize: 15,
+    fontFamily: Fonts.bold,
+    fontSize: 16,
     color: TEXT_PRIMARY,
+  },
+  limitAmountText: {
+    fontFamily: Fonts.regular,
+    fontSize: 13,
+    color: TEXT_SECONDARY,
+    marginLeft: 2,
+    opacity: 0.5,
   },
   remainingSubtextRow: {
     fontFamily: Fonts.regular,

@@ -252,7 +252,7 @@ export const DarkCard = ({
                 <View style={styles.modernMainRow}>
                   <View style={styles.modernLeft}>
                     <Text style={styles.modernLabel}>
-                      {type === "expenses" ? "Total Expense" : "Budget Limit"}
+                      {label || (type === "expenses" ? "Total Expense" : "Budget Limit")}
                     </Text>
                     <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
                       <Text style={styles.modernAmountLarge}>
