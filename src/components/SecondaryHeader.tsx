@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   rightSection: {
-    width: 40,
+    minWidth: 40,
     alignItems: "flex-end",
     justifyContent: "center",
   },

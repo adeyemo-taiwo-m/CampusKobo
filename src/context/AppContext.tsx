@@ -303,6 +303,13 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       setSavingsGoals(s);
       setRecurringExpenses(r);
 
+      // 4. Run Recurring Auto-Sync
+      if (r.length > 0) {
+        await syncRecurringExpenses(r);
+      }
+
+      setIsLoading(false);
+
       // Recalculate spending based on the loaded transactions
       const recalculatedBudgets = b.map((budget: any) => {
         const budgetCategory = String(budget.category || '').toLowerCase().trim();
@@ -683,17 +690,36 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const deleteSavingsGoal = async (id: string) => {
+    console.log(`🗑️ deleteSavingsGoal called for ID: ${id}`);
     try {
+      // 1. Attempt API deletion
       const hasTokens = await hasValidTokens();
       if (hasTokens) {
-        await savingsService.deleteSavingsGoal(id);
+        try {
+          await savingsService.deleteSavingsGoal(id);
+          console.log('✅ Savings goal deleted from API');
+        } catch (apiError) {
+          console.warn('⚠️ API deletion failed, proceeding with local deletion:', apiError);
+        }
       }
 
+      // 2. Local deletion
+      const initialCount = savingsGoals.length;
       const updatedGoals = savingsGoals.filter(g => String(g.id) !== String(id));
+      const finalCount = updatedGoals.length;
+      
+      console.log(`📊 Filtering: Before=${initialCount}, After=${finalCount}`);
+      
+      if (initialCount === finalCount) {
+        console.warn('⚠️ No goal was removed during filtering. Check if ID matches.');
+      }
+
       setSavingsGoals(updatedGoals);
       await StorageService.saveSavingsGoals(updatedGoals);
+      console.log('✅ Savings goal deleted locally and saved to storage');
+      return true;
     } catch (error) {
-      console.error('deleteSavingsGoal error:', error);
+      console.error('deleteSavingsGoal critical error:', error);
       throw error;
     }
   };
@@ -772,29 +798,48 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     const item = recurringExpenses.find(r => r.id === recurringId);
     if (!item || item.isPaused) return;
 
-    // Create a real transaction from the recurring expense
+    // 1. Create a non-recurring transaction for this period
     await addTransaction({
-      id: Math.random().toString(36).substr(2, 9), // Use simple uuid substitute if uuid is not imported, wait, let's assume they have uuid. Wait, I will use Date.now().toString() as ID just to be safe. Actually, the app has a uuid generator or uses `Math.random` elsewhere. Let's use Date.now().toString() to be safe.
+      id: `rec-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
       amount: item.amount,
       type: 'expense',
       category: item.category,
       categoryIcon: item.categoryIcon || 'repeat',
       categoryColor: item.categoryColor || '#FF3B30',
       description: item.name,
-      date: new Date().toISOString(),
-      note: `Auto-generated from recurring expense`,
-      isRecurring: true,
+      date: item.nextDueDate || new Date().toISOString(),
+      note: `Automatic payment for ${item.name}`,
+      isRecurring: false, // This is the record of the payment
     });
 
-    // Update the nextDueDate based on frequency
-    const next = new Date();
+    // 2. Calculate the NEXT due date
+    const currentDue = new Date(item.nextDueDate || new Date());
+    const next = new Date(currentDue);
+    
     if (item.frequency === 'daily') next.setDate(next.getDate() + 1);
-    if (item.frequency === 'weekly') next.setDate(next.getDate() + 7);
-    if (item.frequency === 'monthly') next.setMonth(next.getMonth() + 1);
+    else if (item.frequency === 'weekly') next.setDate(next.getDate() + 7);
+    else if (item.frequency === 'monthly') next.setMonth(next.getMonth() + 1);
+    else if (item.frequency === 'yearly') next.setFullYear(next.getFullYear() + 1);
 
+    // 3. Update the recurring template with the new due date
     await updateRecurringExpense(recurringId, {
       nextDueDate: next.toISOString(),
+      lastProcessedDate: new Date().toISOString(),
     });
+  };
+
+  const syncRecurringExpenses = async (items: RecurringExpense[]) => {
+    const today = new Date();
+    today.setHours(23, 59, 59, 999); // Check up to the end of today
+
+    for (const item of items) {
+      if (item.isPaused || !item.nextDueDate) continue;
+      
+      const dueDate = new Date(item.nextDueDate);
+      if (dueDate <= today) {
+        await processRecurringExpense(item.id);
+      }
+    }
   };
 
   // --- DERIVED CALCULATIONS ---

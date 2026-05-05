@@ -18,6 +18,8 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useToast } from '../../hooks/useToast';
+import { Toast } from '../../components/Toast';
 import {
   BACKGROUND,
   WHITE,
@@ -40,19 +42,24 @@ export const SavingsGoalDetailScreen = () => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams();
+  const { toastProps, showToast } = useToast();
   const { enrichedSavingsGoals, deleteSavingsGoal } = useAppContext();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showAddFunds, setShowAddFunds] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  const goal = enrichedSavingsGoals.find((g: any) => g.id === id);
+  const currentGoal = enrichedSavingsGoals.find((g: any) => g.id === id);
 
-  if (!goal) {
+  if (!currentGoal && !isDeleting) {
     return (
       <View style={[styles.container, { alignItems: 'center', justifyContent: 'center' }]}>
         <Text style={{ color: TEXT_SECONDARY, fontFamily: Fonts.medium }}>Goal not found.</Text>
       </View>
     );
   }
+
+  // Fallback for when goal is gone during deletion
+  const goal = currentGoal || { id: '', name: 'Deleting...', savedAmount: 0, targetAmount: 0, percent: 0, contributions: [], emoji: '🎯' };
 
   // ── Computed values ────────────────────────────────────────────────────────
   const progress = goal.percent / 100;
@@ -79,9 +86,28 @@ export const SavingsGoalDetailScreen = () => {
 
   // ── Delete handler ─────────────────────────────────────────────────────────
   const handleDelete = async () => {
-    await deleteSavingsGoal(goal.id);
-    setShowDeleteModal(false);
-    router.replace('/(tabs)/savings');
+    if (isDeleting) return;
+    setIsDeleting(true);
+    try {
+      console.log('🗑️ Initiating deletion for goal ID:', id);
+      const success = await deleteSavingsGoal(id as string);
+      
+      if (success) {
+        showToast('Savings goal deleted successfully', 'success');
+        setShowDeleteModal(false);
+        // Delay slightly so user sees the toast
+        setTimeout(() => {
+          router.replace('/(tabs)/savings');
+        }, 800);
+      } else {
+        setIsDeleting(false);
+        setShowDeleteModal(false);
+      }
+    } catch (error) {
+      console.error('Failed to delete goal:', error);
+      setIsDeleting(false);
+      setShowDeleteModal(false);
+    }
   };
 
   // ── Contributions (newest first, max 5) ────────────────────────────────────
@@ -255,6 +281,7 @@ export const SavingsGoalDetailScreen = () => {
         onClose={() => setShowDeleteModal(false)}
         onConfirm={handleDelete}
       />
+      <Toast {...toastProps} />
     </View>
   );
 };
