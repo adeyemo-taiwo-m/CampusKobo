@@ -28,10 +28,8 @@ import { Header } from '../../components/Header';
 import { ProgressBar } from '../../components/ProgressBar';
 import { LearningContent } from '../../types';
 
-import {
-  LEARNING_CONTENT,
-  FINANCE_101_SERIES,
-} from '../../constants/learningData';
+import { useLearningContext } from '../../context/LearningContext';
+import { useEffect } from 'react';
 
 const { width } = Dimensions.get('window');
 
@@ -40,35 +38,50 @@ const LearningContentDetailScreen = () => {
   const params = useLocalSearchParams();
   const { id, isSeries, type: paramType } = params;
   
-  // Find content from data constants
-  const foundContent = isSeries === 'true' 
-    ? FINANCE_101_SERIES.find(e => e.id === id)
-    : LEARNING_CONTENT.find(c => c.id === id);
+  const { 
+    allContent, 
+    finance101Series, 
+    isBookmarked: checkIsBookmarked, 
+    toggleBookmark, 
+    markContentProgress 
+  } = useLearningContext();
 
-  const content = params.content ? JSON.parse(params.content as string) as LearningContent : foundContent;
+  // Find content from context
+  const foundContent = isSeries === 'true' 
+    ? finance101Series.find(e => e.id === id)
+    : allContent.find(c => c.id === id);
+
+  const content = params.content ? JSON.parse(params.content as string) : foundContent;
   const type = (paramType as 'article' | 'video' | 'podcast') || (content as any)?.type || 'article';
 
-  const [isBookmarked, setIsBookmarked] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [hasMarkedProgress, setHasMarkedProgress] = useState(false);
 
-  // Map FinanceSeriesEpisode to LearningContent structure if needed
+  // Mark progress when scrolled to bottom
+  useEffect(() => {
+    if (scrollProgress > 0.9 && !hasMarkedProgress && id) {
+      markContentProgress(id as string, 'completed', 100);
+      setHasMarkedProgress(true);
+    }
+  }, [scrollProgress, hasMarkedProgress, id]);
+
   const displayContent = {
     id: content?.id || '1',
     title: content?.title || (type === 'article' ? 'How to stop overspending as a student' : 
            type === 'video' ? 'How to create your first budget' : 
            'Market Pulse Podcast - Ep 1'),
-    category: (content as any)?.category || 'Budgeting',
+    category: content?.learning_categories?.name || (content as any)?.category || 'Budgeting',
     duration: content?.duration || (type === 'article' ? '3 mins read' : type === 'video' ? '5:00' : '15:00'),
     type: type,
     content: content?.content || 'As a student at OAU, managing your money can feel overwhelming...',
-    keyTakeaways: (content as any)?.keyTakeaways || [
+    keyTakeaways: (content as any)?.keyTakeaways || (content as any)?.key_takeaways || [
       'Separate needs from wants',
       'Use the 50/30/20 rule',
       'Track every expense daily',
       'Review your spending weekly',
     ],
-    isFeatured: (content as any)?.isFeatured || false,
+    isFeatured: (content as any)?.is_featured || (content as any)?.isFeatured || false,
   };
 
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -353,8 +366,8 @@ const LearningContentDetailScreen = () => {
         showBack={true} 
         onBack={() => router.back()}
         showBookmark={true}
-        isBookmarked={isBookmarked}
-        onBookmark={() => setIsBookmarked(!isBookmarked)}
+        isBookmarked={checkIsBookmarked(id as string)}
+        onBookmark={() => toggleBookmark(id as string)}
       />
 
       <ScrollView 

@@ -17,10 +17,11 @@ import {
   Fonts,
 } from '../../constants';
 import { Header } from '../../components/Header';
-import { FINANCE_101_SERIES } from '../../constants/learningData';
+import { useLearningContext } from '../../context/LearningContext';
 
 export const Finance101Screen = () => {
   const router = useRouter();
+  const { finance101Series } = useLearningContext();
 
   return (
     <SafeAreaView style={styles.container}>
@@ -33,13 +34,13 @@ export const Finance101Screen = () => {
         </View>
 
         <View style={styles.episodesList}>
-          {FINANCE_101_SERIES.map((item, index) => (
+          {finance101Series.map((item, index) => (
             <TouchableOpacity 
               key={item.id} 
               style={styles.episodeCard}
-              onPress={() => router.push({ pathname: '/learning/detail', params: { id: item.id } })}
+              onPress={() => router.push({ pathname: '/learning/detail', params: { id: item.id, isSeries: 'true' } })}
             >
-              <View style={[styles.episodeNumber, { backgroundColor: item.color }]}>
+              <View style={[styles.episodeNumber, { backgroundColor: (item as any).color || PRIMARY_GREEN }]}>
                 <Text style={styles.numberText}>{index + 1}</Text>
               </View>
               <View style={styles.episodeInfo}>

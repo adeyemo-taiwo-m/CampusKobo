@@ -25,9 +25,9 @@ import {
   Fonts,
 } from '../../constants';
 import { Header } from '../../components/Header';
-import { GLOSSARY_TERMS } from '../../constants/learningData';
-import { GlossaryTerm } from '../../types';
-import { InputField } from '../../components/InputField';
+import { useLearningContext } from '../../context/LearningContext';
+import { LearningService } from '../../services/LearningService';
+import { useEffect } from 'react';
 
 const { width, height } = Dimensions.get('window');
 
@@ -41,10 +41,13 @@ const GOOD_TO_KNOW = [
 
 const GlossaryScreen = () => {
   const router = useRouter();
+  const { glossaryTerms, isLoadingLearning, searchGlossary } = useLearningContext();
+  
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLetter, setSelectedLetter] = useState('A');
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
-  const [selectedTerm, setSelectedTerm] = useState<GlossaryTerm | null>(null);
+  const [selectedTerm, setSelectedTerm] = useState<any | null>(null);
+  const [termOfTheDay, setTermOfTheDay] = useState<any | null>(null);
   const [isTermModalVisible, setIsTermModalVisible] = useState(false);
   const [isSuggestModalVisible, setIsSuggestModalVisible] = useState(false);
   const [suggestedTerm, setSuggestedTerm] = useState('');
@@ -53,12 +56,17 @@ const GlossaryScreen = () => {
   const scrollRef = useRef<ScrollView>(null);
   const [sectionLayouts, setSectionLayouts] = useState<Record<string, number>>({});
 
+  useEffect(() => {
+    const fetchTOD = async () => {
+      const tod = await LearningService.getTermOfDay();
+      setTermOfTheDay(tod);
+    };
+    fetchTOD();
+  }, []);
+
   const filteredTerms = useMemo(() => {
-    return GLOSSARY_TERMS.filter(term => 
-      term.term.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      term.definition.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }, [searchQuery]);
+    return searchGlossary(searchQuery);
+  }, [searchQuery, glossaryTerms, searchGlossary]);
 
   const termsByLetter = useMemo(() => {
     const groups: Record<string, GlossaryTerm[]> = {};
@@ -80,11 +88,6 @@ const GlossaryScreen = () => {
     }
   };
 
-  const termOfTheDay = useMemo(() => {
-    const dayOfYear = Math.floor((new Date().getTime() - new Date(new Date().getFullYear(), 0, 0).getTime()) / (1000 * 60 * 60 * 24));
-    return GLOSSARY_TERMS[dayOfYear % GLOSSARY_TERMS.length];
-  }, []);
-
   const toggleSection = (letter: string) => {
     setExpandedSections(prev => ({
       ...prev,
@@ -92,7 +95,7 @@ const GlossaryScreen = () => {
     }));
   };
 
-  const handleOpenTerm = (term: GlossaryTerm) => {
+  const handleOpenTerm = (term: any) => {
     setSelectedTerm(term);
     setIsTermModalVisible(true);
   };
@@ -111,7 +114,7 @@ const GlossaryScreen = () => {
     ]);
   };
 
-  const renderTermRow = (term: GlossaryTerm) => (
+  const renderTermRow = (term: any) => (
     <TouchableOpacity 
       key={term.id} 
       style={styles.termRow}
@@ -153,17 +156,19 @@ const GlossaryScreen = () => {
         </View>
 
         {/* Term of the Day */}
-        <TouchableOpacity 
-          style={styles.todCard}
-          onPress={() => handleOpenTerm(termOfTheDay)}
-        >
-          <Text style={styles.todLabel}>📅 Term of the Day</Text>
-          <View style={styles.todHeader}>
-            <Text style={styles.todTerm}>{termOfTheDay.term}</Text>
-            <Text style={styles.todPos}>noun</Text>
-          </View>
-          <Text style={styles.todDef} numberOfLines={2}>{termOfTheDay.definition}</Text>
-        </TouchableOpacity>
+        {termOfTheDay && (
+          <TouchableOpacity 
+            style={styles.todCard}
+            onPress={() => handleOpenTerm(termOfTheDay)}
+          >
+            <Text style={styles.todLabel}>📅 Term of the Day</Text>
+            <View style={styles.todHeader}>
+              <Text style={styles.todTerm}>{termOfTheDay.term}</Text>
+              <Text style={styles.todPos}>{termOfTheDay.part_of_speech || 'noun'}</Text>
+            </View>
+            <Text style={styles.todDef} numberOfLines={2}>{termOfTheDay.definition}</Text>
+          </TouchableOpacity>
+        )}
 
         {/* Alphabet Filter */}
         <ScrollView 
@@ -202,7 +207,7 @@ const GlossaryScreen = () => {
                 key={item.id} 
                 style={styles.gtkCard}
                 onPress={() => {
-                  const term = GLOSSARY_TERMS.find(t => t.term.toLowerCase() === item.name.toLowerCase());
+                  const term = glossaryTerms.find(t => t.term.toLowerCase() === item.name.toLowerCase());
                   if (term) handleOpenTerm(term);
                 }}
               >
@@ -290,7 +295,7 @@ const GlossaryScreen = () => {
                 {selectedTerm && (
                   <>
                     <Text style={styles.modalTerm}>{selectedTerm.term}</Text>
-                    <Text style={styles.modalPos}>{selectedTerm.partOfSpeech || 'noun'}</Text>
+                    <Text style={styles.modalPos}>{selectedTerm.part_of_speech || selectedTerm.partOfSpeech || 'noun'}</Text>
                     
                     <View style={styles.modalSection}>
                       <Text style={styles.modalLabel}>Simple Definition:</Text>
@@ -313,7 +318,7 @@ const GlossaryScreen = () => {
                               key={tag} 
                               style={styles.tag}
                               onPress={() => {
-                                const nextTerm = GLOSSARY_TERMS.find(t => t.term.toLowerCase() === tag.toLowerCase());
+                                const nextTerm = glossaryTerms.find(t => t.term.toLowerCase() === tag.toLowerCase());
                                 if (nextTerm) setSelectedTerm(nextTerm);
                               }}
                             >

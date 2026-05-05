@@ -1,4 +1,5 @@
 import { AppProvider } from "@/src/context/AppContext";
+import { LearningContextProvider } from "@/src/context/LearningContext";
 import {
   Poppins_400Regular,
   Poppins_500Medium,
@@ -84,8 +85,10 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <GestureHandlerRootView style={{ flex: 1 }}>
         <AppProvider>
-          <InnerLayout />
-          <StatusBar style="dark" />
+          <LearningContextProvider>
+            <InnerLayout />
+            <StatusBar style="dark" />
+          </LearningContextProvider>
         </AppProvider>
       </GestureHandlerRootView>
     </SafeAreaProvider>

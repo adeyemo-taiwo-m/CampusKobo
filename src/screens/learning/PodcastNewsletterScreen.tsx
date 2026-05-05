@@ -22,17 +22,17 @@ import {
   Fonts,
 } from '../../constants';
 import { Header } from '../../components/Header';
-import { PodcastEpisodeCard } from '../../components/PodcastEpisodeCard';
-import { LEARNING_CONTENT } from '../../constants/learningData';
+import { useLearningContext } from '../../context/LearningContext';
 import { InputField } from '../../components/InputField';
 
 const PodcastNewsletterScreen = () => {
   const router = useRouter();
+  const { allContent } = useLearningContext();
   const [email, setEmail] = useState('');
   const [selectedTopic, setSelectedTopic] = useState('All');
 
   const topics = ['All', 'Budgeting', 'Saving', 'Investing', 'Loans', 'Taxes'];
-  const podcasts = LEARNING_CONTENT.filter(c => c.type === 'podcast').slice(0, 3);
+  const podcasts = allContent.filter(c => c.type === 'podcast').slice(0, 3);
 
   const handleSubscribe = () => {
     if (!email.trim() || !email.includes('@')) {
@@ -115,7 +115,7 @@ const PodcastNewsletterScreen = () => {
                   <Ionicons name="headset-outline" size={24} color={WHITE} />
                 </View>
                 <View style={styles.podcastInfo}>
-                  <Text style={styles.podcastEp}>EP 0{5 - index}</Text>
+                  <Text style={styles.podcastEp}>EP 0{item.episode_number}</Text>
                   <Text style={styles.podcastTitle} numberOfLines={1}>{item.title}</Text>
                   <View style={styles.podcastMeta}>
                     <Ionicons name="headset-outline" size={12} color={TEXT_SECONDARY} />

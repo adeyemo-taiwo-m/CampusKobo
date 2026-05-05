@@ -18,11 +18,12 @@ import {
   Fonts,
 } from '../../constants';
 import { Header } from '../../components/Header';
-import { LEARNING_CONTENT } from '../../constants/learningData';
+import { useLearningContext } from '../../context/LearningContext';
 
 export const PodcastListScreen = () => {
   const router = useRouter();
-  const podcasts = LEARNING_CONTENT.filter(c => c.type === 'podcast');
+  const { allContent } = useLearningContext();
+  const podcasts = allContent.filter(c => c.type === 'podcast');
 
   return (
     <SafeAreaView style={styles.container}>
@@ -60,7 +61,7 @@ export const PodcastListScreen = () => {
                     </View>
                  <View style={styles.info}>
                     <Text style={styles.epTitle}>{item.title}</Text>
-                    <Text style={styles.epMeta}>{item.duration} • Episode 01</Text>
+                    <Text style={styles.epMeta}>{item.duration} • Episode 0{item.episode_number}</Text>
                  </View>
               </View>
               <TouchableOpacity style={styles.downloadBtn}>

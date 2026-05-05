@@ -23,9 +23,7 @@ import {
 } from '../../constants';
 import { Header } from '../../components/Header';
 import { ProgressBar } from '../../components/ProgressBar';
-import { learningService } from '../../services/learningService';
-import { LearningContent } from '../../types';
-import { FINANCE_101_SERIES as STATIC_FINANCE_101_SERIES } from '../../constants/learningData';
+import { useLearningContext } from '../../context/LearningContext';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -45,41 +43,42 @@ const EPISODE_COLORS = [
 const Finance101SeriesScreen = () => {
   const router = useRouter();
   const [isAboutExpanded, setIsAboutExpanded] = useState(false);
-  const [episodes, setEpisodes] = useState<LearningContent[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { 
+    finance101Series, 
+    getProgressForContent, 
+    isLoadingLearning 
+  } = useLearningContext();
 
-  // Fetch episodes from backend
-  const fetchEpisodes = async () => {
-    try {
-      setIsLoading(true);
-      const data = await learningService.getContent({ categoryId: undefined, type: 'article' });
-      // Filter for Finance 101 series (by category name or ID prefix)
-      const seriesContent = data.filter(item => 
-        item.category === 'Finance 101' || item.id.startsWith('f101')
-      ).sort((a, b) => (a.episodeNumber || 0) - (b.episodeNumber || 0));
+  const episodesWithStatus = useMemo(() => {
+    let prevCompleted = true;
+    return finance101Series.map((ep, index) => {
+      const progress = getProgressForContent(ep.id);
+      const isCompleted = progress?.status === 'completed';
+      const isInProgress = progress?.status === 'in_progress';
+      const isLocked = !prevCompleted && index > 0;
+      
+      const currentEpWithStatus = {
+        ...ep,
+        isCompleted,
+        isInProgress,
+        isLocked
+      };
 
-      if (seriesContent.length > 0) {
-        setEpisodes(seriesContent);
-      } else {
-        setEpisodes(STATIC_FINANCE_101_SERIES as any);
-      }
-    } catch (error) {
-      if (__DEV__) console.error('Error fetching series episodes:', error);
-      setEpisodes(STATIC_FINANCE_101_SERIES as any);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      // Update prevCompleted for the next episode
+      prevCompleted = isCompleted;
+      
+      return currentEpWithStatus;
+    });
+  }, [finance101Series, getProgressForContent]);
 
-  React.useEffect(() => {
-    fetchEpisodes();
-  }, []);
-
-  // Mock progress state
-  const completedCount = 1;
-  const inProgressId = 'f101-02';
-  const totalEpisodes = episodes.length || STATIC_FINANCE_101_SERIES.length;
+  const completedCount = episodesWithStatus.filter(e => e.isCompleted).length;
+  const totalEpisodes = finance101Series.length;
   const progressPercent = totalEpisodes > 0 ? (completedCount / totalEpisodes) * 100 : 0;
+
+  const nextEpisode = useMemo(() => {
+    return episodesWithStatus.find(e => e.isInProgress) || 
+           episodesWithStatus.find(e => !e.isCompleted && !e.isLocked);
+  }, [episodesWithStatus]);
 
   const getMotivationalMessage = (percent: number) => {
     if (percent === 0) return 'Start your financial journey today! 🚀';
@@ -95,17 +94,13 @@ const Finance101SeriesScreen = () => {
     setIsAboutExpanded(!isAboutExpanded);
   };
 
-  const getStatusIcon = (episode: any, index: number) => {
-    if (index < completedCount) return <Ionicons name="checkmark-circle" size={28} color={PRIMARY_GREEN} />;
-    if (episode.id === inProgressId) return <Ionicons name="play-circle" size={28} color={PRIMARY_GREEN} />;
-    if (index === completedCount + 1) return <View style={styles.notStartedIcon} />; // EP 3 example
-    if (index > completedCount) return <Ionicons name="lock-closed" size={24} color="#9CA3AF" />;
+  const getStatusIcon = (episode: any) => {
+    if (episode.isCompleted) return <Ionicons name="checkmark-circle" size={28} color={PRIMARY_GREEN} />;
+    if (episode.isInProgress) return <Ionicons name="play-circle" size={28} color={PRIMARY_GREEN} />;
+    if (episode.isLocked) return <Ionicons name="lock-closed" size={24} color="#D1D5DB" />;
     return <View style={styles.notStartedIcon} />;
   };
 
-  const nextEpisode = useMemo(() => {
-    return episodes.find(e => e.id === inProgressId) || episodes[0] || STATIC_FINANCE_101_SERIES[0];
-  }, [episodes]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -146,62 +141,65 @@ const Finance101SeriesScreen = () => {
         </View>
 
         {/* Continue Card */}
-        <View style={styles.continueCard}>
-          <Text style={styles.continueHeader}>Continue where you left off</Text>
-          <Text style={styles.continueTitle}>EP 0{nextEpisode.episodeNumber} - {nextEpisode.title}</Text>
-          <View style={styles.continueProgressRow}>
-             <View style={styles.continueProgressBar}>
-                <View style={[styles.continueProgressFill, { width: '35%' }]} />
-             </View>
-             <Text style={styles.continueTime}>2 min left</Text>
+        {nextEpisode && (
+          <View style={styles.continueCard}>
+            <Text style={styles.continueHeader}>
+              {nextEpisode.isInProgress ? 'Continue where you left off' : 'Next Episode'}
+            </Text>
+            <Text style={styles.continueTitle}>EP 0{nextEpisode.episode_number} - {nextEpisode.title}</Text>
+            <View style={styles.continueProgressRow}>
+               <View style={styles.continueProgressBar}>
+                  <View style={[styles.continueProgressFill, { width: nextEpisode.isInProgress ? '35%' : '0%' }]} />
+               </View>
+               <Text style={styles.continueTime}>{nextEpisode.duration}</Text>
+            </View>
+            <TouchableOpacity 
+              style={styles.continueButton}
+              onPress={() => router.push({
+                pathname: '/learning/detail' as any,
+                params: { id: nextEpisode.id, isSeries: 'true', type: 'article' }
+              })}
+            >
+              <Text style={styles.continueButtonText}>
+                {nextEpisode.isInProgress ? 'Continue Reading' : 'Start Reading'}
+              </Text>
+            </TouchableOpacity>
           </View>
-          <TouchableOpacity 
-            style={styles.continueButton}
-            onPress={() => router.push({
-              pathname: '/learning/detail',
-              params: { id: nextEpisode.id, isSeries: 'true', type: 'article' }
-            })}
-          >
-            <Text style={styles.continueButtonText}>Continue Reading</Text>
-          </TouchableOpacity>
-        </View>
+        )}
 
         {/* Episode List */}
         <View style={styles.listSection}>
           <Text style={styles.sectionTitle}>All Episodes</Text>
-          {episodes.map((episode, index) => {
-            const isLocked = index > completedCount + 1;
-            const isCompleted = index < completedCount;
-            const isInProgress = episode.id === inProgressId;
-            
-            return (
-              <TouchableOpacity 
-                key={episode.id} 
-                style={styles.episodeRow}
-                disabled={isLocked}
-                onPress={() => router.push({
-                  pathname: '/learning/detail' as any,
-                  params: { id: episode.id, isSeries: 'true', type: 'article' }
-                })}
-              >
-                <View style={[styles.episodeBadge, { backgroundColor: EPISODE_COLORS[index % EPISODE_COLORS.length] }]}>
-                  <Text style={styles.episodeNumber}>0{episode.episodeNumber}</Text>
-                </View>
-                <View style={styles.episodeInfo}>
-                  <Text style={styles.episodeTitle} numberOfLines={1}>
-                    EP 0{episode.episodeNumber} — {episode.title} {isLocked && '(locked)'}
-                  </Text>
-                  <Text style={styles.episodeDesc} numberOfLines={1}>
-                    {episode.content.substring(0, 40)}...
-                  </Text>
-                  <Text style={styles.episodeDuration}>{episode.duration}</Text>
-                </View>
-                <View style={styles.statusContainer}>
-                  {getStatusIcon(episode, index)}
-                </View>
-              </TouchableOpacity>
-            );
-          })}
+          {episodesWithStatus.map((episode, index) => (
+            <TouchableOpacity 
+              key={episode.id} 
+              style={[
+                styles.episodeRow,
+                episode.isLocked && { opacity: 0.7 }
+              ]}
+              disabled={episode.isLocked}
+              onPress={() => router.push({
+                pathname: '/learning/detail' as any,
+                params: { id: episode.id, isSeries: 'true', type: 'article' }
+              })}
+            >
+              <View style={[styles.episodeBadge, { backgroundColor: EPISODE_COLORS[index % EPISODE_COLORS.length] }]}>
+                <Text style={styles.episodeNumber}>0{episode.episode_number}</Text>
+              </View>
+              <View style={styles.episodeInfo}>
+                <Text style={styles.episodeTitle} numberOfLines={1}>
+                  EP 0{episode.episode_number} — {episode.title} {episode.isLocked && '(locked)'}
+                </Text>
+                <Text style={styles.episodeDesc} numberOfLines={1}>
+                  {episode.content.substring(0, 40)}...
+                </Text>
+                <Text style={styles.episodeDuration}>{episode.duration}</Text>
+              </View>
+              <View style={styles.statusContainer}>
+                {getStatusIcon(episode)}
+              </View>
+            </TouchableOpacity>
+          ))}
         </View>
 
         {/* About Section */}

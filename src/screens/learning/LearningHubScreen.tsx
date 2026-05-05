@@ -25,13 +25,11 @@ import {
   Fonts,
   Colors,
 } from '../../constants';
-import { learningService, LearningCategory } from '../../services/learningService';
-import { LearningContent, FinanceSeriesEpisode, GlossaryTerm } from '../../types';
+import { useLearningContext } from '../../context/LearningContext';
 import {
-  LEARNING_CONTENT as STATIC_LEARNING_CONTENT,
-  FINANCE_101_SERIES as STATIC_FINANCE_101_SERIES,
   GLOSSARY_TERMS as STATIC_GLOSSARY_TERMS,
 } from '../../constants/learningData';
+import { ActivityIndicator } from 'react-native';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width * 0.45;
@@ -40,73 +38,43 @@ export const LearningHubScreen = () => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   
-  // State for data
-  const [categories, setCategories] = useState<string[]>(['All']);
-  const [allContent, setAllContent] = useState<LearningContent[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState('All');
-  const [isLoading, setIsLoading] = useState(true);
+  const {
+    categories,
+    finance101Series,
+    isLoadingLearning,
+    selectedCategory,
+    setSelectedCategory,
+    allContent,
+    featuredContent,
+    loadLearningData,
+    getFilteredContent,
+  } = useLearningContext();
+
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Fetch data from backend
-  const fetchData = async () => {
-    try {
-      setIsLoading(true);
-      const [categoriesData, contentData] = await Promise.all([
-        learningService.getCategories(),
-        learningService.getContent()
-      ]);
-
-      if (categoriesData.length > 0) {
-        setCategories(['All', ...categoriesData.map(c => c.name)]);
-      }
-      
-      if (contentData.length > 0) {
-        setAllContent(contentData);
-      } else {
-        // Fallback to static data if backend is empty
-        setAllContent(STATIC_LEARNING_CONTENT);
-      }
-    } catch (error) {
-      if (__DEV__) console.error('Error fetching learning data:', error);
-      // Fallback to static data on error
-      setAllContent(STATIC_LEARNING_CONTENT);
-    } finally {
-      setIsLoading(false);
-      setIsRefreshing(false);
-    }
+  const onRefresh = async () => {
+    setIsRefreshing(true);
+    await loadLearningData();
+    setIsRefreshing(false);
   };
 
-  React.useEffect(() => {
-    fetchData();
-  }, []);
+  console.log('[Hub] Selected Category:', selectedCategory);
 
-  const filteredContent = useMemo(() => {
-    if (selectedCategory === 'All') return allContent;
-    return allContent.filter((item) => item.category === selectedCategory);
-  }, [selectedCategory, allContent]);
-
-  const featuredContent = useMemo(() => {
-    return allContent.filter((item) => item.isFeatured);
-  }, [allContent]);
-
-  const financeSeries = useMemo(() => {
-    // In a real app, this might be a separate API call or a specific category
-    // For now, we filter content belonging to 'Finance 101' category or use static if empty
-    const series = allContent.filter(item => 
-      item.category === 'Finance 101' || 
-      (item as any).isSeries || 
-      item.id.startsWith('f101')
-    ).sort((a, b) => (a.episodeNumber || 0) - (b.episodeNumber || 0));
+  const activeFeaturedItems = useMemo(() => {
+    if (!selectedCategory) return featuredContent;
     
-    return series.length > 0 ? series : STATIC_FINANCE_101_SERIES;
-  }, [allContent]);
+    // Find all items in the current category that are marked as featured
+    return featuredContent.filter((item: any) => 
+      item.learning_categories?.slug === selectedCategory
+    );
+  }, [featuredContent, selectedCategory]);
 
   const latestContent = useMemo(() => {
-    return allContent.filter((item) => !item.isFeatured).slice(0, 5);
-  }, [allContent]);
+    return getFilteredContent().slice(0, 10); // Show more items
+  }, [allContent, selectedCategory, getFilteredContent]);
 
   const podcasts = useMemo(() => {
-    return allContent.filter(item => item.type === 'podcast');
+    return allContent.filter((item: any) => item.type === 'podcast');
   }, [allContent]);
 
   const EPISODE_COLORS = [
@@ -119,6 +87,15 @@ export const LearningHubScreen = () => {
     '#FCE4EC', // pink
     '#FFFDE7', // yellow
   ];
+
+  if (isLoadingLearning && allContent.length === 0) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color={PRIMARY_GREEN} />
+        <Text style={[styles.sectionSublabel, { marginTop: 12 }]}>Loading learning hub...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -139,10 +116,7 @@ export const LearningHubScreen = () => {
         refreshControl={
           <RefreshControl 
             refreshing={isRefreshing} 
-            onRefresh={() => {
-              setIsRefreshing(true);
-              fetchData();
-            }} 
+            onRefresh={onRefresh} 
             tintColor={PRIMARY_GREEN}
           />
         }
@@ -161,107 +135,135 @@ export const LearningHubScreen = () => {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.categoryContainer}
           >
+            <TouchableOpacity
+              style={[
+                styles.categoryChip,
+                selectedCategory === null && styles.categoryChipActive,
+              ]}
+              onPress={() => setSelectedCategory(null)}
+            >
+              <Text
+                style={[
+                  styles.categoryChipText,
+                  selectedCategory === null && styles.categoryChipTextActive,
+                ]}
+              >
+                All
+              </Text>
+            </TouchableOpacity>
+
             {categories.map((category) => (
               <TouchableOpacity
-                key={category}
+                key={category.id}
                 style={[
                   styles.categoryChip,
-                  selectedCategory === category && styles.categoryChipActive,
+                  selectedCategory === category.slug && styles.categoryChipActive,
                 ]}
-                onPress={() => setSelectedCategory(category)}
+                onPress={() => setSelectedCategory(category.slug)}
               >
                 <Text
                   style={[
                     styles.categoryChipText,
-                    selectedCategory === category && styles.categoryChipTextActive,
+                    selectedCategory === category.slug && styles.categoryChipTextActive,
                   ]}
                 >
-                  {category}
+                  {category.name}
                 </Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
         </View>
 
-        {/* Featured Content */}
-        <View style={styles.section}>
-          <Text style={styles.sectionLabel}>Featured</Text>
-          <ScrollView 
-            horizontal 
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.featuredCarousel}
-            snapToInterval={width - 40 + 16}
-            decelerationRate="fast"
-          >
-            {featuredContent.map((item) => (
-              <TouchableOpacity 
-                key={item.id}
-                style={styles.featuredCard}
-                onPress={() => router.push({
-                  pathname: '/learning/detail' as any,
-                  params: { id: item.id, type: item.type }
-                })}
-              >
-                <View style={[styles.featuredImagePlaceholder, { backgroundColor: '#F0F9F4' }]}>
-                  <Ionicons name="school-outline" size={80} color={PRIMARY_GREEN} />
-                </View>
-                <View style={styles.featuredInfo}>
-                  <View style={styles.chipSmall}>
-                    <Text style={styles.chipSmallText}>{item.category}</Text>
-                  </View>
-                  <Text style={styles.featuredTitle}>{item.title}</Text>
-                  <View style={styles.featuredMetaRow}>
+        {/* Featured Content Carousel */}
+        {activeFeaturedItems.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionLabel}>
+              {selectedCategory ? `Featured in ${categories.find(c => c.slug === selectedCategory)?.name}` : 'Featured'}
+            </Text>
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.featuredCarousel}
+              decelerationRate="fast"
+              snapToInterval={width - 56 + 16} // card width + gap
+            >
+              {activeFeaturedItems.map((item: any) => (
+                <TouchableOpacity 
+                  key={item.id} 
+                  style={styles.featuredCard}
+                  onPress={() => router.push({
+                    pathname: '/learning/detail' as any,
+                    params: { id: item.id, type: item.type }
+                  })}
+                >
+                  <View style={[styles.featuredImagePlaceholder, { backgroundColor: '#F0F9F4' }]}>
                     <Ionicons 
                       name={item.type === 'article' ? 'document-text-outline' : 'play-circle-outline'} 
-                      size={14} 
-                      color={TEXT_SECONDARY} 
+                      size={40} 
+                      color={PRIMARY_GREEN} 
                     />
-                    <Text style={styles.featuredMeta}>
-                      {item.type === 'article' ? 'Article' : 'Video'} • {item.duration}
-                    </Text>
                   </View>
-                </View>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
-
-        {/* Finance 101 Series */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <View>
-              <Text style={styles.sectionLabel}>Finance 101 Series</Text>
-              <Text style={styles.sectionSublabel}>By BOF OAU</Text>
-            </View>
-            <TouchableOpacity onPress={() => router.push('/learning/finance101')}>
-              <Text style={styles.viewAll}>View all →</Text>
-            </TouchableOpacity>
+                  <View style={styles.featuredInfo}>
+                    <View style={styles.chipSmall}>
+                      <Text style={styles.chipSmallText}>{item.learning_categories?.name || 'Featured'}</Text>
+                    </View>
+                    <Text style={styles.featuredTitle}>{item.title}</Text>
+                    <View style={styles.featuredMetaRow}>
+                      <Ionicons 
+                        name={item.type === 'article' ? 'book-outline' : 
+                              item.type === 'video' ? 'videocam-outline' : 'headset-outline'} 
+                        size={14} 
+                        color={TEXT_SECONDARY} 
+                      />
+                      <Text style={styles.featuredMeta}>
+                        {item.type === 'article' ? 'Article' : 'Video'} • {item.duration}
+                      </Text>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
           </View>
+        )}
 
-          <ScrollView 
-            horizontal 
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.seriesContainer}
-          >
-            {financeSeries.map((episode, index) => (
-              <TouchableOpacity 
-                key={episode.id}
-                style={[
-                  styles.episodeCard,
-                  { backgroundColor: EPISODE_COLORS[index % EPISODE_COLORS.length] }
-                ]}
-                onPress={() => router.push({
-                  pathname: '/learning/detail' as any,
-                  params: { id: episode.id, isSeries: 'true', type: 'article' }
-                })}
-              >
-                <Text style={styles.episodeNumber}>EP 0{episode.episodeNumber}</Text>
-                <Text style={styles.episodeTitle} numberOfLines={2}>{episode.title}</Text>
-                <Text style={styles.episodeDuration}>{episode.duration}</Text>
+        {/* Finance 101 Series - Only show when "All" (null) is selected */}
+        {selectedCategory === null && finance101Series.length > 0 && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <View>
+                <Text style={styles.sectionLabel}>Finance 101 Series</Text>
+                <Text style={styles.sectionSublabel}>By BOF OAU</Text>
+              </View>
+              <TouchableOpacity onPress={() => router.push('/learning/finance101')}>
+                <Text style={styles.viewAll}>View all →</Text>
               </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
+            </View>
+
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.seriesContainer}
+            >
+              {finance101Series.map((episode, index) => (
+                <TouchableOpacity 
+                  key={episode.id}
+                  style={[
+                    styles.episodeCard,
+                    { backgroundColor: EPISODE_COLORS[index % EPISODE_COLORS.length] }
+                  ]}
+                  onPress={() => router.push({
+                    pathname: '/learning/detail' as any,
+                    params: { id: episode.id, isSeries: 'true', type: 'article' }
+                  })}
+                >
+                  <Text style={styles.episodeNumber}>EP 0{episode.episode_number}</Text>
+                  <Text style={styles.episodeTitle} numberOfLines={2}>{episode.title}</Text>
+                  <Text style={styles.episodeDuration}>{episode.duration}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        )}
 
         {/* Latest Content */}
         <View style={styles.section}>
@@ -285,7 +287,7 @@ export const LearningHubScreen = () => {
                 </View>
                 <View style={styles.latestInfo}>
                   <View style={styles.chipTiny}>
-                    <Text style={styles.chipTinyText}>{item.category}</Text>
+                    <Text style={styles.chipTinyText}>{item.learning_categories?.name || 'Topic'}</Text>
                   </View>
                   <Text style={styles.latestTitle} numberOfLines={2}>{item.title}</Text>
                   <View style={styles.latestMetaRow}>
@@ -331,7 +333,7 @@ export const LearningHubScreen = () => {
                       <MaterialCommunityIcons name="podcasts" size={28} color={WHITE} />
                    </View>
                 </View>
-                <Text style={styles.podcastEpText}>EP 0{pod.episodeNumber} • {pod.title}</Text>
+                <Text style={styles.podcastEpText}>EP 0{pod.episode_number} • {pod.title}</Text>
                 <Text style={styles.podcastAction}>Listen now →</Text>
               </TouchableOpacity>
             ))}
