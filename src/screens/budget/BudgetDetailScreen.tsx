@@ -232,7 +232,16 @@ export const BudgetDetailScreen = () => {
               </Text>
             ) : (
               transactions.map((t: any) => (
-                <TransactionCard key={t.id} transaction={t} />
+                <TransactionCard
+                  key={t.id}
+                  transaction={t}
+                  onPress={() =>
+                    router.push({
+                      pathname: "/transaction/[id]",
+                      params: { id: t.id },
+                    })
+                  }
+                />
               ))
             )}
           </View>

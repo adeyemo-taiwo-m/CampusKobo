@@ -59,16 +59,25 @@ export const SavingsGoalDetailScreen = () => {
   }
 
   // Fallback for when goal is gone during deletion
-  const goal = currentGoal || { id: '', name: 'Deleting...', savedAmount: 0, targetAmount: 0, percent: 0, contributions: [], emoji: '🎯' };
+  const goal = currentGoal || { id: '', name: 'Deleting...', savedAmount: 0, targetAmount: 0, percent: 0, remaining: 0, daysLeft: null, contributions: [], emoji: '🎯' };
 
   // ── Computed values ────────────────────────────────────────────────────────
-  const progress = goal.percent / 100;
-  const percent = goal.percent;
-  const remaining = goal.remaining;
-  const daysLeft = goal.daysLeft;
-  const monthsLeft = daysLeft ? Math.ceil(daysLeft / 30) : null;
-  const dailyTarget = daysLeft && daysLeft > 0 ? remaining / daysLeft : null;
-  const monthlyTarget = monthsLeft && monthsLeft > 0 ? remaining / monthsLeft : null;
+  // Ensure we are working with numeric values for calculations
+  const numSaved = typeof goal.savedAmount === 'string' ? Number(goal.savedAmount.replace(/,/g, '')) : (Number(goal.savedAmount) || 0);
+  const numTarget = typeof goal.targetAmount === 'string' ? Number(goal.targetAmount.replace(/,/g, '')) : (Number(goal.targetAmount) || 0);
+  
+  // Robustly derive metrics (even if context enrichment hasn't run yet)
+  const percent = numTarget === 0 ? 0 : Math.min(100, Math.round((numSaved / numTarget) * 100));
+  const remaining = Math.max(0, numTarget - numSaved);
+  const progress = percent / 100;
+
+  const daysLeft = goal.daysLeft ?? null;
+  const monthsLeft = (daysLeft !== null && daysLeft > 0) ? Math.ceil(daysLeft / 30) : null;
+  
+  // If no time left and still have remaining, we can't calculate a target (null)
+  // If remaining is 0, target is 0
+  const dailyTarget = (daysLeft && daysLeft > 0) ? (remaining / daysLeft) : (remaining === 0 ? 0 : null);
+  const monthlyTarget = (monthsLeft && monthsLeft > 0) ? (remaining / monthsLeft) : (remaining === 0 ? 0 : null);
 
   const deadlineLabel = goal.deadline
     ? new Date(goal.deadline).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
@@ -183,13 +192,13 @@ export const SavingsGoalDetailScreen = () => {
           <View style={styles.miniCard}>
             <Text style={styles.miniLabel}>Daily Target</Text>
             <Text style={styles.miniValue}>
-              {dailyTarget ? formatCurrency(dailyTarget) : '—'}
+              {dailyTarget !== null ? formatCurrency(dailyTarget) : '—'}
             </Text>
           </View>
           <View style={styles.miniCard}>
             <Text style={styles.miniLabel}>Monthly Target</Text>
             <Text style={styles.miniValue}>
-              {monthlyTarget ? formatCurrency(monthlyTarget) : '—'}
+              {monthlyTarget !== null ? formatCurrency(monthlyTarget) : '—'}
             </Text>
           </View>
           <View style={styles.miniCard}>

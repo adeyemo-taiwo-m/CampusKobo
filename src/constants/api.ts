@@ -57,6 +57,11 @@ export const API_ENDPOINTS = {
   FAQS: '/support/faqs',
   SUPPORT_MESSAGES: '/support/messages',
 
+  // Learning
+  LEARNING_CATEGORIES: '/learning/categories',
+  LEARNING_CONTENT: '/learning/content',
+  LEARNING_CONTENT_BY_ID: (id: string) => `/learning/content/${id}`,
+
   // Health
   HEALTH: '/health',
 };

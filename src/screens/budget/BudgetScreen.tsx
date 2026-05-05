@@ -77,7 +77,7 @@ const BudgetCard = ({ budget, onPress }: { budget: Budget; onPress: () => void }
               borderWidth={0}
               showsText
               formatText={() => `${percentage}%`}
-              textStyle={[styles.progressRingText, { color: statusColor }]}
+              textStyle={{ ...styles.progressRingText, color: statusColor }}
             />
           </View>
         </View>

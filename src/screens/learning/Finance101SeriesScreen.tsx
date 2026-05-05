@@ -23,7 +23,9 @@ import {
 } from '../../constants';
 import { Header } from '../../components/Header';
 import { ProgressBar } from '../../components/ProgressBar';
-import { FINANCE_101_SERIES } from '../../constants/learningData';
+import { learningService } from '../../services/learningService';
+import { LearningContent } from '../../types';
+import { FINANCE_101_SERIES as STATIC_FINANCE_101_SERIES } from '../../constants/learningData';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -43,13 +45,41 @@ const EPISODE_COLORS = [
 const Finance101SeriesScreen = () => {
   const router = useRouter();
   const [isAboutExpanded, setIsAboutExpanded] = useState(false);
+  const [episodes, setEpisodes] = useState<LearningContent[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch episodes from backend
+  const fetchEpisodes = async () => {
+    try {
+      setIsLoading(true);
+      const data = await learningService.getContent({ categoryId: undefined, type: 'article' });
+      // Filter for Finance 101 series (by category name or ID prefix)
+      const seriesContent = data.filter(item => 
+        item.category === 'Finance 101' || item.id.startsWith('f101')
+      ).sort((a, b) => (a.episodeNumber || 0) - (b.episodeNumber || 0));
+
+      if (seriesContent.length > 0) {
+        setEpisodes(seriesContent);
+      } else {
+        setEpisodes(STATIC_FINANCE_101_SERIES as any);
+      }
+    } catch (error) {
+      if (__DEV__) console.error('Error fetching series episodes:', error);
+      setEpisodes(STATIC_FINANCE_101_SERIES as any);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  React.useEffect(() => {
+    fetchEpisodes();
+  }, []);
 
   // Mock progress state
-  // In a real app, this would come from a context or persistence layer
   const completedCount = 1;
   const inProgressId = 'f101-02';
-  const totalEpisodes = FINANCE_101_SERIES.length;
-  const progressPercent = (completedCount / totalEpisodes) * 100;
+  const totalEpisodes = episodes.length || STATIC_FINANCE_101_SERIES.length;
+  const progressPercent = totalEpisodes > 0 ? (completedCount / totalEpisodes) * 100 : 0;
 
   const getMotivationalMessage = (percent: number) => {
     if (percent === 0) return 'Start your financial journey today! 🚀';
@@ -74,8 +104,8 @@ const Finance101SeriesScreen = () => {
   };
 
   const nextEpisode = useMemo(() => {
-    return FINANCE_101_SERIES.find(e => e.id === inProgressId) || FINANCE_101_SERIES[0];
-  }, []);
+    return episodes.find(e => e.id === inProgressId) || episodes[0] || STATIC_FINANCE_101_SERIES[0];
+  }, [episodes]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -139,7 +169,7 @@ const Finance101SeriesScreen = () => {
         {/* Episode List */}
         <View style={styles.listSection}>
           <Text style={styles.sectionTitle}>All Episodes</Text>
-          {FINANCE_101_SERIES.map((episode, index) => {
+          {episodes.map((episode, index) => {
             const isLocked = index > completedCount + 1;
             const isCompleted = index < completedCount;
             const isInProgress = episode.id === inProgressId;
@@ -150,7 +180,7 @@ const Finance101SeriesScreen = () => {
                 style={styles.episodeRow}
                 disabled={isLocked}
                 onPress={() => router.push({
-                  pathname: '/learning/detail',
+                  pathname: '/learning/detail' as any,
                   params: { id: episode.id, isSeries: 'true', type: 'article' }
                 })}
               >
@@ -162,9 +192,9 @@ const Finance101SeriesScreen = () => {
                     EP 0{episode.episodeNumber} — {episode.title} {isLocked && '(locked)'}
                   </Text>
                   <Text style={styles.episodeDesc} numberOfLines={1}>
-                    Learn how to plan your spending
+                    {episode.content.substring(0, 40)}...
                   </Text>
-                  <Text style={styles.episodeDuration}>5 min read</Text>
+                  <Text style={styles.episodeDuration}>{episode.duration}</Text>
                 </View>
                 <View style={styles.statusContainer}>
                   {getStatusIcon(episode, index)}

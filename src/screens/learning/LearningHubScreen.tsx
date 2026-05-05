@@ -8,6 +8,10 @@ import {
   Image,
   StatusBar,
   Dimensions,
+  LayoutAnimation,
+  Platform,
+  UIManager,
+  RefreshControl,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
@@ -21,34 +25,89 @@ import {
   Fonts,
   Colors,
 } from '../../constants';
+import { learningService, LearningCategory } from '../../services/learningService';
+import { LearningContent, FinanceSeriesEpisode, GlossaryTerm } from '../../types';
 import {
-  LEARNING_CONTENT,
-  FINANCE_101_SERIES,
-  GLOSSARY_TERMS,
+  LEARNING_CONTENT as STATIC_LEARNING_CONTENT,
+  FINANCE_101_SERIES as STATIC_FINANCE_101_SERIES,
+  GLOSSARY_TERMS as STATIC_GLOSSARY_TERMS,
 } from '../../constants/learningData';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width * 0.45;
 
-const CATEGORIES = ['All', 'Budgeting', 'Saving', 'Investing', 'Loans', 'Credit'];
-
 export const LearningHubScreen = () => {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  
+  // State for data
+  const [categories, setCategories] = useState<string[]>(['All']);
+  const [allContent, setAllContent] = useState<LearningContent[]>([]);
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Fetch data from backend
+  const fetchData = async () => {
+    try {
+      setIsLoading(true);
+      const [categoriesData, contentData] = await Promise.all([
+        learningService.getCategories(),
+        learningService.getContent()
+      ]);
+
+      if (categoriesData.length > 0) {
+        setCategories(['All', ...categoriesData.map(c => c.name)]);
+      }
+      
+      if (contentData.length > 0) {
+        setAllContent(contentData);
+      } else {
+        // Fallback to static data if backend is empty
+        setAllContent(STATIC_LEARNING_CONTENT);
+      }
+    } catch (error) {
+      if (__DEV__) console.error('Error fetching learning data:', error);
+      // Fallback to static data on error
+      setAllContent(STATIC_LEARNING_CONTENT);
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
+  };
+
+  React.useEffect(() => {
+    fetchData();
+  }, []);
 
   const filteredContent = useMemo(() => {
-    if (selectedCategory === 'All') return LEARNING_CONTENT;
-    return LEARNING_CONTENT.filter((item) => item.category === selectedCategory);
-  }, [selectedCategory]);
+    if (selectedCategory === 'All') return allContent;
+    return allContent.filter((item) => item.category === selectedCategory);
+  }, [selectedCategory, allContent]);
 
-  const featuredItem = useMemo(() => {
-    return LEARNING_CONTENT.find((item) => item.isFeatured) || LEARNING_CONTENT[0];
-  }, []);
+  const featuredContent = useMemo(() => {
+    return allContent.filter((item) => item.isFeatured);
+  }, [allContent]);
+
+  const financeSeries = useMemo(() => {
+    // In a real app, this might be a separate API call or a specific category
+    // For now, we filter content belonging to 'Finance 101' category or use static if empty
+    const series = allContent.filter(item => 
+      item.category === 'Finance 101' || 
+      (item as any).isSeries || 
+      item.id.startsWith('f101')
+    ).sort((a, b) => (a.episodeNumber || 0) - (b.episodeNumber || 0));
+    
+    return series.length > 0 ? series : STATIC_FINANCE_101_SERIES;
+  }, [allContent]);
 
   const latestContent = useMemo(() => {
-    return LEARNING_CONTENT.filter((item) => !item.isFeatured).slice(0, 5);
-  }, []);
+    return allContent.filter((item) => !item.isFeatured).slice(0, 5);
+  }, [allContent]);
+
+  const podcasts = useMemo(() => {
+    return allContent.filter(item => item.type === 'podcast');
+  }, [allContent]);
 
   const EPISODE_COLORS = [
     '#E8F5E9', // green
@@ -77,6 +136,16 @@ export const LearningHubScreen = () => {
       <ScrollView 
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl 
+            refreshing={isRefreshing} 
+            onRefresh={() => {
+              setIsRefreshing(true);
+              fetchData();
+            }} 
+            tintColor={PRIMARY_GREEN}
+          />
+        }
       >
         {/* Welcome Section */}
         <View style={styles.welcomeSection}>
@@ -92,7 +161,7 @@ export const LearningHubScreen = () => {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.categoryContainer}
           >
-            {CATEGORIES.map((category) => (
+            {categories.map((category) => (
               <TouchableOpacity
                 key={category}
                 style={[
@@ -124,7 +193,7 @@ export const LearningHubScreen = () => {
             snapToInterval={width - 40 + 16}
             decelerationRate="fast"
           >
-            {LEARNING_CONTENT.filter(item => item.isFeatured).map((item) => (
+            {featuredContent.map((item) => (
               <TouchableOpacity 
                 key={item.id}
                 style={styles.featuredCard}
@@ -174,7 +243,7 @@ export const LearningHubScreen = () => {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.seriesContainer}
           >
-            {FINANCE_101_SERIES.map((episode, index) => (
+            {financeSeries.map((episode, index) => (
               <TouchableOpacity 
                 key={episode.id}
                 style={[
@@ -248,7 +317,7 @@ export const LearningHubScreen = () => {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.podcastContainer}
           >
-            {LEARNING_CONTENT.filter(item => item.type === 'podcast').map((pod, index) => (
+            {podcasts.map((pod, index) => (
               <TouchableOpacity 
                 key={pod.id}
                 style={styles.podcastCard}
@@ -279,7 +348,7 @@ export const LearningHubScreen = () => {
           </View>
 
           <View style={styles.glossaryList}>
-            {GLOSSARY_TERMS.slice(0, 3).map((term, index) => (
+            {STATIC_GLOSSARY_TERMS.slice(0, 3).map((term, index) => (
               <TouchableOpacity 
                 key={term.id}
                 style={[

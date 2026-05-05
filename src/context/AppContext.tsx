@@ -1126,7 +1126,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       const numSaved = Number(String(g.savedAmount).replace(/,/g, '')) || 0;
       const numTarget = Number(String(g.targetAmount).replace(/,/g, '')) || 0;
       const percent = numTarget === 0 ? 0 : Math.min(100, Math.round((numSaved / numTarget) * 100));
-      const remaining = Math.max(0, g.targetAmount - g.savedAmount);
+      const remaining = Math.max(0, numTarget - numSaved);
       let daysLeft: number | null = null;
       if (g.deadline) {
         const diff = new Date(g.deadline).getTime() - Date.now();
