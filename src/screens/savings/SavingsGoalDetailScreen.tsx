@@ -131,7 +131,7 @@ export const SavingsGoalDetailScreen = () => {
       <StatusBar barStyle="light-content" backgroundColor={PRIMARY_GREEN} />
 
       {/* ── Green Hero Region (~40% of screen) ──────────────────────────── */}
-      <View style={[styles.heroRegion, { paddingTop: insets.top }]}>
+      <View style={styles.heroRegion}>
         <SecondaryHeader 
           title="Savings Goal Details"
           variant="dark"
@@ -286,18 +286,15 @@ export const SavingsGoalDetailScreen = () => {
   );
 };
 
-const HERO_GREEN = '#1A9E3F';
-const CARD_GREEN = 'rgba(0,0,0,0.18)'; // darker overlay on green bg
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: HERO_GREEN,
+    backgroundColor: PRIMARY_GREEN,
   },
 
   // ── Hero ──────────────────────────────────────────────────────────────────
   heroRegion: {
-    backgroundColor: HERO_GREEN,
+    backgroundColor: PRIMARY_GREEN,
     paddingBottom: 48,
   },
   headerRow: {
@@ -323,13 +320,13 @@ const styles = StyleSheet.create({
   },
   summaryCardWrapper: {
     paddingHorizontal: 20,
-    marginTop: 20,
+    marginTop: 4,
     marginBottom: 10,
   },
   // ── White Sheet ───────────────────────────────────────────────────────────
   sheet: {
     flex: 1,
-    backgroundColor: BACKGROUND,
+    backgroundColor: WHITE,
     borderTopLeftRadius: 30,
     borderTopRightRadius: 30,
     marginTop: -30,

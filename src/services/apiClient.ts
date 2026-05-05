@@ -80,7 +80,13 @@ apiClient.interceptors.response.use(
     }
 
       // Handle general errors
-      const errorMessage = (error.response?.data as any)?.detail || error.message || 'An unexpected error occurred';
+      const status = error.response?.status;
+      const detail = (error.response?.data as any)?.detail;
+      const message = detail || error.message || 'An unexpected error occurred';
+      
+      const enhancedError = new Error(message);
+      (enhancedError as any).status = status;
+      (enhancedError as any).data = error.response?.data;
       
       if (__DEV__) {
         console.error(`[API ERROR] ${error.response?.status} - ${error.config?.method?.toUpperCase()} ${error.config?.url}`, {

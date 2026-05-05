@@ -24,6 +24,7 @@ import { transactionService } from "../services/transactionService";
 import { budgetService } from "../services/budgetService";
 import { savingsService } from "../services/savingsService";
 import { dashboardService, DashboardSummary } from "../services/dashboardService";
+import { API_ENDPOINTS } from "../constants/api";
 
 export interface AppContextType {
   // Raw state
@@ -483,34 +484,63 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const deleteTransaction = async (id: string) => {
+    console.log(`🗑️ deleteTransaction called for ID: ${id}`);
+    const isTemporaryId = id.length < 15 && !id.includes('-');
+    const transactionToDelete = transactions.find(t => String(t.id) === String(id));
+    
     try {
-      const transactionToDelete = transactions.find(t => String(t.id) === String(id));
-      const hasTokens = await hasValidTokens();
-      
-      if (hasTokens && transactionToDelete) {
-        if (__DEV__) console.log(`🗑️ API DELETE: Requesting deletion of ${transactionToDelete.type} with ID: ${id}`);
-        
-        try {
-          if (transactionToDelete.type === 'income') {
-            await transactionService.deleteIncome(String(id));
-          } else {
-            await transactionService.deleteExpense(String(id));
+      let apiSuccess = false;
+
+      if (isTemporaryId || !transactionToDelete) {
+        console.log('ℹ️ Local-only or missing item, performing local removal');
+        apiSuccess = true;
+      } else {
+        const hasTokens = await hasValidTokens();
+        if (hasTokens) {
+          try {
+            if (transactionToDelete.type === 'income') {
+              await transactionService.deleteIncome(String(id));
+            } else {
+              await transactionService.deleteExpense(String(id));
+            }
+            console.log('✅ API response for transaction deletion success');
+            apiSuccess = true;
+          } catch (apiError: any) {
+            const status = apiError.status || apiError.response?.status;
+            console.error('❌ API transaction deletion failed:', {
+              status,
+              message: apiError.message,
+              data: apiError.data || apiError.response?.data
+            });
+            
+            if (status === 404) {
+              console.log('ℹ️ Transaction already missing on server (404), proceeding');
+              apiSuccess = true;
+            } else if (status === 500) {
+              console.warn('⚠️ Server 500 error on transaction delete. Removing locally.');
+              apiSuccess = true;
+            } else {
+              apiSuccess = false;
+              throw new Error(`Failed to delete transaction on server (Status: ${status})`);
+            }
           }
-          if (__DEV__) console.log(`✅ API DELETE: Successfully removed ${id} from backend`);
-        } catch (apiError) {
-          console.error('❌ API Delete failed, but will proceed with local removal:', apiError);
-          // We still proceed with local removal for better UX, or we could throw here
-          // For now, let's proceed to keep the UI in sync with the user's intent
+        } else {
+          apiSuccess = false; 
+          throw new Error('You must be logged in to delete a transaction from the cloud.');
         }
       }
 
-      // Always update local state
-      const updatedTransactions = transactions.filter(t => String(t.id) !== String(id));
-      setTransactions(updatedTransactions);
-      await StorageService.saveTransactions(updatedTransactions);
-      await recalculateAllBudgetSpending(updatedTransactions);
+      if (apiSuccess) {
+        const updatedTransactions = transactions.filter(t => String(t.id) !== String(id));
+        setTransactions(updatedTransactions);
+        await StorageService.saveTransactions(updatedTransactions);
+        await recalculateAllBudgetSpending(updatedTransactions);
+        console.log('✅ Transaction deleted locally and saved to storage');
+        return true;
+      }
+      return false;
     } catch (error) {
-      console.error('deleteTransaction error:', error);
+      console.error('deleteTransaction critical error:', error);
       throw error;
     }
   };
@@ -584,17 +614,57 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const deleteBudget = async (id: string) => {
+    console.log(`🗑️ deleteBudget called for ID: ${id}`);
+    const isTemporaryId = id.length < 15 && !id.includes('-');
+    
     try {
-      const hasTokens = await hasValidTokens();
-      if (hasTokens) {
-        await budgetService.deleteBudget(id);
+      let apiSuccess = false;
+
+      if (isTemporaryId) {
+        console.log('ℹ️ Item has a temporary ID, performing local-only deletion');
+        apiSuccess = true;
+      } else {
+        const hasTokens = await hasValidTokens();
+        if (hasTokens) {
+          try {
+            await budgetService.deleteBudget(id);
+            console.log('✅ API response for budget deletion success');
+            apiSuccess = true;
+          } catch (apiError: any) {
+            const status = apiError.status || apiError.response?.status;
+            console.error('❌ API budget deletion failed:', {
+              status,
+              message: apiError.message,
+              data: apiError.data || apiError.response?.data
+            });
+            
+            if (status === 404) {
+              console.log('ℹ️ Budget already missing on server (404), proceeding');
+              apiSuccess = true;
+            } else if (status === 500) {
+              console.warn('⚠️ Server 500 error on budget delete. Removing locally.');
+              apiSuccess = true;
+            } else {
+              apiSuccess = false;
+              throw new Error(`Failed to delete budget on server (Status: ${status})`);
+            }
+          }
+        } else {
+          apiSuccess = false; 
+          throw new Error('You must be logged in to delete a budget from the cloud.');
+        }
       }
 
-      const updatedBudgets = budgets.filter(b => String(b.id) !== String(id));
-      setBudgets(updatedBudgets);
-      await StorageService.saveBudgets(updatedBudgets);
+      if (apiSuccess) {
+        const updatedBudgets = budgets.filter(b => String(b.id) !== String(id));
+        setBudgets(updatedBudgets);
+        await StorageService.saveBudgets(updatedBudgets);
+        console.log('✅ Budget deleted locally and saved to storage');
+        return true;
+      }
+      return false;
     } catch (error) {
-      console.error('deleteBudget error:', error);
+      console.error('deleteBudget critical error:', error);
       throw error;
     }
   };
@@ -625,15 +695,28 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const addFundsToGoal = async (goalId: string, amount: number, note: string = '') => {
+    console.log(`💰 addFundsToGoal called for ID: ${goalId}, Amount: ${amount}`);
+    const isTemporaryId = goalId.length < 15 && !goalId.includes('-');
+    
     try {
-      const hasTokens = await hasValidTokens();
-      if (hasTokens) {
-        const apiData = {
-          amount: amount,
-          note: note || 'Goal contribution',
-          source: 'app'
-        };
-        await savingsService.addContribution(goalId, apiData);
+      if (!isTemporaryId) {
+        const hasTokens = await hasValidTokens();
+        if (hasTokens) {
+          try {
+            const apiData = {
+              amount: amount,
+              note: note || 'Goal contribution',
+              source: 'app'
+            };
+            await savingsService.addContribution(goalId, apiData);
+            console.log('✅ API contribution success');
+          } catch (apiError: any) {
+            console.error('❌ API contribution failed:', apiError.message);
+            // We proceed locally anyway, but log it
+          }
+        }
+      } else {
+        console.log('ℹ️ Adding funds to a temporary local goal');
       }
 
       const updatedGoals = savingsGoals.map(g => {
@@ -652,6 +735,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       });
       setSavingsGoals(updatedGoals);
       await StorageService.saveSavingsGoals(updatedGoals);
+      console.log('✅ Goal funds updated locally');
     } catch (error) {
       console.error('addFundsToGoal error:', error);
       throw error;
@@ -691,33 +775,63 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const deleteSavingsGoal = async (id: string) => {
     console.log(`🗑️ deleteSavingsGoal called for ID: ${id}`);
+    
+    // Check if ID is a temporary random ID (no hyphens) or a UUID
+    const isTemporaryId = id.length < 15 && !id.includes('-');
+    
     try {
-      // 1. Attempt API deletion
-      const hasTokens = await hasValidTokens();
-      if (hasTokens) {
-        try {
-          await savingsService.deleteSavingsGoal(id);
-          console.log('✅ Savings goal deleted from API');
-        } catch (apiError) {
-          console.warn('⚠️ API deletion failed, proceeding with local deletion:', apiError);
+      let apiSuccess = false;
+
+      if (isTemporaryId) {
+        console.log('ℹ️ Item has a temporary ID, performing local-only deletion');
+        apiSuccess = true;
+      } else {
+        // 1. Attempt API deletion
+        const hasTokens = await hasValidTokens();
+        if (hasTokens) {
+          try {
+            const endpoint = API_ENDPOINTS.SAVINGS_GOAL_BY_ID(id);
+            console.log(`📡 Sending DELETE request to: ${endpoint}`);
+            const response = await savingsService.deleteSavingsGoal(id);
+            console.log('✅ API response for deletion:', response);
+            apiSuccess = true;
+          } catch (apiError: any) {
+            const status = apiError.status || apiError.response?.status;
+            console.error('❌ API deletion failed:', {
+              status,
+              message: apiError.message,
+              data: apiError.data || apiError.response?.data
+            });
+            
+            // If 404, we can treat it as success locally because it doesn't exist on server
+            if (status === 404) {
+              console.log('ℹ️ Goal already missing on server (404), proceeding with local removal');
+              apiSuccess = true;
+            } else if (status === 500) {
+              console.warn('⚠️ Server 500 error: backend is crashing. Removing locally to prevent UI block.');
+              apiSuccess = true;
+            } else {
+              apiSuccess = false;
+              throw new Error(`Failed to delete goal on server (Status: ${status})`);
+            }
+          }
+        } else {
+          // No tokens, can't delete from server
+          apiSuccess = false; 
+          throw new Error('You must be logged in to delete a goal from the database.');
         }
       }
 
-      // 2. Local deletion
-      const initialCount = savingsGoals.length;
-      const updatedGoals = savingsGoals.filter(g => String(g.id) !== String(id));
-      const finalCount = updatedGoals.length;
-      
-      console.log(`📊 Filtering: Before=${initialCount}, After=${finalCount}`);
-      
-      if (initialCount === finalCount) {
-        console.warn('⚠️ No goal was removed during filtering. Check if ID matches.');
+      // 2. Local deletion - ONLY IF API SUCCEEDED OR WAS LOCAL-ONLY
+      if (apiSuccess) {
+        const initialCount = savingsGoals.length;
+        const updatedGoals = savingsGoals.filter(g => String(g.id) !== String(id));
+        setSavingsGoals(updatedGoals);
+        await StorageService.saveSavingsGoals(updatedGoals);
+        console.log('✅ Savings goal deleted locally and saved to storage');
+        return true;
       }
-
-      setSavingsGoals(updatedGoals);
-      await StorageService.saveSavingsGoals(updatedGoals);
-      console.log('✅ Savings goal deleted locally and saved to storage');
-      return true;
+      return false;
     } catch (error) {
       console.error('deleteSavingsGoal critical error:', error);
       throw error;

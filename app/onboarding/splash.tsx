@@ -1,8 +1,8 @@
 import React, { useEffect, useRef } from 'react';
-import { View, StyleSheet, Animated, StatusBar } from 'react-native';
+import { View, StyleSheet, Animated, StatusBar, Text } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Image } from 'expo-image';
-import { WHITE } from '../../src/constants';
+import { WHITE, Fonts, TEXT_SECONDARY, TEXT_PRIMARY } from '../../src/constants';
 
 export default function SplashScreen() {
   const router = useRouter();
@@ -33,6 +33,12 @@ export default function SplashScreen() {
           style={styles.logo}
           contentFit="contain"
         />
+        
+        {/* Attribution Text */}
+        <Text style={styles.attributionContainer}>
+          <Text style={styles.attributionBy}>by </Text>
+          <Text style={styles.attributionBrand}>BOF OAU</Text>
+        </Text>
       </Animated.View>
     </View>
   );
@@ -53,5 +59,20 @@ const styles = StyleSheet.create({
   logo: {
     width: 280, // Sized perfectly for the center
     height: 280,
+  },
+  attributionContainer: {
+    marginTop: -20, // Pull up closer to the logo text
+    textAlign: 'center',
+  },
+  attributionBy: {
+    fontFamily: Fonts.regular,
+    fontSize: 14,
+    color: TEXT_SECONDARY,
+    opacity: 0.7,
+  },
+  attributionBrand: {
+    fontFamily: Fonts.medium,
+    fontSize: 14,
+    color: TEXT_PRIMARY,
   },
 });
