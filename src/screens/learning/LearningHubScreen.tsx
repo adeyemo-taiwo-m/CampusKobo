@@ -373,8 +373,12 @@ export const LearningHubScreen = () => {
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionLabel}>Financial Glossary</Text>
             <TouchableOpacity 
-              onPress={() => router.push('/learning/glossary')}
-              style={{ padding: 10, marginRight: -10 }}
+              onPress={() => {
+                console.log('[LearningHub] Navigating to Glossary...');
+                router.navigate('/learning/glossary');
+              }}
+              activeOpacity={0.7}
+              style={{ padding: 15, marginRight: -10, zIndex: 10 }}
             >
               <Text style={styles.viewAll}>View all</Text>
             </TouchableOpacity>
@@ -389,7 +393,8 @@ export const LearningHubScreen = () => {
                     styles.glossaryRow,
                     index < 2 && index < glossaryTerms.length - 1 && styles.glossaryDivider
                   ]}
-                  onPress={() => router.push('/learning/glossary')}
+                  activeOpacity={0.7}
+                  onPress={() => router.navigate('/learning/glossary')}
                 >
                   <View style={styles.glossaryIconBox}>
                     <Ionicons 
