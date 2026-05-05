@@ -12,6 +12,7 @@ import {
 import { Colors, Fonts, SPACING, WHITE } from "../constants";
 import { ProgressBar } from "./ProgressBar";
 import * as Progress from "react-native-progress";
+import { formatCurrency, formatCurrencyParts, getPercentage } from "../utils/formatters";
 
 interface DarkCardProps {
   type: "balance" | "expenses" | "transaction" | "budget" | "savings";
@@ -106,12 +107,14 @@ export const DarkCard = ({
                 {/* Amount / Target */}
                 <View style={styles.savingsAmountRow}>
                   <Text style={styles.savingsAmount}>
-                    ₦{amount.toLocaleString()}
+                    {formatCurrencyParts(amount).whole}
                   </Text>
-                  <Text style={[styles.decimals, { fontSize: 20 }]}>.00</Text>
+                  <Text style={[styles.decimals, { fontSize: 24 }]}>
+                    {formatCurrencyParts(amount).decimal}
+                  </Text>
                   {limitAmount !== undefined && (
                     <Text style={styles.savingsTarget}>
-                      /₦{limitAmount.toLocaleString()}
+                      /₦{Math.floor(limitAmount).toLocaleString()}
                     </Text>
                   )}
                 </View>
