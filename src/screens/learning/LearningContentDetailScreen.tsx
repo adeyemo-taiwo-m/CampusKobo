@@ -58,13 +58,20 @@ const LearningContentDetailScreen = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [hasMarkedProgress, setHasMarkedProgress] = useState(false);
 
-  // Mark progress when scrolled to bottom
+  // Mark initial progress on mount
   useEffect(() => {
-    if (scrollProgress > 0.9 && !hasMarkedProgress && id) {
+    if (id) {
+      markContentProgress(id as string, 'in_progress', 10);
+    }
+  }, [id]);
+
+  // Mark completion when scrolled to bottom
+  useEffect(() => {
+    if (type === 'article' && scrollProgress > 0.95 && !hasMarkedProgress && id) {
       markContentProgress(id as string, 'completed', 100);
       setHasMarkedProgress(true);
     }
-  }, [scrollProgress, hasMarkedProgress, id]);
+  }, [scrollProgress, hasMarkedProgress, id, type]);
 
   const displayContent = {
     id: content?.id || '1',
@@ -365,7 +372,7 @@ const LearningContentDetailScreen = () => {
         title={type.charAt(0).toUpperCase() + type.slice(1)} 
         showBack={true} 
         onBack={() => router.back()}
-        showBookmark={true}
+        showBookmark={type === 'article' || type === 'video'}
         isBookmarked={checkIsBookmarked(id as string)}
         onBookmark={() => toggleBookmark(id as string)}
       />
