@@ -51,6 +51,7 @@ export const LearningHubScreen = () => {
   } = useLearningContext();
 
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [showAllLatest, setShowAllLatest] = useState(false);
 
   const onRefresh = async () => {
     setIsRefreshing(true);
@@ -70,8 +71,9 @@ export const LearningHubScreen = () => {
   }, [featuredContent, selectedCategory]);
 
   const latestContent = useMemo(() => {
-    return getFilteredContent().slice(0, 10); // Show more items
-  }, [allContent, selectedCategory, getFilteredContent]);
+    const filtered = getFilteredContent();
+    return showAllLatest ? filtered : filtered.slice(0, 5);
+  }, [allContent, selectedCategory, getFilteredContent, showAllLatest]);
 
   const podcasts = useMemo(() => {
     return allContent.filter((item: any) => item.type === 'podcast');
@@ -127,7 +129,7 @@ export const LearningHubScreen = () => {
           <Text style={styles.welcomeSubtitle}>Grow your money knowledge</Text>
         </View>
 
-        {/* Category Filter */}
+        {/* Categories - Reset "See More" when changing category */}
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>Browse by topic</Text>
           <ScrollView 
@@ -140,7 +142,10 @@ export const LearningHubScreen = () => {
                 styles.categoryChip,
                 selectedCategory === null && styles.categoryChipActive,
               ]}
-              onPress={() => setSelectedCategory(null)}
+              onPress={() => {
+                setSelectedCategory(null);
+                setShowAllLatest(false);
+              }}
             >
               <Text
                 style={[
@@ -159,7 +164,10 @@ export const LearningHubScreen = () => {
                   styles.categoryChip,
                   selectedCategory === category.slug && styles.categoryChipActive,
                 ]}
-                onPress={() => setSelectedCategory(category.slug)}
+                onPress={() => {
+                  setSelectedCategory(category.slug);
+                  setShowAllLatest(false);
+                }}
               >
                 <Text
                   style={[
@@ -303,6 +311,23 @@ export const LearningHubScreen = () => {
               </TouchableOpacity>
             );
           })}
+
+          {/* See More / See Less Button */}
+          {getFilteredContent().length > 5 && (
+            <TouchableOpacity 
+              style={styles.seeMoreBtn}
+              onPress={() => setShowAllLatest(!showAllLatest)}
+            >
+              <Text style={styles.seeMoreText}>
+                {showAllLatest ? 'See less items' : 'See more items'}
+              </Text>
+              <Ionicons 
+                name={showAllLatest ? "chevron-up" : "chevron-down"} 
+                size={16} 
+                color={PRIMARY_GREEN} 
+              />
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* From BOF OAU */}
@@ -723,5 +748,22 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: TEXT_SECONDARY,
     lineHeight: 18,
+  },
+  seeMoreBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    marginHorizontal: 20,
+    backgroundColor: '#F0F9F4',
+    borderRadius: 12,
+    gap: 8,
+    marginTop: 8,
+    marginBottom: 12,
+  },
+  seeMoreText: {
+    fontFamily: Fonts.bold,
+    fontSize: 14,
+    color: PRIMARY_GREEN,
   },
 });
