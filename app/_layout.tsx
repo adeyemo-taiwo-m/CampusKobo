@@ -47,8 +47,11 @@ function InnerLayout() {
       <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="onboarding" options={{ headerShown: false }} />
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="add-transaction" options={{ headerShown: false }} />
       <Stack.Screen name="budget" options={{ headerShown: false }} />
       <Stack.Screen name="savings" options={{ headerShown: false }} />
+      <Stack.Screen name="expenses" options={{ headerShown: false }} />
+      <Stack.Screen name="transaction" options={{ headerShown: false }} />
       <Stack.Screen name="learning" options={{ headerShown: false }} />
       <Stack.Screen name="profile" options={{ headerShown: false }} />
       <Stack.Screen

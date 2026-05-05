@@ -12,6 +12,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { SecondaryHeader } from "../../components/SecondaryHeader";
 import { Button } from "../../components/Button";
 import { CategoryBottomSheet } from "../../components/CategoryBottomSheet";
 import { DatePickerModal } from "../../components/DatePickerModal";
@@ -120,7 +121,7 @@ export default function AddRecurringExpenseScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <StatusBar barStyle="dark-content" />
       <Stack.Screen options={{ headerShown: false }} />
 
@@ -139,19 +140,9 @@ export default function AddRecurringExpenseScreen() {
         }}
       />
 
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => router.back()}
-        >
-          <Ionicons name="chevron-back" size={20} color={TEXT_PRIMARY} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>
-          {isEditMode ? "Edit Recurring Expense" : "Add Recurring Expense"}
-        </Text>
-        <View style={{ width: 40 }} />
-      </View>
+      <SecondaryHeader 
+        title={isEditMode ? "Edit Recurring Expense" : "Add Recurring Expense"} 
+      />
 
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -337,7 +328,7 @@ export default function AddRecurringExpenseScreen() {
         onClose={() => setIsDatePickerVisible(false)}
         onSelect={setStartDate}
       />
-    </SafeAreaView>
+    </View>
   );
 }
 

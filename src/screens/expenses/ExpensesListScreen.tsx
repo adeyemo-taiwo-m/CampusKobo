@@ -245,7 +245,7 @@ export default function ExpensesListScreen() {
               onPress={() => setIsExportVisible(true)}
             >
               <Ionicons
-                name="document-text-outline"
+                name="download-outline"
                 size={22}
                 color={PRIMARY_GREEN}
               />

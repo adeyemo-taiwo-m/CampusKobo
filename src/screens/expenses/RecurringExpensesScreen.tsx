@@ -4,7 +4,7 @@ import { useRouter, Stack } from 'expo-router';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { MainHeader } from '../../components/MainHeader';
+import { SecondaryHeader } from '../../components/SecondaryHeader';
 import { 
   PRIMARY_GREEN, 
   WHITE, 
@@ -108,11 +108,11 @@ export default function RecurringExpensesScreen() {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={PRIMARY_GREEN} />
+      <StatusBar barStyle="dark-content" backgroundColor={BACKGROUND} />
       <Stack.Screen options={{ headerShown: false }} />
       {/* ── Green Hero Region ─────────────────────── */}
       <View style={styles.heroRegion}>
-        <SecondaryHeader title="Recurring Expenses" variant="dark" />
+        <SecondaryHeader title="Recurring Expenses" variant="light" />
 
         <View style={styles.summaryCardWrapper}>
           <DarkCard
@@ -159,28 +159,26 @@ export default function RecurringExpensesScreen() {
             </View>
           )}
         </View>
-      </View>
 
-      {/* SECTION 5 — BOTTOM CTA BUTTON */}
-      <View style={styles.footer}>
-        <Button 
-          title="Add Recurring Expense"
-          onPress={() => router.push('/expenses/add-recurring')}
-          variant="primary"
-          style={styles.ctaButton}
-        />
+        <View style={styles.footer}>
+          <Button 
+            title="Add Recurring Expense"
+            onPress={() => router.push('/expenses/add-recurring')}
+            variant="primary"
+            style={styles.ctaButton}
+          />
+        </View>
       </View>
-    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: PRIMARY_GREEN,
+    backgroundColor: BACKGROUND,
   },
   heroRegion: {
-    backgroundColor: PRIMARY_GREEN,
+    backgroundColor: BACKGROUND,
     paddingBottom: 20,
   },
   summaryCardWrapper: {
