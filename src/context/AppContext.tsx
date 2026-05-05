@@ -385,10 +385,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
             note: transaction.description || transaction.note || null
           };
           const response = await transactionService.createIncome(incomePayload);
-          transaction.id = (response as any).id || (response as any).data?.id || transaction.id;
+          // Handle different API response structures (direct object, nested data, or array)
+          const newId = (response as any).id || (response as any).data?.id || (Array.isArray(response) && response[0]?.id);
+          if (newId) transaction.id = String(newId);
         } else {
           const response = await transactionService.createExpense(apiData);
-          transaction.id = (response as any).id || (response as any).data?.id || transaction.id;
+          // Handle different API response structures
+          const newId = (response as any).id || (response as any).data?.id || (Array.isArray(response) && response[0]?.id);
+          if (newId) transaction.id = String(newId);
         }
       }
 
@@ -438,7 +442,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
               date: (updatedData.date || transactionToUpdate?.date || new Date().toISOString()).split('T')[0],
               note: updatedData.description || updatedData.note || transactionToUpdate?.note || null
             };
-            await transactionService.updateIncome(id, incomePayload);
+            await transactionService.updateIncome(String(id), incomePayload);
           } else {
             // For expenses, use the schema fields
             const expensePayload = {
@@ -450,7 +454,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
               currency: 'NGN',
               status: 'completed'
             };
-            await transactionService.updateExpense(id, expensePayload);
+            await transactionService.updateExpense(String(id), expensePayload);
           }
           
           if (__DEV__) console.log(`✅ API UPDATE: Successfully updated ${id} on backend`);
@@ -474,21 +478,27 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const deleteTransaction = async (id: string) => {
     try {
       const transactionToDelete = transactions.find(t => String(t.id) === String(id));
-      if (transactionToDelete) {
-        const hasTokens = await hasValidTokens();
-        if (hasTokens) {
-          if (__DEV__) console.log(`🗑️ API DELETE: Requesting deletion of ${transactionToDelete.type} with ID: ${id}`);
-          
+      const hasTokens = await hasValidTokens();
+      
+      if (hasTokens && transactionToDelete) {
+        if (__DEV__) console.log(`🗑️ API DELETE: Requesting deletion of ${transactionToDelete.type} with ID: ${id}`);
+        
+        try {
           if (transactionToDelete.type === 'income') {
-            await transactionService.deleteIncome(id);
+            await transactionService.deleteIncome(String(id));
           } else {
-            await transactionService.deleteExpense(id);
+            await transactionService.deleteExpense(String(id));
           }
           if (__DEV__) console.log(`✅ API DELETE: Successfully removed ${id} from backend`);
+        } catch (apiError) {
+          console.error('❌ API Delete failed, but will proceed with local removal:', apiError);
+          // We still proceed with local removal for better UX, or we could throw here
+          // For now, let's proceed to keep the UI in sync with the user's intent
         }
       }
 
-      const updatedTransactions = transactions.filter(t => t.id !== id);
+      // Always update local state
+      const updatedTransactions = transactions.filter(t => String(t.id) !== String(id));
       setTransactions(updatedTransactions);
       await StorageService.saveTransactions(updatedTransactions);
       await recalculateAllBudgetSpending(updatedTransactions);

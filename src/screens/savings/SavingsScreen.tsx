@@ -68,7 +68,8 @@ export const SavingsScreen = () => {
     user, 
     apiUser,
     totalSaved,
-    overallSavingsPercent
+    overallSavingsPercent,
+    loadAllData
   } = useAppContext();
   const { toastProps, showToast } = useToast();
   const hasGoals = enrichedSavingsGoals.length > 0;
