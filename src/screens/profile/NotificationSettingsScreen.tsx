@@ -28,20 +28,11 @@ const CustomToggle = ({ value, onValueChange, disabled = false }: { value: boole
       style={[
         styles.toggleContainer,
         value ? styles.toggleOn : styles.toggleOff,
+        { justifyContent: value ? 'flex-end' : 'flex-start' },
         disabled && styles.toggleDisabled
       ]}
     >
-      {value ? (
-        <>
-          <Text style={styles.toggleText}>ON</Text>
-          <View style={styles.toggleCircle} />
-        </>
-      ) : (
-        <>
-          <View style={styles.toggleCircle} />
-          <Text style={styles.toggleText}>OFF</Text>
-        </>
-      )}
+      <View style={styles.toggleCircle} />
     </TouchableOpacity>
   );
 };
@@ -304,36 +295,34 @@ const styles = StyleSheet.create({
   },
   // Custom Toggle Styles
   toggleContainer: {
-    width: 60,
-    height: 32,
-    borderRadius: 16,
-    paddingHorizontal: 6,
+    width: 50,
+    height: 26,
+    borderRadius: 13,
+    paddingHorizontal: 2,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    // Vertical centering is handled by alignItems: 'center' 
+    // but we ensure no hidden margins exist
   },
   toggleOn: {
     backgroundColor: PRIMARY_GREEN,
   },
   toggleOff: {
-    backgroundColor: '#9CA3AF',
+    backgroundColor: '#E5E7EB', // Lighter gray for off state
   },
   toggleDisabled: {
-    opacity: 0.4,
-  },
-  toggleText: {
-    fontSize: 10,
-    fontFamily: Fonts.medium,
-    color: WHITE,
+    opacity: 0.5,
+    backgroundColor: '#F3F4F6', // Very light gray when locked
   },
   toggleCircle: {
     width: 22,
     height: 22,
     borderRadius: 11,
     backgroundColor: WHITE,
-    elevation: 2,
+    // Ensure shadow doesn't create optical offset
+    elevation: 1,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
   },
