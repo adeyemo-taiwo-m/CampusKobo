@@ -54,33 +54,28 @@ export const sendMessage = async (data: SupportMessageRequest): Promise<any> => 
   });
 
   console.log('📤 Sending support message to Supabase:', { ...data, id: uuid });
-  try {
-    const { error, data: insertedData } = await supabase
-      .from('support_messages')
-      .insert([
-        {
-          id: uuid,
-          name: data.name,
-          email: data.email,
-          subject: data.subject,
-          message: data.message,
-          user_id: data.user_id || null,
-          status: 'open'
-        }
-      ])
-      .select();
+  const { error, data: insertedData } = await supabase
+    .from('support_messages')
+    .insert([
+      {
+        id: uuid,
+        name: data.name,
+        email: data.email,
+        subject: data.subject,
+        message: data.message,
+        user_id: data.user_id || null,
+        status: 'open'
+      }
+    ])
+    .select();
 
-    if (error) {
-      console.error('❌ Supabase Support Message Error:', error);
-      throw new Error(error.message || 'Failed to send message to database');
-    }
-    
-    console.log('✅ Supabase Support Message Success:', insertedData);
-    return { success: true, data: insertedData };
-  } catch (err: any) {
-    console.error('❌ Error in sendMessage:', err);
-    throw err;
+  if (error) {
+    console.error('❌ Supabase Support Message Error:', error);
+    throw new Error(error.message || 'Failed to send message to database');
   }
+  
+  console.log('✅ Supabase Support Message Success:', insertedData);
+  return { success: true, data: insertedData };
 };
 
 export const supportService = {

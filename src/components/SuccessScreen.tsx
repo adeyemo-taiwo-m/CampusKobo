@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { View, Text, StyleSheet, Modal, Animated } from "react-native";
+import { View, Text, StyleSheet, Modal, Animated, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import {
   WHITE,

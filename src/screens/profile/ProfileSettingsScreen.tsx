@@ -31,6 +31,7 @@ import { InputField } from '../../components/InputField';
 import { OfflineBanner } from '../../components/OfflineBanner';
 import { userService } from '../../services/userService';
 import * as ImagePicker from 'expo-image-picker';
+import * as FileSystem from 'expo-file-system';
 
 const { height } = Dimensions.get('window');
 
@@ -146,6 +147,14 @@ export const ProfileSettingsScreen = () => {
     if (result.canceled) return;
 
     const imageUri = result.assets[0].uri;
+    
+    // File size check (Step 13.4)
+    const fileInfo = await FileSystem.getInfoAsync(imageUri);
+    if (fileInfo.exists && fileInfo.size && fileInfo.size > 5 * 1024 * 1024) {
+      Alert.alert("File too large", "Please choose an image under 5MB.");
+      return;
+    }
+
     setIsUploadingAvatar(true);
     try {
       const { avatar_url } = await userService.uploadAvatar(imageUri);

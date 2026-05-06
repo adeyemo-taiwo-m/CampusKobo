@@ -154,30 +154,34 @@ export const HelpFAQScreen = () => {
   const [selectedCategory, setSelectedCategory] = useState<Category>('All');
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
+  // FAQ State
+  const [dynamicFaqs, setDynamicFaqs] = useState<FAQItem[]>([]);
+  const [faqsLoading, setFaqsLoading] = useState(true);
+  const [faqsError, setFaqsError] = useState<string | null>(null);
+
   // Form State
-  const [contactName, setContactName] = useState('');
-  const [contactEmail, setContactEmail] = useState('');
   const [contactSubject, setContactSubject] = useState('');
   const [contactIssue, setContactIssue] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [dynamicFaqs, setDynamicFaqs] = useState<FAQItem[]>([]);
-  const [isLoadingFaqs, setIsLoadingFaqs] = useState(false);
+  const [messageError, setMessageError] = useState<string | null>(null);
+  const [messageSent, setMessageSent] = useState(false);
 
   const categories: Category[] = ['All', 'Expenses', 'Budget', 'Savings', 'Account'];
 
   useEffect(() => {
     const loadFAQs = async () => {
-      setIsLoadingFaqs(true);
+      setFaqsLoading(true);
+      setFaqsError(null);
       try {
         const data = await supportService.getFAQs();
         if (data && data.length > 0) {
-          // Map backend format to FAQItem if needed, or assume it matches
           setDynamicFaqs(data as FAQItem[]);
         }
-      } catch (e) {
-        console.warn('Failed to load dynamic FAQs, using local fallback', e);
+      } catch (error: any) {
+        setFaqsError("Could not load FAQs. Showing cached content.");
+        console.warn('Failed to load dynamic FAQs:', error);
       } finally {
-        setIsLoadingFaqs(false);
+        setFaqsLoading(false);
       }
     };
     loadFAQs();
@@ -276,12 +280,20 @@ export const HelpFAQScreen = () => {
           ))}
         </ScrollView>
 
+        {faqsError && (
+          <View style={styles.errorBanner}>
+            <Ionicons name="information-circle-outline" size={16} color="#B45309" />
+            <Text style={styles.errorBannerText}>{faqsError}</Text>
+          </View>
+        )}
+
         {/* FAQ List */}
-        {isLoadingFaqs ? (
+        {faqsLoading && dynamicFaqs.length === 0 ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color={PRIMARY_GREEN} />
           </View>
-        ) : filteredFAQs.length > 0 ? (
+        ) : (
+        filteredFAQs.length > 0 ? (
           <View style={styles.faqList}>
             {categories.filter(c => c !== 'All').map(category => {
               const categoryFaqs = filteredFAQs.filter(f => f.category === category);
@@ -443,20 +455,22 @@ export const HelpFAQScreen = () => {
 
           <Text style={styles.formTitle}>Send us a message</Text>
           
-          <InputField
-            placeholder="Your name"
-            value={contactName}
-            onChangeText={setContactName}
-            outerContainerStyle={styles.formFieldOuter}
-          />
-          <InputField
-            placeholder="Your email"
-            value={contactEmail}
-            onChangeText={setContactEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            outerContainerStyle={styles.formFieldOuter}
-          />
+          {messageSent && (
+            <View style={styles.successCard}>
+              <Ionicons name="checkmark-circle-outline" size={18} color="#fff" />
+              <Text style={styles.successText}>
+                Message sent! Our team will get back to you within 24 hours.
+              </Text>
+            </View>
+          )}
+
+          {messageError && (
+            <View style={styles.formErrorCard}>
+              <Ionicons name="alert-circle-outline" size={18} color="#fff" />
+              <Text style={styles.formErrorText}>{messageError}</Text>
+            </View>
+          )}
+          
           <InputField
             placeholder="Subject"
             value={contactSubject}
@@ -477,30 +491,29 @@ export const HelpFAQScreen = () => {
         </View>
 
         <TouchableOpacity 
-          style={[styles.submitBtn, (isSubmitting || !contactName || !contactEmail || !contactSubject || !contactIssue) && styles.disabledBtn]}
+          style={[styles.submitBtn, (isSubmitting || !contactSubject.trim() || !contactIssue.trim()) && styles.disabledBtn]}
           onPress={async () => {
-            if (contactName && contactEmail && contactSubject && contactIssue) {
-              setIsSubmitting(true);
-              try {
-                await supportService.sendMessage({
-                  name: contactName,
-                  email: contactEmail,
-                  subject: contactSubject,
-                  message: contactIssue,
-                  user_id: user?.id,
-                });
-                setIsSuccessModalVisible(true);
-                setContactName('');
-                setContactEmail('');
-                setContactSubject('');
-                setContactIssue('');
-              } catch (error: any) {
-                Alert.alert('Error', error.message || 'Failed to send message. Please try again.');
-              } finally {
-                setIsSubmitting(false);
-              }
-            } else {
-              Alert.alert('Error', 'Please fill in all fields.');
+            setMessageError(null);
+            setMessageSent(false);
+
+            if (!contactSubject.trim() || !contactIssue.trim()) {
+              setMessageError("Please fill in both the subject and message fields.");
+              return;
+            }
+
+            setIsSubmitting(true);
+            try {
+              await supportService.sendSupportMessage({ 
+                subject: contactSubject, 
+                message: contactIssue 
+              });
+              setMessageSent(true);
+              setContactSubject("");
+              setContactIssue("");
+            } catch (error: any) {
+              setMessageError(error.message || "Failed to send message. Please try again.");
+            } finally {
+              setIsSubmitting(false);
             }
           }}
           disabled={isSubmitting}
@@ -774,9 +787,53 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: Fonts.medium,
   },
-  // Contact Us Tab
-  contactContent: {
-    paddingTop: 10,
+  errorBanner: {
+    backgroundColor: '#FFFBEB',
+    borderRadius: 8,
+    padding: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#FEF3C7',
+  },
+  errorBannerText: {
+    color: '#92400E',
+    fontSize: 12,
+    fontFamily: Fonts.medium,
+    flex: 1,
+  },
+  successCard: {
+    backgroundColor: '#10B981',
+    borderRadius: 12,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 20,
+  },
+  successText: {
+    color: WHITE,
+    fontSize: 14,
+    fontFamily: Fonts.regular,
+    flex: 1,
+    lineHeight: 20,
+  },
+  formErrorCard: {
+    backgroundColor: '#EF4444',
+    borderRadius: 12,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 20,
+  },
+  formErrorText: {
+    color: WHITE,
+    fontSize: 14,
+    fontFamily: Fonts.regular,
+    flex: 1,
   },
   contactTitle: {
     fontSize: 14,

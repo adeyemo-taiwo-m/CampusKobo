@@ -17,9 +17,11 @@ export interface UserProfileUpdateRequest {
 }
 
 export interface BiometricSettingsRequest {
-  biometric_enabled: boolean;
+  biometric_enabled?: boolean;
   face_id_enabled?: boolean;
   fingerprint_enabled?: boolean;
+  app_lock_enabled?: boolean;
+  pin_lock_enabled?: boolean;
 }
 
 export interface PrivacySettingsRequest {

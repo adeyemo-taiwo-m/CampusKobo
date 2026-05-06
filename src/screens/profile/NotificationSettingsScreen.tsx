@@ -73,11 +73,7 @@ export const NotificationSettingsScreen = () => {
   const router = useRouter();
   const { notificationPrefs, saveNotificationPrefs, prefsLoading } = useAppContext();
   
-  const handleToggle = (key: string, value: boolean) => {
-    saveNotificationPrefs({ [key]: value });
-  };
-
-  const allNotifications = notificationPrefs.allNotifications;
+  const allNotifications = notificationPrefs.all_notifications;
   const isGlobalDisabled = !allNotifications;
 
   if (prefsLoading && Object.keys(notificationPrefs).length === 0) {
@@ -105,13 +101,29 @@ export const NotificationSettingsScreen = () => {
             icon="notifications-outline"
             title="All Notifications"
             description="Turn off to mute all notifications"
-            value={notificationPrefs.allNotifications}
-            onValueChange={(v) => handleToggle('allNotifications', v)}
+            value={notificationPrefs.all_notifications}
+            onValueChange={(v) => {
+              if (!v) {
+                // When turning off all notifications, turn off all sub-toggles too
+                saveNotificationPrefs({
+                  all_notifications: false,
+                  budget_alerts: false,
+                  savings_reminders: false,
+                  bill_reminders: false,
+                  new_content: false,
+                  finance_101: false,
+                  podcast_updates: false,
+                  app_updates: false,
+                  bof_announcements: false,
+                });
+              } else {
+                saveNotificationPrefs({ all_notifications: true });
+              }
+            }}
             isLast={true}
           />
         </View>
 
-        {/* Money Alerts Section */}
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>Money Alerts</Text>
           <View style={styles.card}>
@@ -119,31 +131,30 @@ export const NotificationSettingsScreen = () => {
               icon="wallet-outline"
               title="Budget Alerts"
               description="When you're close to your spending limit"
-              value={notificationPrefs.budgetAlerts}
-              onValueChange={(v) => handleToggle('budgetAlerts', v)}
+              value={notificationPrefs.budget_alerts}
+              onValueChange={(v) => saveNotificationPrefs({ budget_alerts: v })}
               disabled={isGlobalDisabled}
             />
             <NotificationRow
               icon="leaf-outline"
               title="Savings Reminders"
               description="When to add funds to your goals"
-              value={notificationPrefs.savingsReminders}
-              onValueChange={(v) => handleToggle('savingsReminders', v)}
+              value={notificationPrefs.savings_reminders}
+              onValueChange={(v) => saveNotificationPrefs({ savings_reminders: v })}
               disabled={isGlobalDisabled}
             />
             <NotificationRow
               icon="receipt-outline"
               title="Bill Reminders"
               description="Recurring expense due date alerts"
-              value={notificationPrefs.billReminders}
-              onValueChange={(v) => handleToggle('billReminders', v)}
+              value={notificationPrefs.bill_reminders}
+              onValueChange={(v) => saveNotificationPrefs({ bill_reminders: v })}
               disabled={isGlobalDisabled}
               isLast={true}
             />
           </View>
         </View>
 
-        {/* Learning Section */}
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>Learning</Text>
           <View style={styles.card}>
@@ -151,31 +162,30 @@ export const NotificationSettingsScreen = () => {
               icon="book-outline"
               title="New Content"
               description="When new articles and videos are added"
-              value={notificationPrefs.newContent}
-              onValueChange={(v) => handleToggle('newContent', v)}
+              value={notificationPrefs.new_content}
+              onValueChange={(v) => saveNotificationPrefs({ new_content: v })}
               disabled={isGlobalDisabled}
             />
             <NotificationRow
               icon="school-outline"
               title="Finance 101"
               description="New episode available alerts"
-              value={notificationPrefs.finance101}
-              onValueChange={(v) => handleToggle('finance101', v)}
+              value={notificationPrefs.finance_101}
+              onValueChange={(v) => saveNotificationPrefs({ finance_101: v })}
               disabled={isGlobalDisabled}
             />
             <NotificationRow
               icon="headset-outline"
               title="Podcast Updates"
               description="New Market Pulse episode alerts"
-              value={notificationPrefs.podcastUpdates}
-              onValueChange={(v) => handleToggle('podcastUpdates', v)}
+              value={notificationPrefs.podcast_updates}
+              onValueChange={(v) => saveNotificationPrefs({ podcast_updates: v })}
               disabled={isGlobalDisabled}
               isLast={true}
             />
           </View>
         </View>
 
-        {/* General Section */}
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>General</Text>
           <View style={styles.card}>
@@ -183,23 +193,22 @@ export const NotificationSettingsScreen = () => {
               icon="refresh-outline"
               title="App Updates"
               description="Latest features and improvements"
-              value={notificationPrefs.appUpdates}
-              onValueChange={(v) => handleToggle('appUpdates', v)}
+              value={notificationPrefs.app_updates}
+              onValueChange={(v) => saveNotificationPrefs({ app_updates: v })}
               disabled={isGlobalDisabled}
             />
             <NotificationRow
               icon="megaphone-outline"
               title="BOF OAU Announcements"
               description="News from Bureau of Finance OAU"
-              value={notificationPrefs.bofAnnouncements}
-              onValueChange={(v) => handleToggle('bofAnnouncements', v)}
+              value={notificationPrefs.bof_announcements}
+              onValueChange={(v) => saveNotificationPrefs({ bof_announcements: v })}
               disabled={isGlobalDisabled}
               isLast={true}
             />
           </View>
         </View>
 
-        {/* Quiet Hours Section */}
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>Quiet Hours</Text>
           <View style={styles.card}>
@@ -207,10 +216,10 @@ export const NotificationSettingsScreen = () => {
               icon="moon-outline"
               title="Do Not Disturb"
               description="Mute all notifications during set hours"
-              value={notificationPrefs.doNotDisturb}
-              onValueChange={(v) => handleToggle('doNotDisturb', v)}
+              value={notificationPrefs.do_not_disturb}
+              onValueChange={(v) => saveNotificationPrefs({ do_not_disturb: v })}
               disabled={isGlobalDisabled}
-              isLast={!notificationPrefs.doNotDisturb}
+              isLast={!notificationPrefs.do_not_disturb}
             />
             {notificationPrefs.doNotDisturb && (
               <View style={styles.timePickerRow}>

@@ -121,26 +121,23 @@ export const SecurityPrivacyScreen = () => {
     });
   };
 
-  const syncSecurityToServer = async (overrides: Record<string, boolean> = {}) => {
+  const syncSecurityToServer = async (updates: BiometricSettingsRequest) => {
     try {
-      await userService.updateBiometricSettings({
-        biometric_enabled: overrides.biometricUnlock ?? biometricUnlock,
-        app_lock_enabled: overrides.appLock ?? appLock,
-        pin_lock_enabled: overrides.pinLock ?? pinLock,
-      });
-    } catch (e) {
-      console.warn('Could not sync security settings to server', e);
+      await userService.updateBiometricSettings(updates);
+    } catch (error) {
+      console.warn("Could not sync biometric settings to server:", error);
+      // Do not show an error to the user — local state is the source of truth for security toggles
     }
   };
 
-  const syncPrivacyToServer = async (overrides: Record<string, boolean> = {}) => {
+  const syncPrivacyToServer = async (updates: {
+    hide_balance?: boolean;
+    data_analytics?: boolean;
+  }) => {
     try {
-      await userService.updatePrivacySettings({
-        hide_balance: overrides.hideBalance ?? isBalanceHidden,
-        data_analytics: overrides.dataAnalytics ?? dataAnalytics,
-      });
-    } catch (e) {
-      console.warn('Could not sync privacy settings to server', e);
+      await userService.updatePrivacySettings(updates);
+    } catch (error) {
+      console.warn("Could not sync privacy settings to server:", error);
     }
   };
 
@@ -185,7 +182,7 @@ export const SecurityPrivacyScreen = () => {
             onValueChange={(v) => { 
               setAppLock(v); 
               savePrefs({ appLock: v }); 
-              syncSecurityToServer({ appLock: v });
+              syncSecurityToServer({ app_lock_enabled: v });
             }}
             isLast={!appLock}
           />
@@ -199,7 +196,7 @@ export const SecurityPrivacyScreen = () => {
                 onValueChange={(v) => { 
                   setBiometricUnlock(v); 
                   savePrefs({ biometricUnlock: v }); 
-                  syncSecurityToServer({ biometricUnlock: v });
+                  syncSecurityToServer({ biometric_enabled: v });
                 }}
               />
               <SecurityRow
@@ -210,7 +207,7 @@ export const SecurityPrivacyScreen = () => {
                 onValueChange={(v) => { 
                   setPinLock(v); 
                   savePrefs({ pinLock: v }); 
-                  syncSecurityToServer({ pinLock: v });
+                  syncSecurityToServer({ pin_lock_enabled: v });
                 }}
                 isLast={true}
               />
@@ -252,8 +249,7 @@ export const SecurityPrivacyScreen = () => {
               onValueChange={(v) => { 
                 setFingerprintLogin(v); 
                 savePrefs({ fingerprintLogin: v }); 
-                // Biometric login often maps to the same setting on backend
-                syncSecurityToServer({ biometricUnlock: v });
+                syncSecurityToServer({ fingerprint_enabled: v });
               }}
             />
             <SecurityRow
@@ -264,7 +260,7 @@ export const SecurityPrivacyScreen = () => {
               onValueChange={(v) => { 
                 setFaceId(v); 
                 savePrefs({ faceId: v }); 
-                syncSecurityToServer({ biometricUnlock: v });
+                syncSecurityToServer({ face_id_enabled: v });
               }}
               isLast={true}
             />
@@ -282,7 +278,7 @@ export const SecurityPrivacyScreen = () => {
               value={isBalanceHidden}
               onValueChange={(v) => {
                 toggleBalanceVisibility();
-                syncPrivacyToServer({ hideBalance: v });
+                syncPrivacyToServer({ hide_balance: v });
               }}
             />
             <SecurityRow
@@ -293,7 +289,7 @@ export const SecurityPrivacyScreen = () => {
               onValueChange={(v) => { 
                 setDataAnalytics(v); 
                 savePrefs({ dataAnalytics: v }); 
-                syncPrivacyToServer({ dataAnalytics: v });
+                syncPrivacyToServer({ data_analytics: v });
               }}
               isLast={true}
             />

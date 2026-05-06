@@ -26,19 +26,24 @@ export const PINSuccessScreen = () => {
   const { updateUser } = useAppContext();
   
   const handleDone = async () => {
-    // 1. Save to API (Background sync)
-    if (pin) {
-      try {
-        await authService.createPin({ pin });
-      } catch (error) {
-        console.warn('Failed to sync PIN with server, but saved locally:', error);
-      }
-      // 2. Save locally to context
-      await updateUser({ hasPIN: true, pin });
+    if (!pin) {
+      router.replace("/profile/security");
+      return;
     }
-    
-    // 3. Navigate back
-    router.replace('/profile/security');
+
+    // 1. Save PIN to local user context (keep existing behaviour)
+    await updateUser({ hasPIN: true, pin });
+
+    // 2. Sync to server in the background — do NOT block navigation on failure
+    try {
+      await authService.createPin({ pin });
+    } catch (error) {
+      // Log silently — PIN is saved locally, app lock still works
+      console.warn("PIN sync to server failed:", error);
+    }
+
+    // 3. Navigate back to security settings
+    router.replace("/profile/security");
   };
 
   return (
