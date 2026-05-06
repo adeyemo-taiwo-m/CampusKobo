@@ -23,6 +23,7 @@ import { Header } from '../../components/Header';
 import { StorageService } from '../../storage/StorageService';
 import { useAppContext } from '../../context/AppContext';
 import { Toast, ToastType } from '../../components/Toast';
+import { TimePickerModal } from '../../components/TimePickerModal';
 
 const CustomToggle = ({ value, onValueChange, disabled = false }: { value: boolean, onValueChange: (v: boolean) => void, disabled?: boolean }) => {
   return (
@@ -85,6 +86,11 @@ export const NotificationSettingsScreen = () => {
   const [appUpdates, setAppUpdates] = useState(notificationPrefs?.app_updates ?? true);
   const [bofAnnouncements, setBofAnnouncements] = useState(notificationPrefs?.bof_announcements ?? true);
   const [doNotDisturb, setDoNotDisturb] = useState(notificationPrefs?.do_not_disturb ?? false);
+  
+  // Time states
+  const [quietHoursStart, setQuietHoursStart] = useState(notificationPrefs?.quiet_hours_start || '22:00:00');
+  const [quietHoursEnd, setQuietHoursEnd] = useState(notificationPrefs?.quiet_hours_end || '07:00:00');
+  const [isTimePickerVisible, setIsTimePickerVisible] = useState(false);
 
   // Toast state
   const [toastVisible, setToastVisible] = useState(false);
@@ -110,8 +116,30 @@ export const NotificationSettingsScreen = () => {
       setAppUpdates(notificationPrefs.app_updates ?? true);
       setBofAnnouncements(notificationPrefs.bof_announcements ?? true);
       setDoNotDisturb(notificationPrefs.do_not_disturb ?? false);
+      if (notificationPrefs.quiet_hours_start) setQuietHoursStart(notificationPrefs.quiet_hours_start);
+      if (notificationPrefs.quiet_hours_end) setQuietHoursEnd(notificationPrefs.quiet_hours_end);
     }
   }, [notificationPrefs]);
+
+  const formatTimeDisplay = (timeStr: string) => {
+    if (!timeStr) return '10:00 PM';
+    const [hour] = timeStr.split(':').map(Number);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const hour12 = hour % 12 || 12;
+    return `${hour12}:00 ${ampm}`;
+  };
+
+  const getHourFromStr = (timeStr: string) => {
+    if (!timeStr) return 7;
+    return parseInt(timeStr.split(':')[0], 10);
+  };
+
+  const handleTimeSelect = (hour: number) => {
+    const timeStr = `${hour.toString().padStart(2, '0')}:00:00`;
+    setQuietHoursEnd(timeStr);
+    saveNotificationPrefs({ quiet_hours_end: timeStr });
+    showToast(`Quiet hours end at ${formatTimeDisplay(timeStr)}`, "success");
+  };
 
   const isGlobalDisabled = !allNotifications;
 
@@ -302,8 +330,21 @@ export const NotificationSettingsScreen = () => {
               value={doNotDisturb}
               onValueChange={(v) => {
                 setDoNotDisturb(v);
-                saveNotificationPrefs({ do_not_disturb: v });
-                showToast(v ? "Do Not Disturb on" : "Do Not Disturb off", v ? "success" : "info");
+                
+                let updates: any = { do_not_disturb: v };
+                
+                if (v) {
+                  // When turning ON, set start hour to current hour
+                  const currentHour = new Date().getHours();
+                  const startTimeStr = `${currentHour.toString().padStart(2, '0')}:00:00`;
+                  setQuietHoursStart(startTimeStr);
+                  updates.quiet_hours_start = startTimeStr;
+                  showToast(`Quiet hours started at ${formatTimeDisplay(startTimeStr)}`, "success");
+                } else {
+                  showToast("Quiet hours disabled", "info");
+                }
+                
+                saveNotificationPrefs(updates);
               }}
               disabled={isGlobalDisabled}
               isLast={!doNotDisturb}
@@ -311,17 +352,21 @@ export const NotificationSettingsScreen = () => {
             {doNotDisturb && (
               <View style={styles.timePickerRow}>
                 <View style={styles.timeField}>
-                  <Text style={styles.timeLabel}>From:</Text>
-                  <View style={styles.timeBox}>
-                    <Text style={styles.timeText}>10:00 PM</Text>
+                  <Text style={styles.timeLabel}>Starts at:</Text>
+                  <View style={[styles.timeBox, { opacity: 0.7 }]}>
+                    <Text style={styles.timeText}>{formatTimeDisplay(quietHoursStart)}</Text>
                   </View>
                 </View>
-                <View style={styles.timeField}>
-                  <Text style={styles.timeLabel}>To:</Text>
+                <TouchableOpacity 
+                  style={styles.timeField}
+                  onPress={() => setIsTimePickerVisible(true)}
+                >
+                  <Text style={styles.timeLabel}>Ends at:</Text>
                   <View style={styles.timeBox}>
-                    <Text style={styles.timeText}>07:00 AM</Text>
+                    <Text style={styles.timeText}>{formatTimeDisplay(quietHoursEnd)}</Text>
+                    <Ionicons name="chevron-down" size={14} color={TEXT_SECONDARY} style={{ marginLeft: 4 }} />
                   </View>
-                </View>
+                </TouchableOpacity>
               </View>
             )}
           </View>
@@ -335,6 +380,14 @@ export const NotificationSettingsScreen = () => {
         message={toastMessage}
         type={toastType}
         onHide={() => setToastVisible(false)}
+      />
+
+      <TimePickerModal
+        isVisible={isTimePickerVisible}
+        onClose={() => setIsTimePickerVisible(false)}
+        onSelect={handleTimeSelect}
+        selectedHour={getHourFromStr(quietHoursEnd)}
+        title="Quiet Hours End Time"
       />
     </SafeAreaView>
   );
@@ -462,6 +515,8 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   timeText: {
     fontSize: 14,
