@@ -30,7 +30,7 @@ import { useAppContext } from '../../context/AppContext';
 
 export const ChangeEmailScreen = () => {
   const router = useRouter();
-  const { apiUser } = useAppContext();
+  const { apiUser, setApiUser } = useAppContext();
   
   // Form State
   const [newEmail, setNewEmail] = useState('');
@@ -39,36 +39,35 @@ export const ChangeEmailScreen = () => {
   // UI State
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
-
-  const validate = () => {
-    if (!newEmail.includes('@')) {
-      setApiError('Please enter a valid email address');
-      return false;
-    }
-    if (password.length === 0) {
-      setApiError('Current password is required for security');
-      return false;
-    }
-    setApiError(null);
-    return true;
-  };
 
   const handleSubmit = async () => {
-    if (!validate()) return;
-    
+    setApiError(null);
+    setSuccessMessage(null);
+
+    // Local validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!newEmail || !emailRegex.test(newEmail)) {
+      setApiError("Please enter a valid email address.");
+      return;
+    }
+    if (!password) {
+      setApiError("Please enter your current password to confirm.");
+      return;
+    }
+
     setIsLoading(true);
     try {
-      await authService.changeEmail({
-        new_email: newEmail,
-        password: password,
-      });
-      
-      setShowSuccess(true);
+      await authService.changeEmail({ new_email: newEmail, password });
+      setSuccessMessage(
+        `A verification email has been sent to ${newEmail}. Please verify it to complete the change.`,
+      );
+      // Update the local apiUser email optimistically
+      // @ts-ignore
+      setApiUser((prev) => (prev ? { ...prev, email: newEmail } : prev));
     } catch (error: any) {
-      console.error('Change email error:', error);
-      setApiError(error.message || 'Failed to request email change. Please check your password.');
+      setApiError(error.message || "Failed to update email. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -80,15 +79,6 @@ export const ChangeEmailScreen = () => {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
       
-      <SuccessModal
-        isVisible={showSuccess}
-        title="Email Change Requested!"
-        subtitle={`A verification link has been sent to ${newEmail}. Please verify to complete the change.`}
-        onDone={() => {
-          setShowSuccess(false);
-          router.back();
-        }}
-      />
       
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
@@ -109,9 +99,16 @@ export const ChangeEmailScreen = () => {
           </Text>
 
           {apiError && (
-            <View style={styles.apiErrorCard}>
-              <Ionicons name="alert-circle" size={20} color="#EF4444" />
-              <Text style={styles.apiErrorText}>{apiError}</Text>
+            <View style={styles.errorCard}>
+              <Ionicons name="alert-circle-outline" size={18} color="#fff" />
+              <Text style={styles.errorText}>{apiError}</Text>
+            </View>
+          )}
+
+          {successMessage && (
+            <View style={styles.successCard}>
+              <Ionicons name="checkmark-circle-outline" size={18} color="#fff" />
+              <Text style={styles.successText}>{successMessage}</Text>
             </View>
           )}
 
@@ -198,21 +195,34 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     marginBottom: 24,
   },
-  apiErrorCard: {
-    backgroundColor: '#FEF2F2',
-    borderRadius: 12,
-    padding: 16,
+  errorCard: {
+    backgroundColor: '#EF4444',
+    borderRadius: 10,
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 24,
-    borderWidth: 1,
-    borderColor: '#FEE2E2',
+    gap: 8,
+    padding: 12,
+    marginBottom: 16,
   },
-  apiErrorText: {
-    color: '#EF4444',
+  errorText: {
+    color: '#fff',
     fontSize: 14,
-    fontFamily: Fonts.medium,
-    marginLeft: 10,
+    fontFamily: Fonts.regular,
+    flex: 1,
+  },
+  successCard: {
+    backgroundColor: '#10B981',
+    borderRadius: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    padding: 12,
+    marginBottom: 16,
+  },
+  successText: {
+    color: '#fff',
+    fontSize: 14,
+    fontFamily: Fonts.regular,
     flex: 1,
   },
   form: {
