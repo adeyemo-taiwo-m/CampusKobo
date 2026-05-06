@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -19,6 +19,7 @@ import {
   Fonts,
 } from '../../constants';
 import { Header } from '../../components/Header';
+import { StorageService } from '../../storage/StorageService';
 
 const CustomToggle = ({ value, onValueChange, disabled = false }: { value: boolean, onValueChange: (v: boolean) => void, disabled?: boolean }) => {
   return (
@@ -79,6 +80,42 @@ export const NotificationSettingsScreen = () => {
   const [appUpdates, setAppUpdates] = useState(true);
   const [bofAnnouncements, setBofAnnouncements] = useState(true);
   const [doNotDisturb, setDoNotDisturb] = useState(false);
+  
+  // Persistence Logic
+  useEffect(() => {
+    const loadPrefs = async () => {
+      const saved = await StorageService.getNotificationPreferences();
+      if (saved) {
+        if (saved.allNotifications !== undefined) setAllNotifications(saved.allNotifications);
+        if (saved.budgetAlerts !== undefined) setBudgetAlerts(saved.budgetAlerts);
+        if (saved.savingsReminders !== undefined) setSavingsReminders(saved.savingsReminders);
+        if (saved.billReminders !== undefined) setBillReminders(saved.billReminders);
+        if (saved.newContent !== undefined) setNewContent(saved.newContent);
+        if (saved.finance101 !== undefined) setFinance101(saved.finance101);
+        if (saved.podcastUpdates !== undefined) setPodcastUpdates(saved.podcastUpdates);
+        if (saved.appUpdates !== undefined) setAppUpdates(saved.appUpdates);
+        if (saved.bofAnnouncements !== undefined) setBofAnnouncements(saved.bofAnnouncements);
+        if (saved.doNotDisturb !== undefined) setDoNotDisturb(saved.doNotDisturb);
+      }
+    };
+    loadPrefs();
+  }, []);
+
+  const savePrefs = async (overrides: Record<string, boolean> = {}) => {
+    await StorageService.saveNotificationPreferences({
+      allNotifications,
+      budgetAlerts,
+      savingsReminders,
+      billReminders,
+      newContent,
+      finance101,
+      podcastUpdates,
+      appUpdates,
+      bofAnnouncements,
+      doNotDisturb,
+      ...overrides,
+    });
+  };
 
   const isGlobalDisabled = !allNotifications;
 
@@ -97,7 +134,7 @@ export const NotificationSettingsScreen = () => {
             title="All Notifications"
             description="Turn off to mute all notifications"
             value={allNotifications}
-            onValueChange={setAllNotifications}
+            onValueChange={(v) => { setAllNotifications(v); savePrefs({ allNotifications: v }); }}
             isLast={true}
           />
         </View>
@@ -111,7 +148,7 @@ export const NotificationSettingsScreen = () => {
               title="Budget Alerts"
               description="When you're close to your spending limit"
               value={budgetAlerts}
-              onValueChange={setBudgetAlerts}
+              onValueChange={(v) => { setBudgetAlerts(v); savePrefs({ budgetAlerts: v }); }}
               disabled={isGlobalDisabled}
             />
             <NotificationRow
@@ -119,7 +156,7 @@ export const NotificationSettingsScreen = () => {
               title="Savings Reminders"
               description="When to add funds to your goals"
               value={savingsReminders}
-              onValueChange={setSavingsReminders}
+              onValueChange={(v) => { setSavingsReminders(v); savePrefs({ savingsReminders: v }); }}
               disabled={isGlobalDisabled}
             />
             <NotificationRow
@@ -127,7 +164,7 @@ export const NotificationSettingsScreen = () => {
               title="Bill Reminders"
               description="Recurring expense due date alerts"
               value={billReminders}
-              onValueChange={setBillReminders}
+              onValueChange={(v) => { setBillReminders(v); savePrefs({ billReminders: v }); }}
               disabled={isGlobalDisabled}
               isLast={true}
             />
@@ -143,7 +180,7 @@ export const NotificationSettingsScreen = () => {
               title="New Content"
               description="When new articles and videos are added"
               value={newContent}
-              onValueChange={setNewContent}
+              onValueChange={(v) => { setNewContent(v); savePrefs({ newContent: v }); }}
               disabled={isGlobalDisabled}
             />
             <NotificationRow
@@ -151,7 +188,7 @@ export const NotificationSettingsScreen = () => {
               title="Finance 101"
               description="New episode available alerts"
               value={finance101}
-              onValueChange={setFinance101}
+              onValueChange={(v) => { setFinance101(v); savePrefs({ finance101: v }); }}
               disabled={isGlobalDisabled}
             />
             <NotificationRow
@@ -159,7 +196,7 @@ export const NotificationSettingsScreen = () => {
               title="Podcast Updates"
               description="New Market Pulse episode alerts"
               value={podcastUpdates}
-              onValueChange={setPodcastUpdates}
+              onValueChange={(v) => { setPodcastUpdates(v); savePrefs({ podcastUpdates: v }); }}
               disabled={isGlobalDisabled}
               isLast={true}
             />
@@ -175,7 +212,7 @@ export const NotificationSettingsScreen = () => {
               title="App Updates"
               description="Latest features and improvements"
               value={appUpdates}
-              onValueChange={setAppUpdates}
+              onValueChange={(v) => { setAppUpdates(v); savePrefs({ appUpdates: v }); }}
               disabled={isGlobalDisabled}
             />
             <NotificationRow
@@ -183,7 +220,7 @@ export const NotificationSettingsScreen = () => {
               title="BOF OAU Announcements"
               description="News from Bureau of Finance OAU"
               value={bofAnnouncements}
-              onValueChange={setBofAnnouncements}
+              onValueChange={(v) => { setBofAnnouncements(v); savePrefs({ bofAnnouncements: v }); }}
               disabled={isGlobalDisabled}
               isLast={true}
             />
@@ -199,7 +236,7 @@ export const NotificationSettingsScreen = () => {
               title="Do Not Disturb"
               description="Mute all notifications during set hours"
               value={doNotDisturb}
-              onValueChange={setDoNotDisturb}
+              onValueChange={(v) => { setDoNotDisturb(v); savePrefs({ doNotDisturb: v }); }}
               disabled={isGlobalDisabled}
               isLast={!doNotDisturb}
             />

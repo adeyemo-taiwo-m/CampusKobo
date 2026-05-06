@@ -214,8 +214,41 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       setIsAuthenticated(false);
       setApiUser(null);
       await clearTokens();
-      await loadAllData(); // Reset local state
       authEvents.emit(AUTH_EVENTS.LOGGED_OUT);
+    }
+  };
+
+  const logout = async () => {
+    setIsLoading(true);
+    try {
+      // 1. Call API logout
+      await logoutFromApi();
+      
+      // 2. Clear ALL persistent storage
+      await StorageService.clearAllData();
+      
+      // 3. Reset local states
+      setUserState(null);
+      setTransactions([]);
+      setBudgets([]);
+      setSavingsGoals([]);
+      setRecurringExpenses([]);
+      setDashboardSummary(null);
+      setApiUser(null);
+      setIsAuthenticated(false);
+      
+    } catch (error) {
+      console.error('Logout implementation error:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const toggleBalanceVisibility = async () => {
+    const newVal = !isBalanceHidden;
+    setIsBalanceHidden(newVal);
+    if (user) {
+      await updateUser({ hideBalance: newVal });
     }
   };
 

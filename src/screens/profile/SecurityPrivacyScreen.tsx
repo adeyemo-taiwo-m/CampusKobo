@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -21,6 +21,7 @@ import {
 } from '../../constants';
 import { Header } from '../../components/Header';
 import { useAppContext } from '../../context/AppContext';
+import { StorageService } from '../../storage/StorageService';
 
 const CustomToggle = ({ value, onValueChange, disabled = false }: { value: boolean, onValueChange: (v: boolean) => void, disabled?: boolean }) => {
   return (
@@ -30,20 +31,11 @@ const CustomToggle = ({ value, onValueChange, disabled = false }: { value: boole
       style={[
         styles.toggleContainer,
         value ? styles.toggleOn : styles.toggleOff,
+        { justifyContent: value ? 'flex-end' : 'flex-start' },
         disabled && styles.toggleDisabled
       ]}
     >
-      {value ? (
-        <>
-          <Text style={styles.toggleText}>ON</Text>
-          <View style={styles.toggleCircle} />
-        </>
-      ) : (
-        <>
-          <View style={styles.toggleCircle} />
-          <Text style={styles.toggleText}>OFF</Text>
-        </>
-      )}
+      <View style={styles.toggleCircle} />
     </TouchableOpacity>
   );
 };
@@ -91,7 +83,7 @@ const SecurityRow = ({
 
 export const SecurityPrivacyScreen = () => {
   const router = useRouter();
-  const { isBalanceHidden, toggleBalanceVisibility } = useAppContext();
+  const { isBalanceHidden, toggleBalanceVisibility, user, logout } = useAppContext();
   
   const [appLock, setAppLock] = useState(false);
   const [biometricUnlock, setBiometricUnlock] = useState(true);
@@ -99,6 +91,34 @@ export const SecurityPrivacyScreen = () => {
   const [fingerprintLogin, setFingerprintLogin] = useState(true);
   const [faceId, setFaceId] = useState(true);
   const [dataAnalytics, setDataAnalytics] = useState(true);
+
+  // Persistence Logic
+  useEffect(() => {
+    const loadPrefs = async () => {
+      const saved = await StorageService.getSecurityPreferences();
+      if (saved) {
+        if (saved.appLock !== undefined) setAppLock(saved.appLock);
+        if (saved.biometricUnlock !== undefined) setBiometricUnlock(saved.biometricUnlock);
+        if (saved.pinLock !== undefined) setPinLock(saved.pinLock);
+        if (saved.fingerprintLogin !== undefined) setFingerprintLogin(saved.fingerprintLogin);
+        if (saved.faceId !== undefined) setFaceId(saved.faceId);
+        if (saved.dataAnalytics !== undefined) setDataAnalytics(saved.dataAnalytics);
+      }
+    };
+    loadPrefs();
+  }, []);
+
+  const savePrefs = async (overrides: Record<string, boolean> = {}) => {
+    await StorageService.saveSecurityPreferences({
+      appLock,
+      biometricUnlock,
+      pinLock,
+      fingerprintLogin,
+      faceId,
+      dataAnalytics,
+      ...overrides,
+    });
+  };
 
   const handleDeleteAccount = () => {
     Alert.alert(
@@ -109,8 +129,9 @@ export const SecurityPrivacyScreen = () => {
         { 
           text: 'Delete', 
           style: 'destructive',
-          onPress: () => {
-            // clearAllData();
+          onPress: async () => {
+            await StorageService.clearAllData();
+            await logout();
             router.replace('/(onboarding)/welcome-1');
           }
         }
@@ -133,7 +154,7 @@ export const SecurityPrivacyScreen = () => {
             title="App Lock"
             description="Require authentication to open CampusKobo"
             value={appLock}
-            onValueChange={setAppLock}
+            onValueChange={(v) => { setAppLock(v); savePrefs({ appLock: v }); }}
             isLast={!appLock}
           />
           {appLock && (
@@ -143,14 +164,14 @@ export const SecurityPrivacyScreen = () => {
                 title="Face ID / Fingerprint"
                 description="Use biometric to unlock the app"
                 value={biometricUnlock}
-                onValueChange={setBiometricUnlock}
+                onValueChange={(v) => { setBiometricUnlock(v); savePrefs({ biometricUnlock: v }); }}
               />
               <SecurityRow
                 icon="grid-outline"
                 title="PIN Lock"
                 description="Use a 4-digit PIN to unlock the app"
                 value={pinLock}
-                onValueChange={setPinLock}
+                onValueChange={(v) => { setPinLock(v); savePrefs({ pinLock: v }); }}
                 isLast={true}
               />
             </>
@@ -164,7 +185,7 @@ export const SecurityPrivacyScreen = () => {
             <SecurityRow
               icon="key-outline"
               title="Set PIN"
-              description="Create a 4-digit PIN for app lock"
+              description={user?.hasPIN ? "PIN is set — tap to change" : "Create a 4-digit PIN for app lock"}
               type="arrow"
               onPress={() => router.push('/profile/set-pin')}
             />
@@ -188,14 +209,14 @@ export const SecurityPrivacyScreen = () => {
               title="Fingerprint Login"
               description="Use fingerprint to access your account"
               value={fingerprintLogin}
-              onValueChange={setFingerprintLogin}
+              onValueChange={(v) => { setFingerprintLogin(v); savePrefs({ fingerprintLogin: v }); }}
             />
             <SecurityRow
               icon="scan-outline"
               title="Face ID"
               description="Use Face ID to access your account"
               value={faceId}
-              onValueChange={setFaceId}
+              onValueChange={(v) => { setFaceId(v); savePrefs({ faceId: v }); }}
               isLast={true}
             />
           </View>
@@ -217,7 +238,7 @@ export const SecurityPrivacyScreen = () => {
               title="Data & Analytics"
               description="Help improve CampusKobo with usage data"
               value={dataAnalytics}
-              onValueChange={setDataAnalytics}
+              onValueChange={(v) => { setDataAnalytics(v); savePrefs({ dataAnalytics: v }); }}
               isLast={true}
             />
           </View>
@@ -315,7 +336,7 @@ const styles = StyleSheet.create({
   },
   rowTitle: {
     fontSize: 16,
-    fontFamily: Fonts.bold,
+    fontFamily: Fonts.medium,
     color: TEXT_PRIMARY,
     marginBottom: 4,
   },
@@ -326,13 +347,12 @@ const styles = StyleSheet.create({
   },
   // Custom Toggle Styles
   toggleContainer: {
-    width: 60,
-    height: 32,
-    borderRadius: 16,
-    paddingHorizontal: 6,
+    width: 50,
+    height: 26,
+    borderRadius: 13,
+    paddingHorizontal: 2,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
   },
   toggleOn: {
     backgroundColor: PRIMARY_GREEN,

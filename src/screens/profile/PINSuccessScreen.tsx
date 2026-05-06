@@ -10,6 +10,7 @@ import {
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { authService } from '../../services/authService';
+import { useAppContext } from '../../context/AppContext';
 import {
   WHITE,
   PRIMARY_GREEN,
@@ -22,6 +23,8 @@ export const PINSuccessScreen = () => {
   const router = useRouter();
   const { pin } = useLocalSearchParams<{ pin: string }>();
   
+  const { updateUser } = useAppContext();
+  
   const handleDone = async () => {
     // 1. Save to API (Background sync)
     if (pin) {
@@ -30,9 +33,11 @@ export const PINSuccessScreen = () => {
       } catch (error) {
         console.warn('Failed to sync PIN with server, but saved locally:', error);
       }
+      // 2. Save locally to context
+      await updateUser({ hasPIN: true, pin });
     }
     
-    // 2. Navigate back
+    // 3. Navigate back
     router.replace('/profile/security');
   };
 

@@ -7,6 +7,7 @@ import {
   SafeAreaView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useAppContext } from "../context/AppContext";
 import {
   TEXT_PRIMARY,
   WHITE,
@@ -57,6 +58,7 @@ export const Header = ({
   transparent,
   tintColor = TEXT_PRIMARY,
 }: HeaderProps) => {
+  const { user, apiUser } = useAppContext();
   return (
     <SafeAreaView
       style={[styles.safeArea, transparent && styles.transparentHeader]}
@@ -71,7 +73,15 @@ export const Header = ({
           {showProfile && (
             <TouchableOpacity onPress={onProfile} style={styles.profileButton}>
               <View style={styles.avatarPlaceholder}>
-                <Ionicons name="person" size={20} color={WHITE} />
+                <Text style={styles.avatarText}>
+                  {(apiUser?.full_name || user?.name || "CK")
+                    .split(" ")
+                    .filter(Boolean)
+                    .map((n) => n[0])
+                    .join("")
+                    .toUpperCase()
+                    .substring(0, 2)}
+                </Text>
               </View>
             </TouchableOpacity>
           )}
@@ -178,6 +188,11 @@ const styles = StyleSheet.create({
     backgroundColor: "#9CA3AF",
     alignItems: "center",
     justifyContent: "center",
+  },
+  avatarText: {
+    color: WHITE,
+    fontSize: 12,
+    fontFamily: Fonts.bold,
   },
   editText: {
     fontSize: FONT_SIZE.MD,

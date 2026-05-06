@@ -7,6 +7,8 @@ const KEYS = {
   BUDGETS: 'campuskobo_budgets',
   SAVINGS: 'campuskobo_savings',
   RECURRING: 'campuskobo_recurring',
+  NOTIFICATIONS: 'campuskobo_notification_prefs',
+  SECURITY: 'campuskobo_security_prefs',
 };
 
 export const StorageService = {
@@ -229,6 +231,42 @@ export const StorageService = {
       return updated;
     } catch (error) {
       console.error('Error deleting recurring expense:', error);
+    }
+  },
+
+  // Notification Preferences
+  saveNotificationPreferences: async (prefs: Record<string, boolean>) => {
+    try {
+      await AsyncStorage.setItem(KEYS.NOTIFICATIONS, JSON.stringify(prefs));
+    } catch (e) {
+      console.error('Failed to save notification prefs', e);
+    }
+  },
+  getNotificationPreferences: async (): Promise<Record<string, boolean> | null> => {
+    try {
+      const data = await AsyncStorage.getItem(KEYS.NOTIFICATIONS);
+      return data ? JSON.parse(data) : null;
+    } catch (e) {
+      console.error('Failed to load notification prefs', e);
+      return null;
+    }
+  },
+
+  // Security Preferences
+  saveSecurityPreferences: async (prefs: Record<string, boolean>) => {
+    try {
+      await AsyncStorage.setItem(KEYS.SECURITY, JSON.stringify(prefs));
+    } catch (e) {
+      console.error('Failed to save security prefs', e);
+    }
+  },
+  getSecurityPreferences: async (): Promise<Record<string, boolean> | null> => {
+    try {
+      const data = await AsyncStorage.getItem(KEYS.SECURITY);
+      return data ? JSON.parse(data) : null;
+    } catch (e) {
+      console.error('Failed to load security prefs', e);
+      return null;
     }
   },
 
