@@ -63,11 +63,23 @@ const LeaderRow = ({ name, role, isLast = false }: { name: string, role: string,
 export const AboutBOFScreen = () => {
   const router = useRouter();
 
-  const handleContact = (type: 'email' | 'location') => {
-    if (type === 'email') {
-      Linking.openURL('mailto:bureauoffinance@gmail.com');
-    } else {
-      Linking.openURL('https://maps.google.com/?q=Obafemi+Awolowo+University+Ile-Ife');
+  const handleContact = (type: 'email' | 'location' | 'instagram' | 'linkedin' | 'whatsapp') => {
+    switch (type) {
+      case 'email':
+        Linking.openURL('mailto:bureauoffinance@gmail.com');
+        break;
+      case 'instagram':
+        Linking.openURL('https://www.instagram.com/bof_oau?igsh=MWppMGp4YnB3ZDRzNQ==');
+        break;
+      case 'linkedin':
+        Linking.openURL('https://www.linkedin.com/company/the-students-professional-bureau-of-finance-oau-ife/');
+        break;
+      case 'whatsapp':
+        Linking.openURL('https://wa.me/2347044059473');
+        break;
+      case 'location':
+        Linking.openURL('https://maps.google.com/?q=Obafemi+Awolowo+University+Ile-Ife');
+        break;
     }
   };
 
@@ -174,6 +186,18 @@ export const AboutBOFScreen = () => {
           <TouchableOpacity style={styles.contactRow} onPress={() => handleContact('email')}>
             <Ionicons name="mail-outline" size={20} color={PRIMARY_GREEN} />
             <Text style={styles.contactText}>bureauoffinance@gmail.com</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.contactRow} onPress={() => handleContact('whatsapp')}>
+            <Ionicons name="logo-whatsapp" size={20} color={PRIMARY_GREEN} />
+            <Text style={styles.contactText}>+234 704 405 9473</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.contactRow} onPress={() => handleContact('instagram')}>
+            <Ionicons name="logo-instagram" size={20} color={PRIMARY_GREEN} />
+            <Text style={styles.contactText}>@bof_oau</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.contactRow} onPress={() => handleContact('linkedin')}>
+            <Ionicons name="logo-linkedin" size={20} color={PRIMARY_GREEN} />
+            <Text style={styles.contactText}>BOF OAU on LinkedIn</Text>
           </TouchableOpacity>
           <TouchableOpacity style={[styles.contactRow, styles.noBorder]} onPress={() => handleContact('location')}>
             <Ionicons name="location-outline" size={20} color={PRIMARY_GREEN} />

@@ -1,5 +1,6 @@
 import apiClient from './apiClient';
 import { API_ENDPOINTS } from '../constants/api';
+import { supabase } from '../lib/supabase';
 
 export interface FAQ {
   id: string;
@@ -11,9 +12,9 @@ export interface FAQ {
 export interface SupportMessageRequest {
   name: string;
   email: string;
+  subject: string;
   message: string;
-  subject?: string;
-  category?: string;
+  user_id?: string;
 }
 
 /**
@@ -25,10 +26,24 @@ export const getFAQs = async (): Promise<FAQ[]> => {
 };
 
 /**
- * Sends a support message to the backend.
+ * Sends a support message directly to Supabase.
  */
 export const sendMessage = async (data: SupportMessageRequest): Promise<any> => {
-  return await apiClient.post(API_ENDPOINTS.SUPPORT_MESSAGES, data);
+  const { error } = await supabase
+    .from('support_messages')
+    .insert([
+      {
+        name: data.name,
+        email: data.email,
+        subject: data.subject,
+        message: data.message,
+        user_id: data.user_id || null,
+        status: 'pending' // Default status
+      }
+    ]);
+
+  if (error) throw error;
+  return { success: true };
 };
 
 export const supportService = {

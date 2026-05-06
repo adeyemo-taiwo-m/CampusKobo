@@ -11,6 +11,8 @@ import {
   Platform,
   UIManager,
   Linking,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -27,6 +29,7 @@ import {
 import { Header } from '../../components/Header';
 import { InputField } from '../../components/InputField';
 import { supportService } from '../../services/supportService';
+import { useAppContext } from '../../context/AppContext';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -140,6 +143,7 @@ const ExpandableFAQ = ({ item, isExpanded, onToggle }: { item: FAQItem, isExpand
 
 export const HelpFAQScreen = () => {
   const router = useRouter();
+  const { user } = useAppContext();
   const { tab } = useLocalSearchParams<{ tab: string }>();
   const scrollViewRef = useRef<ScrollView>(null);
   
@@ -151,6 +155,7 @@ export const HelpFAQScreen = () => {
   // Form State
   const [contactName, setContactName] = useState('');
   const [contactEmail, setContactEmail] = useState('');
+  const [contactSubject, setContactSubject] = useState('');
   const [contactIssue, setContactIssue] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [dynamicFaqs, setDynamicFaqs] = useState<FAQItem[]>([]);
@@ -270,7 +275,11 @@ export const HelpFAQScreen = () => {
         </ScrollView>
 
         {/* FAQ List */}
-        {filteredFAQs.length > 0 ? (
+        {isLoadingFaqs ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={PRIMARY_GREEN} />
+          </View>
+        ) : filteredFAQs.length > 0 ? (
           <View style={styles.faqList}>
             {categories.filter(c => c !== 'All').map(category => {
               const categoryFaqs = filteredFAQs.filter(f => f.category === category);
@@ -357,50 +366,78 @@ export const HelpFAQScreen = () => {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         <View style={styles.contactContent}>
           <Text style={styles.contactTitle}>Get in touch with us</Text>
-          
-          <View style={styles.contactCard}>
+                    <View style={styles.contactCard}>
             <TouchableOpacity 
               style={styles.contactRow}
-              onPress={() => Linking.openURL('mailto:support@bofaou.com')}
+              onPress={() => Linking.openURL('mailto:bureauoffinance@gmail.com')}
             >
               <View style={styles.contactIconBox}>
                 <Ionicons name="mail-outline" size={20} color={PRIMARY_GREEN} />
               </View>
               <View style={styles.contactInfo}>
                 <Text style={styles.contactLabel}>Email Support</Text>
-                <Text style={styles.contactValue}>support@bofaou.com</Text>
+                <Text style={styles.contactValue}>bureauoffinance@gmail.com</Text>
               </View>
               <Ionicons name="chevron-forward" size={20} color="#D1D5DB" />
             </TouchableOpacity>
-
+ 
             <TouchableOpacity 
               style={styles.contactRow}
-              onPress={() => Linking.openURL('https://wa.me/2340000000000')}
+              onPress={() => Linking.openURL('https://wa.me/2347044059473')}
             >
               <View style={styles.contactIconBox}>
                 <Ionicons name="logo-whatsapp" size={20} color={PRIMARY_GREEN} />
               </View>
               <View style={styles.contactInfo}>
                 <Text style={styles.contactLabel}>WhatsApp</Text>
-                <Text style={styles.contactValue}>Chat with us on WhatsApp</Text>
+                <Text style={styles.contactValue}>+234 704 405 9473</Text>
               </View>
               <Ionicons name="chevron-forward" size={20} color="#D1D5DB" />
             </TouchableOpacity>
-
+ 
             <TouchableOpacity 
-              style={[styles.contactRow, styles.noBorder]}
-              onPress={() => Linking.openURL('https://instagram.com/bofaou')}
+              style={styles.contactRow}
+              onPress={() => Linking.openURL('https://www.instagram.com/bof_oau?igsh=MWppMGp4YnB3ZDRzNQ==')}
             >
               <View style={styles.contactIconBox}>
                 <Ionicons name="logo-instagram" size={20} color={PRIMARY_GREEN} />
               </View>
               <View style={styles.contactInfo}>
                 <Text style={styles.contactLabel}>Instagram</Text>
-                <Text style={styles.contactValue}>@bofaou</Text>
+                <Text style={styles.contactValue}>@bof_oau</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color="#D1D5DB" />
+            </TouchableOpacity>
+ 
+            <TouchableOpacity 
+              style={styles.contactRow}
+              onPress={() => Linking.openURL('https://www.linkedin.com/company/the-students-professional-bureau-of-finance-oau-ife/')}
+            >
+              <View style={styles.contactIconBox}>
+                <Ionicons name="logo-linkedin" size={20} color={PRIMARY_GREEN} />
+              </View>
+              <View style={styles.contactInfo}>
+                <Text style={styles.contactLabel}>LinkedIn</Text>
+                <Text style={styles.contactValue}>BOF OAU on LinkedIn</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color="#D1D5DB" />
+            </TouchableOpacity>
+ 
+            <TouchableOpacity 
+              style={[styles.contactRow, styles.noBorder]}
+              onPress={() => Linking.openURL('https://maps.google.com/?q=Obafemi+Awolowo+University+Ile-Ife')}
+            >
+              <View style={styles.contactIconBox}>
+                <Ionicons name="location-outline" size={20} color={PRIMARY_GREEN} />
+              </View>
+              <View style={styles.contactInfo}>
+                <Text style={styles.contactLabel}>Location</Text>
+                <Text style={styles.contactValue}>OAU, Ile-Ife, Nigeria</Text>
               </View>
               <Ionicons name="chevron-forward" size={20} color="#D1D5DB" />
             </TouchableOpacity>
           </View>
+
 
           <Text style={styles.formTitle}>Send us a message</Text>
           
@@ -419,6 +456,12 @@ export const HelpFAQScreen = () => {
             outerContainerStyle={styles.formFieldOuter}
           />
           <InputField
+            placeholder="Subject"
+            value={contactSubject}
+            onChangeText={setContactSubject}
+            outerContainerStyle={styles.formFieldOuter}
+          />
+          <InputField
             placeholder="Describe your issue"
             value={contactIssue}
             onChangeText={setContactIssue}
@@ -432,15 +475,17 @@ export const HelpFAQScreen = () => {
         </View>
 
         <TouchableOpacity 
-          style={[styles.submitBtn, (isSubmitting || !contactName || !contactEmail || !contactIssue) && styles.disabledBtn]}
+          style={[styles.submitBtn, (isSubmitting || !contactName || !contactEmail || !contactSubject || !contactIssue) && styles.disabledBtn]}
           onPress={async () => {
-            if (contactName && contactEmail && contactIssue) {
+            if (contactName && contactEmail && contactSubject && contactIssue) {
               setIsSubmitting(true);
               try {
                 await supportService.sendMessage({
                   name: contactName,
                   email: contactEmail,
+                  subject: contactSubject,
                   message: contactIssue,
+                  user_id: user?.id,
                 });
                 Alert.alert(
                   'Message Sent',
@@ -449,6 +494,7 @@ export const HelpFAQScreen = () => {
                 );
                 setContactName('');
                 setContactEmail('');
+                setContactSubject('');
                 setContactIssue('');
               } catch (error: any) {
                 Alert.alert('Error', error.message || 'Failed to send message. Please try again.');
@@ -736,7 +782,7 @@ const styles = StyleSheet.create({
   },
   contactLabel: {
     fontSize: 14,
-    fontFamily: Fonts.bold,
+    fontFamily: Fonts.medium,
     color: TEXT_PRIMARY,
     marginBottom: 2,
   },
@@ -779,8 +825,12 @@ const styles = StyleSheet.create({
   disabledBtn: {
     opacity: 0.6,
   },
-  // Empty State
   emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 40,
+  },
+  loadingContainer: {
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 40,
