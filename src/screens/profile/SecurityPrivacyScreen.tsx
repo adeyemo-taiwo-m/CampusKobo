@@ -130,9 +130,13 @@ export const SecurityPrivacyScreen = () => {
           text: 'Delete', 
           style: 'destructive',
           onPress: async () => {
-            await StorageService.clearAllData();
-            await logout();
-            router.replace('/(onboarding)/welcome-1');
+            try {
+              await StorageService.clearAllData();
+              await logout();
+              router.replace('/(onboarding)/welcome-1');
+            } catch (error) {
+              Alert.alert('Error', 'Failed to delete account. Please try again.');
+            }
           }
         }
       ]
