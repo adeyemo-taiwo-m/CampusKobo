@@ -323,7 +323,8 @@ export const HelpFAQScreen = () => {
               <Text style={styles.contactSupportSmallText}>Contact Support →</Text>
             </TouchableOpacity>
           </View>
-        )}
+        )
+      )}
 
         {/* Still Need Help Card */}
         <View style={styles.stillNeedHelpCard}>
