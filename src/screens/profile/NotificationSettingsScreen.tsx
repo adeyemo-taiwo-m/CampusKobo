@@ -293,7 +293,7 @@ const styles = StyleSheet.create({
   },
   rowTitle: {
     fontSize: 16,
-    fontFamily: Fonts.bold,
+    fontFamily: Fonts.medium,
     color: TEXT_PRIMARY,
     marginBottom: 4,
   },
@@ -323,7 +323,7 @@ const styles = StyleSheet.create({
   },
   toggleText: {
     fontSize: 10,
-    fontFamily: Fonts.bold,
+    fontFamily: Fonts.medium,
     color: WHITE,
   },
   toggleCircle: {
@@ -364,7 +364,7 @@ const styles = StyleSheet.create({
   },
   timeText: {
     fontSize: 14,
-    fontFamily: Fonts.bold,
+    fontFamily: Fonts.medium,
     color: TEXT_PRIMARY,
   }
 });
