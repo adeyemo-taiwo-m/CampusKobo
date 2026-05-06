@@ -76,6 +76,7 @@ export const revokeSession = async (sessionId: string): Promise<any> => {
 
 export const userService = {
   getMe,
+  getProfile: getMe,
   updateProfile,
   uploadAvatar,
   listSessions,

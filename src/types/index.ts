@@ -65,6 +65,13 @@ export interface User {
   hasCompletedOnboarding: boolean;
 }
 
+export type ApiUser = {
+  id: string;
+  full_name: string;
+  email: string;
+  avatar_url?: string;
+};
+
 export interface LearningContent {
   id: string;
   title: string;

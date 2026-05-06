@@ -8,6 +8,7 @@ import React, {
 } from "react";
 import {
   User,
+  ApiUser,
   Transaction,
   Budget,
   SavingsGoal,
@@ -16,7 +17,7 @@ import {
   EnrichedSavingsGoal,
 } from "../types";
 import { StorageService } from "../storage/StorageService";
-import { UserProfileResponse, userService } from "../services/userService";
+import { userService } from "../services/userService";
 import { authService } from "../services/authService";
 import { hasValidTokens, clearTokens } from "../storage/TokenStorage";
 import { authEvents, AUTH_EVENTS } from "../utils/authEvents";
@@ -34,7 +35,7 @@ export interface AppContextType {
   savingsGoals: SavingsGoal[];
   recurringExpenses: RecurringExpense[];
   isLoading: boolean;
-  apiUser: UserProfileResponse | null;
+  apiUser: ApiUser | null;
   isAuthenticated: boolean;
   authLoading: boolean;
   networkError: boolean;
@@ -109,14 +110,14 @@ export interface AppContextType {
   resumeAllRecurring: () => Promise<void>;
   processRecurringExpense: (recurringId: string) => Promise<void>;
   isBalanceHidden: boolean;
-  toggleBalanceVisibility: () => Promise<void>;
+  toggleBalanceVisibility: () => void;
   updateUser: (data: Partial<User>) => Promise<void>;
   setUser: (user: User | null) => void;
   logout: () => Promise<void>;
   loginWithApi: (email: string, password: string) => Promise<void>;
   registerWithApi: (full_name: string, email: string, password: string) => Promise<any>;
   logoutFromApi: () => Promise<void>;
-  setApiUser: (user: UserProfileResponse | null) => void;
+  setApiUser: (user: ApiUser | null) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -133,7 +134,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [isBalanceHidden, setIsBalanceHidden] = useState(false);
 
   // API Auth State
-  const [apiUser, setApiUser] = useState<UserProfileResponse | null>(null);
+  const [apiUser, setApiUser] = useState<ApiUser | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [authLoading, setAuthLoading] = useState<boolean>(true);
   const [networkError, setNetworkError] = useState<boolean>(false);
@@ -335,9 +336,20 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   };
 
   useEffect(() => {
-    // Run auth check and data load in parallel
+    // 1. Run auth check and data load in parallel
     checkAuthStatus();
     loadAllData();
+
+    // 2. Load API User (Step 2.4 from Guide)
+    const loadApiUser = async () => {
+      try {
+        const profile = await userService.getMe(); 
+        setApiUser(profile as ApiUser);
+      } catch (e) {
+        console.warn('Could not load API user', e);
+      }
+    };
+    loadApiUser();
 
     // Listen for auth events
     const onExpired = () => {
@@ -868,11 +880,11 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     setRecurringExpenses(updated);
   };
 
-  const toggleBalanceVisibility = async () => {
-    const newValue = !isBalanceHidden;
-    setIsBalanceHidden(newValue);
+  const toggleBalanceVisibility = () => {
+    setIsBalanceHidden(prev => !prev);
+    // Persist to user object as well if it exists
     if (user) {
-      await updateUser({ hideBalance: newValue });
+      updateUser({ hideBalance: !isBalanceHidden });
     }
   };
 
