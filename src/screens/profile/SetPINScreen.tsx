@@ -37,6 +37,7 @@ const KeypadButton = ({ value, letters, onPress }: { value: string, letters?: st
 
 export const SetPINScreen = () => {
   const router = useRouter();
+  const { t } = useAppContext();
   const [pin, setPin] = useState('');
 
   const handlePress = (value: string) => {
@@ -65,7 +66,7 @@ export const SetPINScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
-      <Header title="Set PIN" showBack={true} onBack={() => router.back()} />
+      <Header title={t('security.setPinTitle')} showBack={true} onBack={() => router.back()} />
 
       <View style={styles.content}>
         {/* Progress Dots */}
@@ -79,8 +80,8 @@ export const SetPINScreen = () => {
           <View style={styles.iconContainer}>
             <Ionicons name="lock-closed" size={40} color={PRIMARY_GREEN} />
           </View>
-          <Text style={styles.title}>Create your PIN</Text>
-          <Text style={styles.subtitle}>Choose a 4-digit PIN to secure your CampusKobo account</Text>
+          <Text style={styles.title}>{t('security.createPin')}</Text>
+          <Text style={styles.subtitle}>{t('security.pinSubtitle')}</Text>
 
           {/* PIN Indicators */}
           <View style={styles.indicatorContainer}>
@@ -124,7 +125,7 @@ export const SetPINScreen = () => {
 
         <View style={styles.footer}>
           <Ionicons name="lock-closed-outline" size={14} color={TEXT_SECONDARY} />
-          <Text style={styles.footerText}>Your PIN is encrypted and stored securely</Text>
+          <Text style={styles.footerText}>{t('security.pinFooter')}</Text>
         </View>
       </View>
     </SafeAreaView>

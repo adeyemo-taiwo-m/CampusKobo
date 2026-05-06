@@ -44,11 +44,12 @@ const TechItem = ({ label, tech }: { label: string, tech: string }) => (
 
 export const AboutCampusKoboScreen = () => {
   const router = useRouter();
+  const { t } = useAppContext();
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
-      <Header title="About CampusKobo" showBack={true} onBack={() => router.back()} />
+      <Header title={t('about.campusTitle')} showBack={true} onBack={() => router.back()} />
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         {/* Hero Section */}
@@ -63,53 +64,50 @@ export const AboutCampusKoboScreen = () => {
             <Text style={styles.versionText}>v1.0.0</Text>
           </View>
           <Text style={styles.heroDescription}>
-            A personal finance companion designed exclusively for OAU students. 
-            Empowering you to take control of your money, one Kobo at a time.
+            {t('about.campusHero')}
           </Text>
         </View>
 
         {/* The Why */}
         <View style={styles.introCard}>
-          <Text style={styles.introTitle}>Why CampusKobo?</Text>
+          <Text style={styles.introTitle}>{t('about.whyTitle')}</Text>
           <Text style={styles.introText}>
-            Built under the Bureau of Finance OAU (BOF OAU), CampusKobo was born from the need to 
-            bridge the gap between classroom theory and practical financial management. We believe 
-            financial literacy is a superpower, and every student deserves the tools to master it.
+            {t('about.whyText')}
           </Text>
           <View style={styles.offlineBanner}>
             <Ionicons name="cloud-offline-outline" size={16} color={PRIMARY_GREEN} />
-            <Text style={styles.offlineText}>100% Offline-First. Your data stays on your device.</Text>
+            <Text style={styles.offlineText}>{t('about.offline')}</Text>
           </View>
         </View>
 
         {/* Key Features */}
-        <Text style={styles.sectionHeading}>Core Features</Text>
+        <Text style={styles.sectionHeading}>{t('about.features')}</Text>
         <View style={styles.featuresGrid}>
           <FeatureCard 
             icon="wallet-outline" 
-            title="Expense Tracking" 
-            description="Log income and expenses in seconds with smart categories." 
+            title={t('about.feature1')} 
+            description={t('about.feature1Desc')} 
           />
           <FeatureCard 
             icon="pie-chart-outline" 
-            title="Budget Control" 
-            description="Set limits and get real-time alerts before you overspend." 
+            title={t('about.feature2')} 
+            description={t('about.feature2Desc')} 
           />
           <FeatureCard 
             icon="flag-outline" 
-            title="Savings Goals" 
-            description="Set targets for what matters and track your progress daily." 
+            title={t('about.feature3')} 
+            description={t('about.feature3Desc')} 
           />
           <FeatureCard 
             icon="school-outline" 
-            title="Learning Hub" 
-            description="Curated finance lessons, glossary, and podcasts from BOF experts." 
+            title={t('about.feature4')} 
+            description={t('about.feature4Desc')} 
           />
         </View>
 
         {/* Tech Stack */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Built With Excellence</Text>
+          <Text style={styles.cardTitle}>{t('about.techTitle')}</Text>
           <TechItem label="Framework" tech="React Native (Expo)" />
           <TechItem label="Language" tech="TypeScript" />
           <TechItem label="Storage" tech="Local AsyncStorage" />
@@ -122,7 +120,7 @@ export const AboutCampusKoboScreen = () => {
 
 
         <View style={styles.footer}>
-          <Text style={styles.madeBy}>Made with 💚 by BOF OAU Tech Team</Text>
+          <Text style={styles.madeBy}>{t('about.madeBy')}</Text>
           <Text style={styles.legal}>© 2025 Bureau of Finance, OAU</Text>
         </View>
 

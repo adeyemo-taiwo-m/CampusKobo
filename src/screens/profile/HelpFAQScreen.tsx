@@ -174,7 +174,7 @@ const LoadingSkeleton = () => {
 
 export const HelpFAQScreen = () => {
   const router = useRouter();
-  const { user } = useAppContext();
+  const { user, apiUser, t } = useAppContext();
   const { tab } = useLocalSearchParams<{ tab: string }>();
   const scrollViewRef = useRef<ScrollView>(null);
   const [isSuccessModalVisible, setIsSuccessModalVisible] = useState(false);
@@ -228,7 +228,13 @@ export const HelpFAQScreen = () => {
 
     setIsSendingMessage(true);
     try {
-      await supportService.sendSupportMessage({ subject, message });
+      await supportService.sendSupportMessage({ 
+        subject, 
+        message,
+        name: apiUser?.full_name || user?.name || 'User',
+        email: apiUser?.email || user?.email || 'no-email@campuskobo.com',
+        user_id: user?.id
+      });
       setMessageSent(true);
       setSubject("");
       setMessage("");
@@ -262,7 +268,7 @@ export const HelpFAQScreen = () => {
   const renderFAQTab = () => (
     <>
       <InputField
-        placeholder="What are you looking for?"
+        placeholder={t('help.search')}
         value={searchQuery}
         onChangeText={setSearchQuery}
         leftIcon={<Ionicons name="search-outline" size={20} color={TEXT_SECONDARY} />}
@@ -274,13 +280,13 @@ export const HelpFAQScreen = () => {
           style={[styles.tabItem, activeTab === 'FAQ' && styles.activeTabItem]} 
           onPress={() => setActiveTab('FAQ')}
         >
-          <Text style={[styles.tabText, activeTab === 'FAQ' && styles.activeTabText]}>FAQ</Text>
+          <Text style={[styles.tabText, activeTab === 'FAQ' && styles.activeTabText]}>{t('help.tabs.faq')}</Text>
         </TouchableOpacity>
         <TouchableOpacity 
           style={[styles.tabItem, activeTab === 'Contact' && styles.activeTabItem]} 
           onPress={() => setActiveTab('Contact')}
         >
-          <Text style={[styles.tabText, activeTab === 'Contact' && styles.activeTabText]}>Contact Us</Text>
+          <Text style={[styles.tabText, activeTab === 'Contact' && styles.activeTabText]}>{t('help.tabs.contact')}</Text>
         </TouchableOpacity>
       </View>
 
@@ -290,7 +296,7 @@ export const HelpFAQScreen = () => {
         contentContainerStyle={styles.scrollContent}
       >
         {/* Quick Help Grid */}
-        <Text style={styles.sectionTitle}>Quick Help</Text>
+        <Text style={styles.sectionTitle}>{t('help.quick')}</Text>
         <View style={styles.quickHelpGrid}>
           <TouchableOpacity style={styles.quickHelpCard} onPress={() => scrollToSection('Expenses')}>
             <View style={[styles.quickIconWrapper, { backgroundColor: '#E7F5ED' }]}>
@@ -319,7 +325,7 @@ export const HelpFAQScreen = () => {
         </View>
 
         {/* Category Chips */}
-        <Text style={styles.sectionTitle}>Frequently Asked Questions</Text>
+        <Text style={styles.sectionTitle}>{t('help.faqTitle')}</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryScroll}>
           {categories.map(cat => (
             <TouchableOpacity 
@@ -367,10 +373,10 @@ export const HelpFAQScreen = () => {
         ) : (
           <View style={styles.emptyState}>
             <Ionicons name="search-outline" size={48} color="#D1D5DB" />
-            <Text style={styles.emptyTitle}>No results found</Text>
-            <Text style={styles.emptySubtitle}>Try different keywords</Text>
-            <TouchableOpacity style={styles.contactSupportSmallBtn}>
-              <Text style={styles.contactSupportSmallText}>Contact Support →</Text>
+            <Text style={styles.emptyTitle}>{t('help.noResults')}</Text>
+            <Text style={styles.emptySubtitle}>{t('help.noResultsDesc')}</Text>
+            <TouchableOpacity style={styles.contactSupportSmallBtn} onPress={() => setActiveTab('Contact')}>
+              <Text style={styles.contactSupportSmallText}>{t('help.contactSupport')} →</Text>
             </TouchableOpacity>
           </View>
         )
@@ -383,12 +389,12 @@ export const HelpFAQScreen = () => {
               <Ionicons name="logo-whatsapp" size={20} color={PRIMARY_GREEN} />
             </View>
             <View>
-              <Text style={styles.stillNeedHelpTitle}>Still need help?</Text>
-              <Text style={styles.stillNeedHelpSubtitle}>Can't find what you're looking for?</Text>
+              <Text style={styles.stillNeedHelpTitle}>{t('help.stillNeedHelp')}</Text>
+              <Text style={styles.stillNeedHelpSubtitle}>{t('help.noResultsDesc')}</Text>
             </View>
           </View>
-          <TouchableOpacity style={styles.contactSupportBtn}>
-            <Text style={styles.contactSupportText}>Contact Support</Text>
+          <TouchableOpacity style={styles.contactSupportBtn} onPress={() => setActiveTab('Contact')}>
+            <Text style={styles.contactSupportText}>{t('help.contactSupport')}</Text>
           </TouchableOpacity>
         </View>
 
@@ -430,7 +436,7 @@ export const HelpFAQScreen = () => {
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         <View style={styles.contactContent}>
-          <Text style={styles.contactTitle}>Get in touch with us</Text>
+          <Text style={styles.contactTitle}>{t('help.contactTitle')}</Text>
                     <View style={styles.contactCard}>
             <TouchableOpacity 
               style={styles.contactRow}
@@ -504,13 +510,13 @@ export const HelpFAQScreen = () => {
           </View>
 
 
-          <Text style={styles.formTitle}>Send us a message</Text>
+          <Text style={styles.formTitle}>{t('help.formTitle')}</Text>
           
           {messageSent && (
             <View style={styles.successCard}>
               <Ionicons name="checkmark-circle-outline" size={18} color="#fff" />
               <Text style={styles.successText}>
-                Message sent! Our team will get back to you within 24 hours.
+                {t('help.formSuccess')}
               </Text>
             </View>
           )}
@@ -518,18 +524,18 @@ export const HelpFAQScreen = () => {
           {messageError && (
             <View style={styles.formErrorCard}>
               <Ionicons name="alert-circle-outline" size={18} color="#fff" />
-              <Text style={styles.formErrorText}>{messageError}</Text>
+              <Text style={styles.formErrorText}>{messageError || t('help.formError')}</Text>
             </View>
           )}
           
           <InputField
-            placeholder="Subject"
+            placeholder={t('help.formSubject')}
             value={subject}
             onChangeText={setSubject}
             outerContainerStyle={styles.formFieldOuter}
           />
           <InputField
-            placeholder="Describe your issue"
+            placeholder={t('help.formMessage')}
             value={message}
             onChangeText={setMessage}
             multiline
@@ -549,7 +555,7 @@ export const HelpFAQScreen = () => {
           {isSendingMessage ? (
             <ActivityIndicator color={WHITE} size="small" />
           ) : (
-            <Text style={styles.submitBtnText}>Send message</Text>
+            <Text style={styles.submitBtnText}>{t('help.formSend')}</Text>
           )}
         </TouchableOpacity>
 
@@ -562,7 +568,7 @@ export const HelpFAQScreen = () => {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
       <Header 
-        title="Help & FAQ" 
+        title={t('help.title')} 
         showBack={true}
         onBack={() => router.back()} 
       />

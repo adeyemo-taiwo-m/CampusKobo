@@ -62,6 +62,7 @@ const LeaderRow = ({ name, role, isLast = false }: { name: string, role: string,
 
 export const AboutBOFScreen = () => {
   const router = useRouter();
+  const { t } = useAppContext();
 
   const handleContact = (type: 'email' | 'location' | 'instagram' | 'linkedin' | 'whatsapp') => {
     switch (type) {
@@ -86,7 +87,7 @@ export const AboutBOFScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
-      <Header title="About BOF OAU" showBack={true} onBack={() => router.back()} />
+      <Header title={t('about.bofTitle')} showBack={true} onBack={() => router.back()} />
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         {/* Hero Section */}
@@ -96,21 +97,19 @@ export const AboutBOFScreen = () => {
             style={styles.logoImage} 
             resizeMode="contain"
           />
-          <Text style={styles.heroTitle}>The Students' Professional Bureau of Finance</Text>
-          <Text style={styles.heroSubtitle}>Obafemi Awolowo University, Ile-Ife</Text>
+          <Text style={styles.heroTitle}>{t('about.bofHero')}</Text>
+          <Text style={styles.heroSubtitle}>{t('about.bofSubtitle')}</Text>
           
           <View style={styles.quoteContainer}>
             <Ionicons name="quote" size={20} color={PRIMARY_GREEN} style={styles.quoteIcon} />
-            <Text style={styles.quoteText}>Empowering future financial leaders — one analyst at a time.</Text>
+            <Text style={styles.quoteText}>{t('about.quote')}</Text>
           </View>
         </View>
 
         {/* Overview */}
         <View style={styles.contentCard}>
           <Text style={styles.overviewText}>
-            Nigeria's <Text style={styles.boldText}>first student-led finance organisation</Text>, founded in 2011. 
-            BOF OAU unites passionate students from all faculties at OAU to cultivate the next generation 
-            of financial professionals through practical training, competitions, and real-world exposure.
+            {t('about.bofOverview')}
           </Text>
         </View>
 
@@ -126,18 +125,18 @@ export const AboutBOFScreen = () => {
         <View style={styles.row}>
           <View style={[styles.infoCard, { marginRight: 8 }]}>
             <Ionicons name="eye-outline" size={24} color={PRIMARY_GREEN} />
-            <Text style={styles.infoCardTitle}>Our Vision</Text>
+            <Text style={styles.infoCardTitle}>{t('about.vision')}</Text>
             <Text style={styles.infoCardText}>To be Africa's leading student-led finance organisation.</Text>
           </View>
           <View style={[styles.infoCard, { marginLeft: 8 }]}>
             <Ionicons name="rocket-outline" size={24} color={PRIMARY_GREEN} />
-            <Text style={styles.infoCardTitle}>Our Mission</Text>
+            <Text style={styles.infoCardTitle}>{t('about.mission')}</Text>
             <Text style={styles.infoCardText}>Empower students with practical financial skills.</Text>
           </View>
         </View>
 
         {/* What We Do */}
-        <SectionTitle title="WHAT WE DO" />
+        <SectionTitle title={t('about.whatWeDo')} />
         <View style={styles.card}>
           <FeatureItem 
             icon="trophy-outline" 
@@ -162,7 +161,7 @@ export const AboutBOFScreen = () => {
         </View>
 
         {/* Leadership */}
-        <SectionTitle title="OUR LEADERSHIP" />
+        <SectionTitle title={t('about.leadership')} />
         <View style={styles.card}>
           <Text style={styles.cardHeader}>Executive Team</Text>
           <LeaderRow name="Esther Mac-Sanddy" role="President (CEO)" />
@@ -181,7 +180,7 @@ export const AboutBOFScreen = () => {
         </View>
 
         {/* Contact */}
-        <SectionTitle title="GET IN TOUCH" />
+        <SectionTitle title={t('about.contact')} />
         <View style={styles.card}>
           <TouchableOpacity style={styles.contactRow} onPress={() => handleContact('email')}>
             <Ionicons name="mail-outline" size={20} color={PRIMARY_GREEN} />

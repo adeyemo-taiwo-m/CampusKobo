@@ -37,6 +37,7 @@ const KeypadButton = ({ value, letters, onPress }: { value: string, letters?: st
 
 export const ConfirmPINScreen = () => {
   const router = useRouter();
+  const { t } = useAppContext();
   const { pin: originalPin } = useLocalSearchParams<{ pin: string }>();
   const [pin, setPin] = useState('');
   const [error, setError] = useState(false);
@@ -87,7 +88,7 @@ export const ConfirmPINScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
-      <Header title="Set PIN" showBack={true} onBack={() => router.back()} />
+      <Header title={t('security.setPinTitle')} showBack={true} onBack={() => router.back()} />
 
       <View style={styles.content}>
         {/* Progress Dots */}
@@ -101,8 +102,8 @@ export const ConfirmPINScreen = () => {
           <View style={styles.iconContainer}>
             <Ionicons name="lock-closed" size={40} color={PRIMARY_GREEN} />
           </View>
-          <Text style={styles.title}>Confirm your PIN</Text>
-          <Text style={styles.subtitle}>Enter your PIN again to confirm</Text>
+          <Text style={styles.title}>{t('security.confirmPinTitle')}</Text>
+          <Text style={styles.subtitle}>{t('security.confirmPinSubtitle')}</Text>
 
           {/* PIN Indicators */}
           <Animated.View style={[
@@ -122,7 +123,7 @@ export const ConfirmPINScreen = () => {
           </Animated.View>
 
           {error && (
-            <Text style={styles.errorText}>PINs don't match. Try again.</Text>
+            <Text style={styles.errorText}>{t('security.pinMismatch')}</Text>
           )}
         </View>
 
@@ -154,7 +155,7 @@ export const ConfirmPINScreen = () => {
 
         <View style={styles.footer}>
           <Ionicons name="lock-closed-outline" size={14} color={TEXT_SECONDARY} />
-          <Text style={styles.footerText}>Your PIN is encrypted and stored securely</Text>
+          <Text style={styles.footerText}>{t('security.pinFooter')}</Text>
         </View>
       </View>
     </SafeAreaView>

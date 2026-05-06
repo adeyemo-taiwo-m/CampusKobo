@@ -21,9 +21,8 @@ import {
 
 export const PINSuccessScreen = () => {
   const router = useRouter();
+  const { t, updateUser } = useAppContext();
   const { pin } = useLocalSearchParams<{ pin: string }>();
-  
-  const { updateUser } = useAppContext();
   
   const handleDone = async () => {
     if (!pin) {
@@ -56,16 +55,16 @@ export const PINSuccessScreen = () => {
             <Ionicons name="checkmark" size={60} color={WHITE} />
           </View>
           
-          <Text style={styles.title}>PIN Created!</Text>
-          <Text style={styles.subtitle}>Your account is now protected with a 4-digit PIN</Text>
+          <Text style={styles.title}>{t('security.pinSuccess')}</Text>
+          <Text style={styles.subtitle}>{t('security.pinSuccessDesc')}</Text>
           
           <Text style={styles.note}>
-            You can change your PIN anytime in Security & Privacy settings
+            {t('security.passwordDesc')}
           </Text>
         </View>
 
         <TouchableOpacity style={styles.doneButton} onPress={handleDone}>
-          <Text style={styles.doneButtonText}>Done</Text>
+          <Text style={styles.doneButtonText}>{t('common.done') || 'Done'}</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

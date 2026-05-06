@@ -30,7 +30,7 @@ import { useAppContext } from '../../context/AppContext';
 
 export const ChangeEmailScreen = () => {
   const router = useRouter();
-  const { apiUser, setApiUser } = useAppContext();
+  const { apiUser, setApiUser, t } = useAppContext();
   
   // Form State
   const [newEmail, setNewEmail] = useState('');
@@ -84,7 +84,7 @@ export const ChangeEmailScreen = () => {
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <Ionicons name="chevron-back" size={24} color={TEXT_PRIMARY} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Change Email</Text>
+        <Text style={styles.headerTitle}>{t('security.changeEmailTitle')}</Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -94,8 +94,7 @@ export const ChangeEmailScreen = () => {
       >
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <Text style={styles.description}>
-            Your current email is <Text style={{ fontFamily: Fonts.bold }}>{apiUser?.email || 'not set'}</Text>. 
-            Enter your new email address and confirm with your password.
+            {t('security.changeEmailDesc')}
           </Text>
 
           {apiError && (
@@ -114,8 +113,8 @@ export const ChangeEmailScreen = () => {
 
           <View style={styles.form}>
             <InputField
-              label="New Email Address"
-              placeholder="Enter new email"
+              label={t('security.newEmail')}
+              placeholder={t('security.newEmail')}
               value={newEmail}
               onChangeText={setNewEmail}
               keyboardType="email-address"
@@ -124,8 +123,8 @@ export const ChangeEmailScreen = () => {
             />
 
             <InputField
-              label="Current Password"
-              placeholder="Enter password to confirm"
+              label={t('security.oldPassword')}
+              placeholder={t('security.oldPassword')}
               value={password}
               onChangeText={setPassword}
               secureTextEntry={!showCurrentPassword}
@@ -145,7 +144,7 @@ export const ChangeEmailScreen = () => {
 
         <View style={styles.footer}>
           <Button
-            title={isLoading ? "" : "Update Email"}
+            title={isLoading ? "" : t('security.updatePassword')}
             onPress={handleSubmit}
             disabled={!isFormValid || isLoading}
             variant="primary"

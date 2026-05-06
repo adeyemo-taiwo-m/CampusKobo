@@ -29,6 +29,7 @@ import { authService } from '../../services/authService';
 
 export const ChangePasswordScreen = () => {
   const router = useRouter();
+  const { t } = useAppContext();
   
   // Form State
   const [oldPassword, setOldPassword] = useState("");
@@ -113,8 +114,8 @@ export const ChangePasswordScreen = () => {
       
       <SuccessModal
         isVisible={showSuccess}
-        title="Password Updated!"
-        subtitle="Your password has been changed successfully. Use your new password next time you log in."
+        title={t('security.passwordSuccess')}
+        subtitle={t('security.passwordSuccessDesc')}
         onDone={() => {
           setShowSuccess(false);
           router.back();
@@ -125,7 +126,7 @@ export const ChangePasswordScreen = () => {
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
           <Ionicons name="chevron-back" size={24} color={TEXT_PRIMARY} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Change Password</Text>
+        <Text style={styles.headerTitle}>{t('security.changePasswordTitle')}</Text>
         <View style={{ width: 40 }} />
       </View>
 
@@ -135,7 +136,7 @@ export const ChangePasswordScreen = () => {
       >
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <Text style={styles.description}>
-            Your new password must be different from previously used passwords.
+            {t('security.passwordDesc')}
           </Text>
 
           {apiError && (
@@ -147,8 +148,8 @@ export const ChangePasswordScreen = () => {
 
           <View style={styles.form}>
             <InputField
-              label="Current Password"
-              placeholder="Enter current password"
+              label={t('security.oldPassword')}
+              placeholder={t('security.oldPassword')}
               value={oldPassword}
               onChangeText={setOldPassword}
               secureTextEntry={!showOld}
@@ -166,8 +167,8 @@ export const ChangePasswordScreen = () => {
 
             <View style={styles.inputGroup}>
               <InputField
-                label="New Password"
-                placeholder="Enter new password"
+                label={t('security.newPassword')}
+                placeholder={t('security.newPassword')}
                 value={newPassword}
                 onChangeText={setNewPassword}
                 secureTextEntry={!showNew}
@@ -205,8 +206,8 @@ export const ChangePasswordScreen = () => {
 
             <View style={styles.inputGroup}>
               <InputField
-                label="Confirm New Password"
-                placeholder="Confirm new password"
+                label={t('security.confirmPassword')}
+                placeholder={t('security.confirmPassword')}
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
                 secureTextEntry={!showConfirm}
@@ -227,7 +228,7 @@ export const ChangePasswordScreen = () => {
 
         <View style={styles.footer}>
           <Button
-            title={isLoading ? "" : "Update Password"}
+            title={isLoading ? "" : t('security.updatePassword')}
             onPress={handleSubmit}
             disabled={!isFormValid || isLoading}
             variant="primary"

@@ -169,8 +169,8 @@ export const ProfileSettingsScreen = () => {
 
   const handleLogout = () => {
     Alert.alert(
-      "Log Out",
-      "Are you sure you want to log out?",
+      t('settings.logout') || "Log Out",
+      t('settings.logoutConfirm'),
       [
         { text: "Cancel", style: "cancel" },
         {
@@ -240,14 +240,14 @@ export const ProfileSettingsScreen = () => {
                 setIsEditModalVisible(true);
               }}
             >
-              <Text style={styles.editBtnText}>Edit Profile</Text>
+              <Text style={styles.editBtnText}>{t('settings.editProfile')}</Text>
             </TouchableOpacity>
           </View>
         </View>
 
         {/* Account Preferences */}
         <View style={styles.section}>
-          <Text style={styles.sectionLabel}>Account Preferences</Text>
+          <Text style={styles.sectionLabel}>{t('settings.preferences') || 'Account Preferences'}</Text>
           <View style={styles.card}>
             <SettingsRow
               icon="cash-outline"
@@ -269,7 +269,7 @@ export const ProfileSettingsScreen = () => {
             <SettingsRow
               icon="shield-checkmark-outline"
               title={t('settings.security')}
-              subtitle="App lock, PIN, Biometric"
+              subtitle={t('security.pinSubtitle')}
               onPress={() => router.push('/profile/security')}
               isLast={true}
             />
@@ -278,16 +278,16 @@ export const ProfileSettingsScreen = () => {
 
         {/* Support & Help */}
         <View style={styles.section}>
-          <Text style={styles.sectionLabel}>Support & Help</Text>
+          <Text style={styles.sectionLabel}>{t('settings.supportTitle')}</Text>
           <View style={styles.card}>
             <SettingsRow
               icon="help-circle-outline"
-              title="Help & FAQ"
+              title={t('help.title')}
               onPress={() => router.push('/profile/help')}
             />
             <SettingsRow
               icon="call-outline"
-              title="Contact Support"
+              title={t('help.tabs.contact')}
               onPress={() => router.push('/profile/help?tab=contact')}
               isLast={true}
             />
@@ -296,16 +296,16 @@ export const ProfileSettingsScreen = () => {
 
         {/* About & Legal */}
         <View style={styles.section}>
-          <Text style={styles.sectionLabel}>About & Legal</Text>
+          <Text style={styles.sectionLabel}>{t('settings.aboutTitle')}</Text>
           <View style={styles.card}>
             <SettingsRow
               icon="information-circle-outline"
-              title="About CampusKobo"
+              title={t('settings.aboutCampus')}
               onPress={() => router.push('/profile/about-campuskobo')}
             />
             <SettingsRow
               icon="business-outline"
-              title="About BOF OAU"
+              title={t('settings.aboutBof')}
               onPress={() => router.push('/profile/about-bof')}
               isLast={true}
             />
@@ -322,7 +322,7 @@ export const ProfileSettingsScreen = () => {
           {isLoggingOut ? (
             <ActivityIndicator color="#EF4444" size="small" />
           ) : (
-            <Text style={styles.logoutBtnText}>Log out</Text>
+            <Text style={styles.logoutBtnText}>{t('settings.logout') || 'Log out'}</Text>
           )}
         </TouchableOpacity>
 
@@ -348,7 +348,7 @@ export const ProfileSettingsScreen = () => {
                   >
                     <Ionicons name="chevron-back" size={24} color={TEXT_PRIMARY} />
                   </TouchableOpacity>
-                  <Text style={styles.modalTitleText}>Edit Profile</Text>
+                  <Text style={styles.modalTitleText}>{t('settings.editProfile')}</Text>
                   <View style={{ width: 40 }} />
                 </View>
 
@@ -384,8 +384,8 @@ export const ProfileSettingsScreen = () => {
                   </View>
 
                   <InputField
-                    label="Name"
-                    placeholder="Enter your name"
+                    label={t('settings.name')}
+                    placeholder={t('settings.name')}
                     value={userName}
                     onChangeText={(text) => {
                       setUserName(text);
@@ -395,8 +395,8 @@ export const ProfileSettingsScreen = () => {
                   />
 
                   <InputField
-                    label="Email address"
-                    placeholder="Enter your email"
+                    label={t('auth.email') || "Email"}
+                    placeholder={t('auth.email') || "Email"}
                     value={userEmail}
                     onChangeText={() => {}}
                     editable={false}
@@ -404,8 +404,8 @@ export const ProfileSettingsScreen = () => {
                   />
 
                   <InputField
-                    label="Phone number (Optional)"
-                    placeholder="+234 0000000000"
+                    label={t('settings.phone')}
+                    placeholder={t('settings.phone')}
                     value={userPhone}
                     onChangeText={setUserPhone}
                     keyboardType="phone-pad"
@@ -420,7 +420,7 @@ export const ProfileSettingsScreen = () => {
                   {isSaving ? (
                     <ActivityIndicator color={WHITE} size="small" />
                   ) : (
-                    <Text style={styles.saveBtnText}>Save Changes</Text>
+                    <Text style={styles.saveBtnText}>{t('settings.saveChanges')}</Text>
                   )}
                 </TouchableOpacity>
               </View>
@@ -432,7 +432,7 @@ export const ProfileSettingsScreen = () => {
       <SelectionSheet
         visible={isCurrencyModalVisible}
         onClose={() => setIsCurrencyModalVisible(false)}
-        title="Select Currency"
+        title={t('settings.selectCurrency')}
         options={[
           { label: 'Nigerian Naira', value: 'NGN', sublabel: '₦', extra: { symbol: '₦', name: 'Nigerian Naira' } },
           { label: 'US Dollar', value: 'USD', sublabel: '$', extra: { symbol: '$', name: 'US Dollar' } },
@@ -450,7 +450,7 @@ export const ProfileSettingsScreen = () => {
       <SelectionSheet
         visible={isLanguageModalVisible}
         onClose={() => setIsLanguageModalVisible(false)}
-        title="Select Language"
+        title={t('settings.selectLanguage')}
         options={[
           { label: 'English', value: 'en' },
           { label: 'French', value: 'fr' },
