@@ -120,17 +120,6 @@ export const AboutCampusKoboScreen = () => {
           </View>
         </View>
 
-        {/* Contribution */}
-        <View style={styles.contributeCard}>
-          <Text style={styles.contributeTitle}>Open for Innovation</Text>
-          <Text style={styles.contributeText}>
-            CampusKobo is a project by students, for students. We welcome contributions from the OAU tech community.
-          </Text>
-          <TouchableOpacity style={styles.githubBtn}>
-            <Ionicons name="logo-github" size={20} color={WHITE} />
-            <Text style={styles.githubBtnText}>View on GitHub</Text>
-          </TouchableOpacity>
-        </View>
 
         <View style={styles.footer}>
           <Text style={styles.madeBy}>Made with 💚 by BOF OAU Tech Team</Text>
@@ -303,41 +292,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: Fonts.Bold,
     color: TEXT_PRIMARY,
-  },
-  contributeCard: {
-    backgroundColor: TEXT_PRIMARY,
-    borderRadius: 20,
-    padding: 24,
-    marginBottom: 24,
-    alignItems: 'center',
-  },
-  contributeTitle: {
-    fontSize: 18,
-    fontFamily: Fonts.Bold,
-    color: WHITE,
-    marginBottom: 8,
-  },
-  contributeText: {
-    fontSize: 14,
-    fontFamily: Fonts.Regular,
-    color: '#D1D5DB',
-    textAlign: 'center',
-    marginBottom: 20,
-    lineHeight: 20,
-  },
-  githubBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#374151',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 12,
-  },
-  githubBtnText: {
-    fontSize: 14,
-    fontFamily: Fonts.Bold,
-    color: WHITE,
-    marginLeft: 10,
   },
   footer: {
     alignItems: 'center',
