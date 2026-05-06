@@ -73,7 +73,7 @@ const NotificationRow = ({
 
 export const NotificationSettingsScreen = () => {
   const router = useRouter();
-  const { notificationPrefs, saveNotificationPrefs, prefsLoading } = useAppContext();
+  const { notificationPrefs, saveNotificationPrefs, prefsLoading, t } = useAppContext();
   
   // Local state for toggles (Step 11)
   const [allNotifications, setAllNotifications] = useState(notificationPrefs?.all_notifications ?? true);
@@ -146,7 +146,7 @@ export const NotificationSettingsScreen = () => {
   if (prefsLoading && Object.keys(notificationPrefs).length === 0) {
     return (
       <SafeAreaView style={styles.container}>
-        <Header title="Notifications" showBack={true} onBack={() => router.back()} />
+        <Header title={t('notifications.title')} showBack={true} onBack={() => router.back()} />
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
           <ActivityIndicator color={PRIMARY_GREEN} size="large" />
         </View>
@@ -157,17 +157,17 @@ export const NotificationSettingsScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
-      <Header title="Notifications" showBack={true} onBack={() => router.back()} />
+      <Header title={t('notifications.title')} showBack={true} onBack={() => router.back()} />
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.description}>Choose what you want to be notified about</Text>
+        <Text style={styles.description}>{t('notifications.desc')}</Text>
 
         {/* Master Toggle */}
         <View style={styles.card}>
           <NotificationRow
             icon="notifications-outline"
-            title="All Notifications"
-            description="Turn off to mute all notifications"
+            title={t('notifications.all')}
+            description={t('notifications.allDesc')}
             value={allNotifications}
             onValueChange={(v) => {
               setAllNotifications(v);
@@ -193,10 +193,10 @@ export const NotificationSettingsScreen = () => {
                   app_updates: false,
                   bof_announcements: false,
                 });
-                showToast("All notifications muted", "info");
+                showToast(t('notifications.toastMuted'), "info");
               } else {
                 saveNotificationPrefs({ all_notifications: true });
-                showToast("All notifications unmuted", "success");
+                showToast(t('notifications.toastUnmuted'), "success");
               }
             }}
             isLast={true}
@@ -204,41 +204,41 @@ export const NotificationSettingsScreen = () => {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionLabel}>Money Alerts</Text>
+          <Text style={styles.sectionLabel}>{t('notifications.moneyAlerts')}</Text>
           <View style={styles.card}>
             <NotificationRow
               icon="wallet-outline"
-              title="Budget Alerts"
-              description="When you're close to your spending limit"
+              title={t('notifications.budget')}
+              description={t('notifications.budgetDesc')}
               value={budgetAlerts}
               onValueChange={(v) => {
                 setBudgetAlerts(v);
                 saveNotificationPrefs({ budget_alerts: v });
-                showToast(v ? "Budget alerts enabled" : "Budget alerts disabled", v ? "success" : "info");
+                showToast(`${t('notifications.budget')} ${v ? t('notifications.enabled') : t('notifications.disabled')}`, v ? "success" : "info");
               }}
               disabled={isGlobalDisabled}
             />
             <NotificationRow
               icon="leaf-outline"
-              title="Savings Reminders"
-              description="When to add funds to your goals"
+              title={t('notifications.savings')}
+              description={t('notifications.savingsDesc')}
               value={savingsReminders}
               onValueChange={(v) => {
                 setSavingsReminders(v);
                 saveNotificationPrefs({ savings_reminders: v });
-                showToast(v ? "Savings reminders enabled" : "Savings reminders disabled", v ? "success" : "info");
+                showToast(`${t('notifications.savings')} ${v ? t('notifications.enabled') : t('notifications.disabled')}`, v ? "success" : "info");
               }}
               disabled={isGlobalDisabled}
             />
             <NotificationRow
               icon="receipt-outline"
-              title="Bill Reminders"
-              description="Recurring expense due date alerts"
+              title={t('notifications.bill')}
+              description={t('notifications.billDesc')}
               value={billReminders}
               onValueChange={(v) => {
                 setBillReminders(v);
                 saveNotificationPrefs({ bill_reminders: v });
-                showToast(v ? "Bill reminders enabled" : "Bill reminders disabled", v ? "success" : "info");
+                showToast(`${t('notifications.bill')} ${v ? t('notifications.enabled') : t('notifications.disabled')}`, v ? "success" : "info");
               }}
               disabled={isGlobalDisabled}
               isLast={true}
@@ -247,41 +247,41 @@ export const NotificationSettingsScreen = () => {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionLabel}>Learning</Text>
+          <Text style={styles.sectionLabel}>{t('notifications.learning')}</Text>
           <View style={styles.card}>
             <NotificationRow
               icon="book-outline"
-              title="New Content"
-              description="When new articles and videos are added"
+              title={t('notifications.newContent')}
+              description={t('notifications.newContentDesc')}
               value={newContent}
               onValueChange={(v) => {
                 setNewContent(v);
                 saveNotificationPrefs({ new_content: v });
-                showToast(v ? "Content alerts enabled" : "Content alerts disabled", v ? "success" : "info");
+                showToast(`${t('notifications.newContent')} ${v ? t('notifications.enabled') : t('notifications.disabled')}`, v ? "success" : "info");
               }}
               disabled={isGlobalDisabled}
             />
             <NotificationRow
               icon="school-outline"
-              title="Finance 101"
-              description="New episode available alerts"
+              title={t('notifications.finance101')}
+              description={t('notifications.finance101Desc')}
               value={finance101}
               onValueChange={(v) => {
                 setFinance101(v);
                 saveNotificationPrefs({ finance_101: v });
-                showToast(v ? "Finance 101 alerts enabled" : "Finance 101 alerts disabled", v ? "success" : "info");
+                showToast(`${t('notifications.finance101')} ${v ? t('notifications.enabled') : t('notifications.disabled')}`, v ? "success" : "info");
               }}
               disabled={isGlobalDisabled}
             />
             <NotificationRow
               icon="headset-outline"
-              title="Podcast Updates"
-              description="New Market Pulse episode alerts"
+              title={t('notifications.podcast')}
+              description={t('notifications.podcastDesc')}
               value={podcastUpdates}
               onValueChange={(v) => {
                 setPodcastUpdates(v);
                 saveNotificationPrefs({ podcast_updates: v });
-                showToast(v ? "Podcast updates enabled" : "Podcast updates disabled", v ? "success" : "info");
+                showToast(`${t('notifications.podcast')} ${v ? t('notifications.enabled') : t('notifications.disabled')}`, v ? "success" : "info");
               }}
               disabled={isGlobalDisabled}
               isLast={true}
@@ -290,29 +290,29 @@ export const NotificationSettingsScreen = () => {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionLabel}>General</Text>
+          <Text style={styles.sectionLabel}>{t('notifications.general')}</Text>
           <View style={styles.card}>
             <NotificationRow
               icon="refresh-outline"
-              title="App Updates"
-              description="Latest features and improvements"
+              title={t('notifications.appUpdates')}
+              description={t('notifications.appUpdatesDesc')}
               value={appUpdates}
               onValueChange={(v) => {
                 setAppUpdates(v);
                 saveNotificationPrefs({ app_updates: v });
-                showToast(v ? "App updates enabled" : "App updates disabled", v ? "success" : "info");
+                showToast(`${t('notifications.appUpdates')} ${v ? t('notifications.enabled') : t('notifications.disabled')}`, v ? "success" : "info");
               }}
               disabled={isGlobalDisabled}
             />
             <NotificationRow
               icon="megaphone-outline"
-              title="BOF OAU Announcements"
-              description="News from Bureau of Finance OAU"
+              title={t('notifications.bof')}
+              description={t('notifications.bofDesc')}
               value={bofAnnouncements}
               onValueChange={(v) => {
                 setBofAnnouncements(v);
                 saveNotificationPrefs({ bof_announcements: v });
-                showToast(v ? "BOF alerts enabled" : "BOF alerts disabled", v ? "success" : "info");
+                showToast(`${t('notifications.bof')} ${v ? t('notifications.enabled') : t('notifications.disabled')}`, v ? "success" : "info");
               }}
               disabled={isGlobalDisabled}
               isLast={true}
@@ -321,12 +321,12 @@ export const NotificationSettingsScreen = () => {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionLabel}>Quiet Hours</Text>
+          <Text style={styles.sectionLabel}>{t('notifications.quiet')}</Text>
           <View style={styles.card}>
             <NotificationRow
               icon="moon-outline"
-              title="Do Not Disturb"
-              description="Mute all notifications during set hours"
+              title={t('notifications.dnd')}
+              description={t('notifications.dndDesc')}
               value={doNotDisturb}
               onValueChange={(v) => {
                 setDoNotDisturb(v);
@@ -339,9 +339,9 @@ export const NotificationSettingsScreen = () => {
                   const startTimeStr = `${currentHour.toString().padStart(2, '0')}:00:00`;
                   setQuietHoursStart(startTimeStr);
                   updates.quiet_hours_start = startTimeStr;
-                  showToast(`Quiet hours started at ${formatTimeDisplay(startTimeStr)}`, "success");
+                  showToast(`${t('notifications.dnd')} ${t('notifications.on')} at ${formatTimeDisplay(startTimeStr)}`, "success");
                 } else {
-                  showToast("Quiet hours disabled", "info");
+                  showToast(`${t('notifications.dnd')} ${t('notifications.off')}`, "info");
                 }
                 
                 saveNotificationPrefs(updates);
@@ -352,7 +352,7 @@ export const NotificationSettingsScreen = () => {
             {doNotDisturb && (
               <View style={styles.timePickerRow}>
                 <View style={styles.timeField}>
-                  <Text style={styles.timeLabel}>Starts at:</Text>
+                  <Text style={styles.timeLabel}>{t('notifications.startsAt')}</Text>
                   <View style={[styles.timeBox, { opacity: 0.7 }]}>
                     <Text style={styles.timeText}>{formatTimeDisplay(quietHoursStart)}</Text>
                   </View>
@@ -361,7 +361,7 @@ export const NotificationSettingsScreen = () => {
                   style={styles.timeField}
                   onPress={() => setIsTimePickerVisible(true)}
                 >
-                  <Text style={styles.timeLabel}>Ends at:</Text>
+                  <Text style={styles.timeLabel}>{t('notifications.endsAt')}</Text>
                   <View style={styles.timeBox}>
                     <Text style={styles.timeText}>{formatTimeDisplay(quietHoursEnd)}</Text>
                     <Ionicons name="chevron-down" size={14} color={TEXT_SECONDARY} style={{ marginLeft: 4 }} />

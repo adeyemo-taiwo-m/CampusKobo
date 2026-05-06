@@ -22,7 +22,8 @@ import {
 import { Header } from '../../components/Header';
 import { useAppContext } from '../../context/AppContext';
 import { StorageService } from '../../storage/StorageService';
-import { userService } from '../../services/userService';
+import { securityService, SecurityPreferences } from '../../services/securityService';
+import { Toast } from '../../components/Toast';
 
 const CustomToggle = ({ value, onValueChange, disabled = false }: { value: boolean, onValueChange: (v: boolean) => void, disabled?: boolean }) => {
   return (
@@ -84,7 +85,7 @@ const SecurityRow = ({
 
 export const SecurityPrivacyScreen = () => {
   const router = useRouter();
-  const { isBalanceHidden, toggleBalanceVisibility, user, logout } = useAppContext();
+  const { isBalanceHidden, toggleBalanceVisibility, user, logout, t } = useAppContext();
   
   const [appLock, setAppLock] = useState(false);
   const [biometricUnlock, setBiometricUnlock] = useState(true);
@@ -93,9 +94,41 @@ export const SecurityPrivacyScreen = () => {
   const [faceId, setFaceId] = useState(true);
   const [dataAnalytics, setDataAnalytics] = useState(true);
 
+  // Toast state
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+
   // Persistence Logic
   useEffect(() => {
     const loadPrefs = async () => {
+      // 1. Try to load from Supabase
+      try {
+        const remote = await securityService.getSecurityPreferences();
+        if (remote) {
+          setAppLock(remote.app_lock_enabled);
+          setBiometricUnlock(remote.biometric_enabled);
+          setPinLock(remote.pin_lock_enabled);
+          setFingerprintLogin(remote.fingerprint_enabled);
+          setFaceId(remote.face_id_enabled);
+          setDataAnalytics(remote.data_analytics_enabled);
+          if (remote.hide_balance !== isBalanceHidden) toggleBalanceVisibility();
+          
+          // Sync to storage
+          await StorageService.saveSecurityPreferences({
+            appLock: remote.app_lock_enabled,
+            biometricUnlock: remote.biometric_enabled,
+            pinLock: remote.pin_lock_enabled,
+            fingerprintLogin: remote.fingerprint_enabled,
+            faceId: remote.face_id_enabled,
+            dataAnalytics: remote.data_analytics_enabled,
+          });
+          return;
+        }
+      } catch (e) {
+        console.warn("Failed to load security prefs from Supabase:", e);
+      }
+
+      // 2. Fallback to local storage
       const saved = await StorageService.getSecurityPreferences();
       if (saved) {
         if (saved.appLock !== undefined) setAppLock(saved.appLock);
@@ -121,23 +154,13 @@ export const SecurityPrivacyScreen = () => {
     });
   };
 
-  const syncSecurityToServer = async (updates: BiometricSettingsRequest) => {
+  const syncSecurityToSupabase = async (updates: Partial<SecurityPreferences>) => {
     try {
-      await userService.updateBiometricSettings(updates);
+      await securityService.updateSecurityPreferences(updates);
+      setToastMessage(t('security.toastSynced'));
+      setToastVisible(true);
     } catch (error) {
-      console.warn("Could not sync biometric settings to server:", error);
-      // Do not show an error to the user — local state is the source of truth for security toggles
-    }
-  };
-
-  const syncPrivacyToServer = async (updates: {
-    hide_balance?: boolean;
-    data_analytics?: boolean;
-  }) => {
-    try {
-      await userService.updatePrivacySettings(updates);
-    } catch (error) {
-      console.warn("Could not sync privacy settings to server:", error);
+      console.warn("Could not sync biometric settings to Supabase:", error);
     }
   };
 
@@ -167,22 +190,22 @@ export const SecurityPrivacyScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
-      <Header title="Security & Privacy" showBack={true} onBack={() => router.back()} />
+      <Header title={t('security.title')} showBack={true} onBack={() => router.back()} />
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.description}>Keep your account safe and secure</Text>
+        <Text style={styles.description}>{t('security.desc')}</Text>
 
         {/* App Lock Section */}
         <View style={styles.card}>
           <SecurityRow
             icon="lock-closed-outline"
-            title="App Lock"
-            description="Require authentication to open CampusKobo"
+            title={t('security.appLock')}
+            description={t('security.appLockDesc')}
             value={appLock}
             onValueChange={(v) => { 
               setAppLock(v); 
               savePrefs({ appLock: v }); 
-              syncSecurityToServer({ app_lock_enabled: v });
+              syncSecurityToSupabase({ app_lock_enabled: v });
             }}
             isLast={!appLock}
           />
@@ -190,24 +213,24 @@ export const SecurityPrivacyScreen = () => {
             <>
               <SecurityRow
                 icon="finger-print-outline"
-                title="Face ID / Fingerprint"
-                description="Use biometric to unlock the app"
+                title={t('security.biometric')}
+                description={t('security.biometricDesc')}
                 value={biometricUnlock}
                 onValueChange={(v) => { 
                   setBiometricUnlock(v); 
                   savePrefs({ biometricUnlock: v }); 
-                  syncSecurityToServer({ biometric_enabled: v });
+                  syncSecurityToSupabase({ biometric_enabled: v });
                 }}
               />
               <SecurityRow
                 icon="grid-outline"
-                title="PIN Lock"
-                description="Use a 4-digit PIN to unlock the app"
+                title={t('security.pinLock')}
+                description={t('security.pinLockDesc')}
                 value={pinLock}
                 onValueChange={(v) => { 
                   setPinLock(v); 
                   savePrefs({ pinLock: v }); 
-                  syncSecurityToServer({ pin_lock_enabled: v });
+                  syncSecurityToSupabase({ pin_lock_enabled: v });
                 }}
                 isLast={true}
               />
@@ -217,19 +240,19 @@ export const SecurityPrivacyScreen = () => {
 
         {/* PIN Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionLabel}>PIN</Text>
+          <Text style={styles.sectionLabel}>{t('security.pinSection')}</Text>
           <View style={styles.card}>
             <SecurityRow
               icon="key-outline"
-              title="Set PIN"
-              description={user?.hasPIN ? "PIN is set — tap to change" : "Create a 4-digit PIN for app lock"}
+              title={t('security.setPin')}
+              description={user?.hasPIN ? t('security.changePinDesc') : t('security.setPinDesc')}
               type="arrow"
               onPress={() => router.push('/profile/set-pin')}
             />
             <SecurityRow
               icon="create-outline"
-              title="Change PIN"
-              description="Update your current PIN"
+              title={t('security.changePin')}
+              description={t('security.changePinDesc')}
               type="arrow"
               onPress={() => router.push('/profile/set-pin')}
               isLast={true}
@@ -239,28 +262,28 @@ export const SecurityPrivacyScreen = () => {
 
         {/* Biometric Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionLabel}>Biometric</Text>
+          <Text style={styles.sectionLabel}>{t('security.biometricSection')}</Text>
           <View style={styles.card}>
             <SecurityRow
               icon="finger-print-outline"
-              title="Fingerprint Login"
-              description="Use fingerprint to access your account"
+              title={t('security.fingerprint')}
+              description={t('security.fingerprintDesc')}
               value={fingerprintLogin}
               onValueChange={(v) => { 
                 setFingerprintLogin(v); 
                 savePrefs({ fingerprintLogin: v }); 
-                syncSecurityToServer({ fingerprint_enabled: v });
+                syncSecurityToSupabase({ fingerprint_enabled: v });
               }}
             />
             <SecurityRow
               icon="scan-outline"
-              title="Face ID"
-              description="Use Face ID to access your account"
+              title={t('security.faceId')}
+              description={t('security.faceIdDesc')}
               value={faceId}
               onValueChange={(v) => { 
                 setFaceId(v); 
                 savePrefs({ faceId: v }); 
-                syncSecurityToServer({ face_id_enabled: v });
+                syncSecurityToSupabase({ face_id_enabled: v });
               }}
               isLast={true}
             />
@@ -269,27 +292,27 @@ export const SecurityPrivacyScreen = () => {
 
         {/* Privacy Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionLabel}>Privacy</Text>
+          <Text style={styles.sectionLabel}>{t('security.privacySection')}</Text>
           <View style={styles.card}>
             <SecurityRow
               icon="eye-off-outline"
-              title="Hide Balance"
-              description="Mask your account balance on the dashboard"
+              title={t('security.hideBalance')}
+              description={t('security.hideBalanceDesc')}
               value={isBalanceHidden}
               onValueChange={(v) => {
                 toggleBalanceVisibility();
-                syncPrivacyToServer({ hide_balance: v });
+                syncSecurityToSupabase({ hide_balance: v });
               }}
             />
             <SecurityRow
               icon="stats-chart-outline"
-              title="Data & Analytics"
-              description="Help improve CampusKobo with usage data"
+              title={t('security.data')}
+              description={t('security.dataDesc')}
               value={dataAnalytics}
               onValueChange={(v) => { 
                 setDataAnalytics(v); 
                 savePrefs({ dataAnalytics: v }); 
-                syncPrivacyToServer({ data_analytics: v });
+                syncSecurityToSupabase({ data_analytics_enabled: v });
               }}
               isLast={true}
             />
@@ -298,26 +321,26 @@ export const SecurityPrivacyScreen = () => {
 
         {/* Account Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionLabel}>Account</Text>
+          <Text style={styles.sectionLabel}>{t('security.accountSection')}</Text>
           <View style={styles.card}>
             <SecurityRow
               icon="key-outline"
-              title="Change Password"
-              description="Update your account password"
+              title={t('security.changePassword')}
+              description={t('security.changePasswordDesc')}
               type="arrow"
               onPress={() => router.push('/profile/change-password')}
             />
             <SecurityRow
               icon="mail-outline"
-              title="Change Email"
-              description="Update your email address"
+              title={t('security.changeEmail')}
+              description={t('security.changeEmailDesc')}
               type="arrow"
               onPress={() => router.push('/profile/change-email')}
             />
             <SecurityRow
               icon="trash-outline"
-              title="Delete Account"
-              description="Permanently delete your account"
+              title={t('security.deleteAccount')}
+              description={t('security.deleteAccountDesc')}
               type="arrow"
               isDestructive={true}
               onPress={handleDeleteAccount}
@@ -328,6 +351,13 @@ export const SecurityPrivacyScreen = () => {
 
         <View style={{ height: 40 }} />
       </ScrollView>
+
+      <Toast 
+        visible={toastVisible}
+        message={toastMessage}
+        type="success"
+        onHide={() => setToastVisible(false)}
+      />
     </SafeAreaView>
   );
 };
