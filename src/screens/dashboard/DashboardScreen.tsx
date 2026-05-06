@@ -127,14 +127,18 @@ export default function DashboardScreen() {
             <Text style={styles.cardLabelGreen}>Budget</Text>
             <View style={styles.cardMainRow}>
               <View style={styles.amountBaseline}>
-                <Text style={styles.mainAmountText}>{formatCurrency(totalBudgetSpent)}</Text>
-                <Text style={styles.limitAmountText}>/{formatCurrency(totalBudgetLimit)}</Text>
+                <Text style={styles.mainAmountText}>
+                  {isBalanceHidden ? '₦ •••••' : formatCurrency(totalBudgetSpent)}
+                </Text>
+                <Text style={styles.limitAmountText}>
+                  /{isBalanceHidden ? '•••••' : formatCurrency(totalBudgetLimit)}
+                </Text>
               </View>
               <Text style={styles.percentageTextSide}>{budgetUsedPercent}%</Text>
             </View>
             <ProgressBar progress={budgetUsedPercent / 100} style={styles.cardProgressBar} />
             <Text style={styles.cardCaptionMuted}>
-              {formatCurrency(totalBudgetRemaining)} left  •  {budgetMotivation}
+              {isBalanceHidden ? '•••••' : formatCurrency(totalBudgetRemaining)} left  •  {budgetMotivation}
             </Text>
           </View>
 
@@ -146,8 +150,12 @@ export default function DashboardScreen() {
                 <View style={{ flex: 1 }}>
                   <Text style={styles.goalNameLarge}>{primarySavingsGoalEnriched.name}</Text>
                   <View style={styles.amountBaseline}>
-                    <Text style={styles.savingsAmountText}>{formatCurrency(primarySavingsGoalEnriched.savedAmount)}</Text>
-                    <Text style={styles.savingsLimitText}>/{formatCurrency(primarySavingsGoalEnriched.targetAmount)}</Text>
+                    <Text style={styles.savingsAmountText}>
+                      {isBalanceHidden ? '₦ •••••' : formatCurrency(primarySavingsGoalEnriched.savedAmount)}
+                    </Text>
+                    <Text style={styles.savingsLimitText}>
+                      /{isBalanceHidden ? '•••••' : formatCurrency(primarySavingsGoalEnriched.targetAmount)}
+                    </Text>
                   </View>
                 </View>
                 <View style={styles.circleProgressWrapper}>
@@ -207,6 +215,7 @@ export default function DashboardScreen() {
                 key={t.id}
                 transaction={t}
                 onPress={() => router.push(`/transaction/${t.id}`)}
+                isAmountHidden={isBalanceHidden}
               />
             ))
           )}

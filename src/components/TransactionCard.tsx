@@ -25,11 +25,13 @@ export interface Transaction {
 interface TransactionCardProps {
   transaction: Transaction;
   onPress: () => void;
+  isAmountHidden?: boolean;
 }
 
 export const TransactionCard = ({
   transaction,
   onPress,
+  isAmountHidden = false,
 }: TransactionCardProps) => {
   const isIncome = transaction.type === "income";
   const dateObj = new Date(transaction.date);
@@ -89,7 +91,7 @@ export const TransactionCard = ({
         <Text
           style={[styles.amount, { color: isIncome ? "#10B981" : "#EF4444" }]}
         >
-          {isIncome ? "+" : "-"}₦{transaction.amount.toLocaleString()}
+          {isIncome ? "+" : "-"}₦{isAmountHidden ? "••••" : transaction.amount.toLocaleString()}
         </Text>
       </View>
     </TouchableOpacity>
