@@ -22,6 +22,7 @@ import {
 import { Header } from '../../components/Header';
 import { StorageService } from '../../storage/StorageService';
 import { useAppContext } from '../../context/AppContext';
+import { Toast, ToastType } from '../../components/Toast';
 
 const CustomToggle = ({ value, onValueChange, disabled = false }: { value: boolean, onValueChange: (v: boolean) => void, disabled?: boolean }) => {
   return (
@@ -84,6 +85,17 @@ export const NotificationSettingsScreen = () => {
   const [appUpdates, setAppUpdates] = useState(notificationPrefs?.app_updates ?? true);
   const [bofAnnouncements, setBofAnnouncements] = useState(notificationPrefs?.bof_announcements ?? true);
   const [doNotDisturb, setDoNotDisturb] = useState(notificationPrefs?.do_not_disturb ?? false);
+
+  // Toast state
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState<ToastType>('success');
+
+  const showToast = (message: string, type: ToastType) => {
+    setToastMessage(message);
+    setToastType(type);
+    setToastVisible(true);
+  };
 
   // Sync from context when notificationPrefs loads
   useEffect(() => {
@@ -153,8 +165,10 @@ export const NotificationSettingsScreen = () => {
                   app_updates: false,
                   bof_announcements: false,
                 });
+                showToast("All notifications muted", "info");
               } else {
                 saveNotificationPrefs({ all_notifications: true });
+                showToast("All notifications unmuted", "success");
               }
             }}
             isLast={true}
@@ -172,6 +186,7 @@ export const NotificationSettingsScreen = () => {
               onValueChange={(v) => {
                 setBudgetAlerts(v);
                 saveNotificationPrefs({ budget_alerts: v });
+                showToast(v ? "Budget alerts enabled" : "Budget alerts disabled", v ? "success" : "info");
               }}
               disabled={isGlobalDisabled}
             />
@@ -183,6 +198,7 @@ export const NotificationSettingsScreen = () => {
               onValueChange={(v) => {
                 setSavingsReminders(v);
                 saveNotificationPrefs({ savings_reminders: v });
+                showToast(v ? "Savings reminders enabled" : "Savings reminders disabled", v ? "success" : "info");
               }}
               disabled={isGlobalDisabled}
             />
@@ -194,6 +210,7 @@ export const NotificationSettingsScreen = () => {
               onValueChange={(v) => {
                 setBillReminders(v);
                 saveNotificationPrefs({ bill_reminders: v });
+                showToast(v ? "Bill reminders enabled" : "Bill reminders disabled", v ? "success" : "info");
               }}
               disabled={isGlobalDisabled}
               isLast={true}
@@ -212,6 +229,7 @@ export const NotificationSettingsScreen = () => {
               onValueChange={(v) => {
                 setNewContent(v);
                 saveNotificationPrefs({ new_content: v });
+                showToast(v ? "Content alerts enabled" : "Content alerts disabled", v ? "success" : "info");
               }}
               disabled={isGlobalDisabled}
             />
@@ -223,6 +241,7 @@ export const NotificationSettingsScreen = () => {
               onValueChange={(v) => {
                 setFinance101(v);
                 saveNotificationPrefs({ finance_101: v });
+                showToast(v ? "Finance 101 alerts enabled" : "Finance 101 alerts disabled", v ? "success" : "info");
               }}
               disabled={isGlobalDisabled}
             />
@@ -234,6 +253,7 @@ export const NotificationSettingsScreen = () => {
               onValueChange={(v) => {
                 setPodcastUpdates(v);
                 saveNotificationPrefs({ podcast_updates: v });
+                showToast(v ? "Podcast updates enabled" : "Podcast updates disabled", v ? "success" : "info");
               }}
               disabled={isGlobalDisabled}
               isLast={true}
@@ -252,6 +272,7 @@ export const NotificationSettingsScreen = () => {
               onValueChange={(v) => {
                 setAppUpdates(v);
                 saveNotificationPrefs({ app_updates: v });
+                showToast(v ? "App updates enabled" : "App updates disabled", v ? "success" : "info");
               }}
               disabled={isGlobalDisabled}
             />
@@ -263,6 +284,7 @@ export const NotificationSettingsScreen = () => {
               onValueChange={(v) => {
                 setBofAnnouncements(v);
                 saveNotificationPrefs({ bof_announcements: v });
+                showToast(v ? "BOF alerts enabled" : "BOF alerts disabled", v ? "success" : "info");
               }}
               disabled={isGlobalDisabled}
               isLast={true}
@@ -281,6 +303,7 @@ export const NotificationSettingsScreen = () => {
               onValueChange={(v) => {
                 setDoNotDisturb(v);
                 saveNotificationPrefs({ do_not_disturb: v });
+                showToast(v ? "Do Not Disturb on" : "Do Not Disturb off", v ? "success" : "info");
               }}
               disabled={isGlobalDisabled}
               isLast={!doNotDisturb}
@@ -306,6 +329,13 @@ export const NotificationSettingsScreen = () => {
 
         <View style={{ height: 40 }} />
       </ScrollView>
+
+      <Toast 
+        visible={toastVisible}
+        message={toastMessage}
+        type={toastType}
+        onHide={() => setToastVisible(false)}
+      />
     </SafeAreaView>
   );
 };
