@@ -10,10 +10,11 @@ import {
   Alert,
 } from "react-native";
 import { useRouter, Stack } from "expo-router";
-import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { SecondaryHeader } from "../../components/SecondaryHeader";
+import { MainHeader } from "../../components/MainHeader";
+import { SummaryCard } from "../../components/SummaryCard";
+import { Button } from "../../components/Button";
 import {
   PRIMARY_GREEN,
   WHITE,
@@ -26,8 +27,6 @@ import {
   BORDER_GRAY,
 } from "../../constants";
 import { useAppContext } from "../../context/AppContext";
-import { DarkCard } from "../../components/DarkCard";
-import { Button } from "../../components/Button";
 import { formatCurrency, getPercentage } from "../../utils/formatters";
 import { RecurringExpense } from "../../types";
 
@@ -54,7 +53,6 @@ export default function RecurringExpensesScreen() {
 
   const budgetLimit = user?.monthlyBudget || 100000;
   const progress = activeSum / budgetLimit;
-  const progressPercent = Math.min(100, Math.round(progress * 100));
 
   const allPaused =
     recurringExpenses.length > 0 && recurringExpenses.every((r) => r.isPaused);
@@ -99,49 +97,44 @@ export default function RecurringExpensesScreen() {
       onPress={() => handleItemPress(item)}
     >
       <View style={styles.itemLeft}>
-        <View style={styles.iconCircle}>
-          <Ionicons name={item.categoryIcon as any} size={22} color="#E03A3A" />
+        <View style={[styles.iconCircle, { backgroundColor: item.isPaused ? "#F3F4F6" : "#FEF2F2" }]}>
+          <Ionicons 
+            name={item.categoryIcon as any || "calendar"} 
+            size={22} 
+            color={item.isPaused ? TEXT_SECONDARY : RED} 
+          />
         </View>
         <View style={styles.centerText}>
           <Text style={styles.itemCategoryName}>{item.name}</Text>
           <Text style={styles.itemFrequencyText}>
             {item.frequency === "monthly"
-              ? `Every month on the ${new Date(item.startDate).getDate()}th`
+              ? `Monthly • ${new Date(item.startDate).getDate()}th`
               : item.frequency === "weekly"
-                ? "Every week"
-                : "Every day"}
-          </Text>
-          <Text style={styles.itemNextDueText}>
-            Next due :{" "}
-            <Text style={styles.boldDate}>
-              {new Date(item.nextDueDate).toLocaleDateString("en-GB", {
-                day: "numeric",
-                month: "short",
-              })}
-            </Text>
+                ? "Weekly"
+                : "Daily"}
           </Text>
         </View>
       </View>
 
       <View style={styles.itemRight}>
+        <Text style={[styles.itemAmountText, item.isPaused && { color: TEXT_SECONDARY }]}>
+          {formatCurrency(item.amount)}
+        </Text>
         <View
           style={[
             styles.statusPill,
-            { backgroundColor: item.isPaused ? "#e5e5ea" : "#e8f5ee" },
+            { backgroundColor: item.isPaused ? "#F3F4F6" : "#E8F5E9" },
           ]}
         >
           <Text
             style={[
               styles.statusPillText,
-              { color: item.isPaused ? "#6b7280" : "#1a7a3c" },
+              { color: item.isPaused ? TEXT_SECONDARY : PRIMARY_GREEN },
             ]}
           >
             {item.isPaused ? "Paused" : "Active"}
           </Text>
         </View>
-        <Text style={styles.itemAmountText}>
-          −{formatCurrency(item.amount)}
-        </Text>
       </View>
     </TouchableOpacity>
   );
@@ -150,75 +143,78 @@ export default function RecurringExpensesScreen() {
     <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={PRIMARY_GREEN} />
       <Stack.Screen options={{ headerShown: false }} />
+      
       {/* ── Green Hero Region ─────────────────────── */}
       <View style={styles.heroRegion}>
-        <SecondaryHeader title="Recurring Expenses" variant="dark" />
+        <View style={{ paddingTop: insets.top }}>
+          <View style={styles.headerRow}>
+            <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+              <Ionicons name="arrow-back" size={24} color={WHITE} />
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>Recurring Bills</Text>
+            <View style={{ width: 40 }} /> 
+          </View>
+        </View>
 
-        <View style={styles.summaryCardWrapper}>
-          <DarkCard
-            type="expenses"
+        <View style={styles.summaryContainer}>
+          <SummaryCard
+            label="Recurring Overview"
             amount={activeSum}
-            income={0}
-            expenses={activeSum}
-            hideIncomeExpenses={true}
-            periodLabel="Recurring this month"
+            limit={budgetLimit}
             progress={progress}
-            statusCaption="This will be deducted automatically every month"
-            progressLabel={`${getPercentage(activeSum, budgetLimit)}% of monthly budget taken`}
-            style={styles.summaryCard}
+            caption={`${getPercentage(activeSum, budgetLimit)}% of monthly budget`}
+            motivation="Auto-deducted every month"
           />
         </View>
       </View>
 
-      {/* SECTION 4 — WHITE BOTTOM CARD */}
+      {/* ── White List Region ─────────────────────── */}
       <View style={styles.whiteCard}>
-        {showList ? (
-          <ScrollView
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.listContent}
-          >
-            <TouchableOpacity
-              style={styles.toggleStateButton}
-              onPress={handleToggleState}
-            >
-              <Text style={styles.toggleStateText}>
+        <View style={styles.listHeader}>
+          <Text style={styles.sectionTitle}>Your Bills</Text>
+          {showList && (
+            <TouchableOpacity onPress={handleToggleState}>
+              <Text style={styles.toggleText}>
                 {allPaused ? "Resume All" : "Pause All"}
               </Text>
             </TouchableOpacity>
+          )}
+        </View>
 
-            {recurringExpenses.map(renderItem)}
+        {showList ? (
+          <ScrollView 
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.scrollContent}
+          >
+            <View style={styles.listContainer}>
+              {recurringExpenses.map(renderItem)}
+            </View>
+            <View style={{ height: 120 }} />
           </ScrollView>
         ) : (
-          /* STATE 3 — EMPTY STATE with asset image */
           <View style={styles.emptyState}>
-            <View
-              style={[
-                styles.illustration,
-                {
-                  backgroundColor: "#F0F9F4",
-                  borderRadius: 60,
-                  width: 120,
-                  height: 120,
-                  alignItems: "center",
-                  justifyContent: "center",
-                },
-              ]}
-            >
+            <View style={styles.illustration}>
               <Ionicons
-                name="calendar-outline"
+                name="calendar-clear-outline"
                 size={60}
                 color={PRIMARY_GREEN}
               />
             </View>
-            <Text style={styles.emptyHeading}>No recurring expenses yet</Text>
+            <Text style={styles.emptyHeading}>No recurring bills yet</Text>
             <Text style={styles.emptySubtext}>
-              Add bills that repeat automatically like data, transport or rent
+              Add repeating expenses like data, rent, or subscriptions to track them automatically.
             </Text>
+            <Button
+              title="Add Your First Bill"
+              onPress={() => router.push("/expenses/add-recurring")}
+              variant="primary"
+              style={styles.emptyCta}
+            />
           </View>
         )}
       </View>
 
-      <View style={styles.footer}>
+      <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 16) }]}>
         <Button
           title="Add Recurring Expense"
           onPress={() => router.push("/expenses/add-recurring")}
@@ -239,54 +235,74 @@ const styles = StyleSheet.create({
     backgroundColor: PRIMARY_GREEN,
     paddingBottom: 20,
   },
-  summaryCardWrapper: {
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 16,
-    marginTop: 10,
+    height: 56,
   },
-  summaryCard: {
-    marginBottom: 0,
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "rgba(255,255,255,0.15)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontFamily: Fonts.bold,
+    color: WHITE,
+  },
+  summaryContainer: {
+    paddingHorizontal: SPACING.LG,
+    marginTop: 10,
   },
   whiteCard: {
     flex: 1,
-    backgroundColor: WHITE,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    overflow: "hidden",
+    backgroundColor: BACKGROUND,
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    paddingTop: 24,
   },
-  listContent: {
-    paddingBottom: 100,
+  scrollContent: {
+    paddingHorizontal: SPACING.LG,
   },
-  toggleStateButton: {
-    alignSelf: "flex-end",
-    backgroundColor: "#e8f5ee",
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 10,
-    marginTop: 16,
-    marginRight: 16,
-    marginBottom: 12,
+  listHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
+    paddingHorizontal: SPACING.LG,
   },
-  toggleStateText: {
-    color: "#1a7a3c",
-    fontSize: 13,
+  sectionTitle: {
+    fontSize: 18,
     fontFamily: Fonts.bold,
+    color: TEXT_PRIMARY,
+  },
+  toggleText: {
+    fontSize: 14,
+    fontFamily: Fonts.medium,
+    color: PRIMARY_GREEN,
+  },
+  listContainer: {
+    gap: 12,
   },
   itemRow: {
     backgroundColor: WHITE,
-    marginHorizontal: 16,
-    marginVertical: 4,
-    borderRadius: 16,
+    borderRadius: 20,
     padding: 16,
     flexDirection: "row",
     justifyContent: "space-between",
+    alignItems: "center",
     borderWidth: 1,
-    borderColor: "#f0f0f0",
-    // shadow logic
+    borderColor: "#F3F4F6",
+    elevation: 2,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 5,
-    elevation: 1,
   },
   itemLeft: {
     flexDirection: "row",
@@ -294,20 +310,19 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   iconCircle: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: "#ffe6e6",
+    width: 44,
+    height: 44,
+    borderRadius: 14,
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 12,
+    marginRight: 14,
   },
   centerText: {
     flex: 1,
   },
   itemCategoryName: {
     fontSize: 16,
-    fontFamily: Fonts.bold,
+    fontFamily: Fonts.semiBold,
     color: TEXT_PRIMARY,
     marginBottom: 2,
   },
@@ -315,64 +330,59 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontFamily: Fonts.regular,
     color: TEXT_SECONDARY,
-    marginBottom: 2,
-  },
-  itemNextDueText: {
-    fontSize: 12,
-    fontFamily: Fonts.regular,
-    color: TEXT_SECONDARY,
-  },
-  boldDate: {
-    color: TEXT_PRIMARY,
-    fontFamily: Fonts.bold,
   },
   itemRight: {
     alignItems: "flex-end",
-    justifyContent: "space-between",
-  },
-  statusPill: {
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 20,
-  },
-  statusPillText: {
-    fontSize: 12,
-    fontFamily: Fonts.medium,
   },
   itemAmountText: {
-    fontSize: 16,
+    fontSize: 17,
     fontFamily: Fonts.bold,
-    color: "#E03A3A",
+    color: RED,
+    marginBottom: 6,
+  },
+  statusPill: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  statusPillText: {
+    fontSize: 11,
+    fontFamily: Fonts.bold,
+    textTransform: "uppercase",
   },
   emptyState: {
     flex: 1,
     alignItems: "center",
-    justifyContent: "flex-start",
-    paddingTop: 50,
+    justifyContent: "center",
     paddingHorizontal: 40,
+    paddingBottom: 100,
   },
-  illustrationContainer: {
-    marginBottom: 12,
-  },
-  emptyImage: {
-    width: 220,
-    height: 220,
+  illustration: {
+    backgroundColor: "#F0F9F4",
+    borderRadius: 30,
+    width: 100,
+    height: 100,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 24,
   },
   emptyHeading: {
-    fontSize: 18,
+    fontSize: 20,
     fontFamily: Fonts.bold,
     color: TEXT_PRIMARY,
     textAlign: "center",
-    marginTop: 24,
   },
   emptySubtext: {
     fontSize: 14,
     fontFamily: Fonts.regular,
     color: TEXT_SECONDARY,
     textAlign: "center",
-    maxWidth: 260,
-    lineHeight: 21,
-    marginTop: 8,
+    marginTop: 12,
+    lineHeight: 22,
+  },
+  emptyCta: {
+    marginTop: 32,
+    width: 200,
   },
   footer: {
     position: "absolute",
@@ -381,9 +391,12 @@ const styles = StyleSheet.create({
     right: 0,
     padding: 16,
     backgroundColor: WHITE,
+    borderTopWidth: 1,
+    borderTopColor: "#F3F4F6",
   },
   ctaButton: {
     height: 56,
     borderRadius: 16,
   },
-});
+});;
+;
