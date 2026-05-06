@@ -240,34 +240,46 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     try {
       const prefs = await notificationService.getPreferences();
       setNotificationPrefs(prefs);
-      // Cache locally
-      await StorageService.saveNotificationPreferences(prefs as any);
     } catch (error) {
-      console.warn('Failed to load notification prefs from server, trying local storage');
-      const local = await StorageService.getNotificationPreferences();
-      if (local) setNotificationPrefs(local as any);
+      // Server not reachable — load from local AsyncStorage fallback
+      try {
+        const local = await AsyncStorage.getItem(
+          "campuskobo_notification_prefs",
+        );
+        if (local) setNotificationPrefs(JSON.parse(local));
+      } catch {
+        // No local data either — use defaults (handled in the screen)
+      }
     } finally {
       setPrefsLoading(false);
     }
   };
 
-  const saveNotificationPrefs = async (prefs: Partial<NotificationPreferences>) => {
-    // Optimistic update
-    const merged = { ...notificationPrefs, ...prefs } as NotificationPreferences;
+  const saveNotificationPrefs = async (
+    prefs: Partial<NotificationPreferences>,
+  ) => {
+    // Optimistic update: immediately update local context state
+    const merged = {
+      ...notificationPrefs,
+      ...prefs,
+    } as NotificationPreferences;
     setNotificationPrefs(merged);
 
-    // Persist locally
+    // Persist locally as cache
     try {
-      await StorageService.saveNotificationPreferences(merged as any);
-    } catch (e) {
-      console.warn('Failed to save notification prefs locally');
+      await AsyncStorage.setItem(
+        "campuskobo_notification_prefs",
+        JSON.stringify(merged),
+      );
+    } catch {
+      console.warn("Could not save notification prefs to local storage");
     }
 
-    // Sync to server
+    // Sync to server in the background — do not block UI or throw
     try {
       await notificationService.updatePreferences(prefs);
     } catch (error) {
-      console.warn('Failed to sync notification prefs to server:', error);
+      console.warn("Could not sync notification prefs to server:", error);
     }
   };
 
