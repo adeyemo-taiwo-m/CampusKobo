@@ -16,6 +16,8 @@ interface SuccessModalProps {
   title: string;
   subtitle: string;
   onDone: () => void;
+  showDoneButton?: boolean;
+  icon?: React.ReactNode;
 }
 
 export const SuccessModal = ({
@@ -23,6 +25,8 @@ export const SuccessModal = ({
   title,
   subtitle,
   onDone,
+  showDoneButton = true,
+  icon,
 }: SuccessModalProps) => {
   const fadeAnim = new Animated.Value(0);
   const scaleAnim = new Animated.Value(0.8);
@@ -43,17 +47,11 @@ export const SuccessModal = ({
           useNativeDriver: true,
         }),
       ]).start();
-
-      const timer = setTimeout(() => {
-        onDone();
-      }, 2000);
-
-      return () => clearTimeout(timer);
     } else {
       fadeAnim.setValue(0);
       scaleAnim.setValue(0.8);
     }
-  }, [isVisible, onDone]);
+  }, [isVisible]);
 
   return (
     <Modal transparent={true} visible={isVisible} animationType="none">
@@ -68,10 +66,19 @@ export const SuccessModal = ({
           ]}
         >
           <View style={styles.iconCircle}>
-            <Ionicons name="checkmark" size={36} color={WHITE} />
+            {icon ? icon : <Ionicons name="checkmark" size={36} color={WHITE} />}
           </View>
           <Text style={styles.title}>{title}</Text>
           <Text style={styles.subtitle}>{subtitle}</Text>
+          {showDoneButton && (
+            <TouchableOpacity 
+              style={styles.doneButton} 
+              onPress={onDone}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.doneButtonText}>Done</Text>
+            </TouchableOpacity>
+          )}
         </Animated.View>
         <Confetti active={isVisible} />
       </View>
@@ -120,5 +127,20 @@ const styles = StyleSheet.create({
     color: TEXT_SECONDARY,
     textAlign: "center",
     lineHeight: 20,
+    marginBottom: 24,
+  },
+  doneButton: {
+    backgroundColor: PRIMARY_GREEN,
+    paddingVertical: 14,
+    paddingHorizontal: 48,
+    borderRadius: 12,
+    marginTop: 8,
+    width: '100%',
+    alignItems: 'center',
+  },
+  doneButtonText: {
+    color: WHITE,
+    fontFamily: Fonts.bold,
+    fontSize: 16,
   },
 });

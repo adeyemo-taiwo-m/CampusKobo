@@ -15,6 +15,7 @@ interface ButtonProps {
   fullWidth?: boolean;
   style?: ViewStyle;
   textStyle?: TextStyle;
+  icon?: React.ReactNode;
 }
 
 export const Button = ({
@@ -27,6 +28,7 @@ export const Button = ({
   fullWidth = true,
   style,
   textStyle,
+  icon,
 }: ButtonProps) => {
   const getButtonStyles = (): ViewStyle[] => {
     const baseStyles: any[] = [styles.button, styles[size]];
@@ -90,7 +92,10 @@ export const Button = ({
       {loading ? (
         <ActivityIndicator color={variant === 'primary' || variant === 'danger' ? WHITE : PRIMARY_GREEN} />
       ) : (
-        <Text style={getTextStyles()}>{title}</Text>
+        <>
+          {icon && <View style={{ marginRight: title ? 8 : 0 }}>{icon}</View>}
+          {title ? <Text style={getTextStyles()}>{title}</Text> : null}
+        </>
       )}
     </TouchableOpacity>
   );
