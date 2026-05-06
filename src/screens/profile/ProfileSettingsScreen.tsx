@@ -78,9 +78,15 @@ export const ProfileSettingsScreen = () => {
     isLoading: contextLoading,
     apiUser,
     setApiUser,
-    logoutFromApi
+    logoutFromApi,
+    currency,
+    setCurrency,
+    language,
+    setLanguage
   } = useAppContext();
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+  const [isCurrencyModalVisible, setIsCurrencyModalVisible] = useState(false);
+  const [isLanguageModalVisible, setIsLanguageModalVisible] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -225,20 +231,14 @@ export const ProfileSettingsScreen = () => {
             <SettingsRow
               icon="cash-outline"
               title="Currency"
-              value="₦ Nigerian Naira"
-              onPress={() => {
-                Alert.alert('Currency', 'Choose your preferred currency', [
-                  { text: '₦ Nigerian Naira', onPress: () => {} },
-                  { text: '$ US Dollar', onPress: () => {} },
-                  { text: 'Cancel', style: 'cancel' }
-                ]);
-              }}
+              value={`${currency.symbol} ${currency.code}`}
+              onPress={() => setIsCurrencyModalVisible(true)}
             />
             <SettingsRow
               icon="globe-outline"
               title="Language"
-              value="English"
-              onPress={() => {}}
+              value={language.name}
+              onPress={() => setIsLanguageModalVisible(true)}
             />
             <SettingsRow
               icon="notifications-outline"
@@ -407,9 +407,118 @@ export const ProfileSettingsScreen = () => {
           </View>
         </TouchableWithoutFeedback>
       </Modal>
+      {/* Currency Selection Modal */}
+      <SelectionSheet
+        visible={isCurrencyModalVisible}
+        onClose={() => setIsCurrencyModalVisible(false)}
+        title="Select Currency"
+        options={[
+          { label: 'Nigerian Naira', value: 'NGN', sublabel: '₦', extra: { symbol: '₦', name: 'Nigerian Naira' } },
+          { label: 'US Dollar', value: 'USD', sublabel: '$', extra: { symbol: '$', name: 'US Dollar' } },
+          { label: 'British Pound', value: 'GBP', sublabel: '£', extra: { symbol: '£', name: 'British Pound' } },
+          { label: 'Euro', value: 'EUR', sublabel: '€', extra: { symbol: '€', name: 'Euro' } },
+        ]}
+        selectedValue={currency.code}
+        onSelect={(item) => {
+          setCurrency({ code: item.value, symbol: item.extra.symbol, name: item.extra.name });
+          setIsCurrencyModalVisible(false);
+        }}
+      />
+
+      {/* Language Selection Modal */}
+      <SelectionSheet
+        visible={isLanguageModalVisible}
+        onClose={() => setIsLanguageModalVisible(false)}
+        title="Select Language"
+        options={[
+          { label: 'English', value: 'en' },
+          { label: 'French', value: 'fr' },
+          { label: 'Spanish', value: 'es' },
+          { label: 'Yoruba', value: 'yo' },
+          { label: 'Hausa', value: 'ha' },
+          { label: 'Igbo', value: 'ig' },
+        ]}
+        selectedValue={language.code}
+        onSelect={(item) => {
+          setLanguage({ code: item.value, name: item.label });
+          setIsLanguageModalVisible(false);
+        }}
+      />
     </SafeAreaView>
   );
 };
+
+interface SelectionOption {
+  label: string;
+  value: string;
+  sublabel?: string;
+  extra?: any;
+}
+
+const SelectionSheet = ({ 
+  visible, 
+  onClose, 
+  title, 
+  options, 
+  selectedValue, 
+  onSelect 
+}: { 
+  visible: boolean, 
+  onClose: () => void, 
+  title: string, 
+  options: SelectionOption[], 
+  selectedValue: string,
+  onSelect: (item: SelectionOption) => void
+}) => (
+  <Modal
+    visible={visible}
+    transparent
+    animationType="slide"
+    onRequestClose={onClose}
+  >
+    <TouchableWithoutFeedback onPress={onClose}>
+      <View style={styles.modalOverlay}>
+        <TouchableWithoutFeedback onPress={(e) => e.stopPropagation()}>
+          <View style={styles.sheetContainerHalf}>
+            <View style={styles.sheetHeader}>
+              <View style={styles.sheetHandle} />
+              <Text style={styles.sheetTitle}>{title}</Text>
+            </View>
+            
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {options.map((option, index) => {
+                const isSelected = option.value === selectedValue;
+                return (
+                  <TouchableOpacity
+                    key={option.value}
+                    style={[
+                      styles.optionItem,
+                      isSelected && styles.selectedOptionItem,
+                      index === options.length - 1 && styles.noBorder
+                    ]}
+                    onPress={() => onSelect(option)}
+                  >
+                    <View style={styles.optionMain}>
+                      <Text style={[styles.optionLabel, isSelected && styles.selectedOptionLabel]}>
+                        {option.label}
+                      </Text>
+                      {option.sublabel && (
+                        <Text style={styles.optionSublabel}>{option.sublabel}</Text>
+                      )}
+                    </View>
+                    {isSelected && (
+                      <Ionicons name="checkmark-circle" size={24} color={PRIMARY_GREEN} />
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
+        </TouchableWithoutFeedback>
+      </View>
+    </TouchableWithoutFeedback>
+  </Modal>
+);
 
 const styles = StyleSheet.create({
   container: {
@@ -667,5 +776,64 @@ const styles = StyleSheet.create({
     borderRadius: 60,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  sheetContainerHalf: {
+    backgroundColor: WHITE,
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    padding: 24,
+    maxHeight: '60%',
+  },
+  sheetHeader: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  sheetHandle: {
+    width: 40,
+    height: 4,
+    backgroundColor: '#E5E7EB',
+    borderRadius: 2,
+    marginBottom: 16,
+  },
+  sheetTitle: {
+    fontSize: 18,
+    fontFamily: Fonts.bold,
+    color: TEXT_PRIMARY,
+  },
+  optionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F9FAFB',
+  },
+  selectedOptionItem: {
+    backgroundColor: '#F9FAFB',
+    marginHorizontal: -24,
+    paddingHorizontal: 24,
+  },
+  optionMain: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  optionLabel: {
+    fontSize: 16,
+    fontFamily: Fonts.medium,
+    color: TEXT_PRIMARY,
+  },
+  selectedOptionLabel: {
+    color: PRIMARY_GREEN,
+    fontFamily: Fonts.bold,
+  },
+  optionSublabel: {
+    fontSize: 14,
+    color: TEXT_SECONDARY,
+    fontFamily: Fonts.regular,
+    backgroundColor: '#F3F4F6',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
   }
 });

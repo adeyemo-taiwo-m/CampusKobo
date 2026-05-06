@@ -12,7 +12,8 @@ import {
 import { Colors, Fonts, SPACING, WHITE } from "../constants";
 import { ProgressBar } from "./ProgressBar";
 import * as Progress from "react-native-progress";
-import { formatCurrency, formatCurrencyParts, getPercentage } from "../utils/formatters";
+import { useFormatCurrency } from "../hooks/useFormatCurrency";
+import { getPercentage } from "../utils/formatters";
 
 interface DarkCardProps {
   type: "balance" | "expenses" | "transaction" | "budget" | "savings";
@@ -79,6 +80,8 @@ export const DarkCard = ({
   const isBudgetType = type === "budget";
   const isSavingsType = type === "savings";
 
+  const { formatCurrency, formatCurrencyParts, currencySymbol } = useFormatCurrency();
+
   return (
     <View style={[styles.outerContainer, style]}>
       <LinearGradient
@@ -109,12 +112,12 @@ export const DarkCard = ({
                 {/* Amount / Target */}
                 <View style={styles.savingsAmountRow}>
                   <Text style={styles.savingsAmount}>
-                    ₦{Math.floor(amount).toLocaleString()}
+                    {currencySymbol}{Math.floor(amount).toLocaleString()}
                   </Text>
                   <Text style={styles.decimals}>.00</Text>
                   {limitAmount !== undefined && (
                     <Text style={styles.savingsTarget}>
-                      /₦{Math.floor(limitAmount).toLocaleString()}
+                      /{currencySymbol}{Math.floor(limitAmount).toLocaleString()}
                     </Text>
                   )}
                 </View>
@@ -148,8 +151,8 @@ export const DarkCard = ({
                   <View style={styles.balanceAmountWrapper}>
                     <Text style={styles.amountTextLarge}>
                       {isBalanceVisible
-                        ? `₦${Math.floor(Math.max(0, amount)).toLocaleString()}`
-                        : "₦ ••••••"}
+                        ? `${currencySymbol}${Math.floor(Math.max(0, amount)).toLocaleString()}`
+                        : `${currencySymbol} ••••••`}
                     </Text>
                     {isBalanceVisible && (
                       <Text style={styles.decimals}>.00</Text>
@@ -180,7 +183,7 @@ export const DarkCard = ({
                           <Text style={styles.statLabelSmall}>Income</Text>
                         </View>
                         <Text style={styles.statValueLarge}>
-                          +₦{Math.floor(income).toLocaleString()}
+                          +{currencySymbol}{Math.floor(income).toLocaleString()}
                         </Text>
                       </View>
 
@@ -197,7 +200,7 @@ export const DarkCard = ({
                           <Text style={styles.statLabelSmall}>Expenses</Text>
                         </View>
                         <Text style={styles.statValueLarge}>
-                          −₦{Math.floor(expenses).toLocaleString()}
+                          −{currencySymbol}{Math.floor(expenses).toLocaleString()}
                         </Text>
                       </View>
                     </View>
@@ -257,8 +260,8 @@ export const DarkCard = ({
                     <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
                       <Text style={styles.modernAmountLarge}>
                         {type === "expenses" && !isBalanceVisible
-                          ? "₦ ••••••"
-                          : `₦${Math.floor(amount).toLocaleString()}`}
+                          ? `${currencySymbol} ••••••`
+                          : `${currencySymbol}${Math.floor(amount).toLocaleString()}`}
                       </Text>
                       {!(type === "expenses" && !isBalanceVisible) && (
                         <Text style={styles.decimals}>.00</Text>
@@ -341,8 +344,8 @@ export const DarkCard = ({
                       ]}
                     >
                       {isTransactionType
-                        ? `${isIncome ? "+" : "−"}₦${Math.floor(amount).toLocaleString()}`
-                        : `₦${Math.floor(amount).toLocaleString()}`}
+                        ? `${isIncome ? "+" : "−"}${currencySymbol}${Math.floor(amount).toLocaleString()}`
+                        : `${currencySymbol}${Math.floor(amount).toLocaleString()}`}
                     </Text>
                     <Text style={styles.decimals}>.00</Text>
                   </View>

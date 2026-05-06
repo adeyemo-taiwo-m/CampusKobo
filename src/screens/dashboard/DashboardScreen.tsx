@@ -31,7 +31,8 @@ import {
 } from "../../constants";
 import { useAppContext } from "../../context/AppContext";
 import { useToast } from "../../hooks/useToast";
-import { formatCurrency, getPercentage } from "../../utils/formatters";
+import { useFormatCurrency } from "../../hooks/useFormatCurrency";
+import { getPercentage } from "../../utils/formatters";
 import * as Progress from "react-native-progress";
 
 export default function DashboardScreen() {
@@ -56,6 +57,7 @@ export default function DashboardScreen() {
   } = useAppContext();
   const [isAddFundsVisible, setIsAddFundsVisible] = useState(false);
   const { toastProps, showToast } = useToast();
+  const { formatCurrency } = useFormatCurrency();
 
   // Motivational text for budget section
   const budgetMotivation = {

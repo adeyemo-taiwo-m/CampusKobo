@@ -31,7 +31,8 @@ import {
 } from "../../constants";
 import { useAppContext } from "../../context/AppContext";
 import { useToast } from "../../hooks/useToast";
-import { formatCurrency, getPercentage, getProgressColor } from "../../utils/formatters";
+import { useFormatCurrency } from "../../hooks/useFormatCurrency";
+import { getPercentage, getProgressColor } from "../../utils/formatters";
 
 interface Budget {
   id: string;
@@ -48,6 +49,7 @@ const BudgetCard = ({ budget, onPress }: { budget: Budget; onPress: () => void }
   const percentage = (budget as any).percent || 0;
   const remaining = (budget as any).remaining || 0;
   const statusColor = getProgressColor(percentage); 
+  const { formatCurrency } = useFormatCurrency();
   
   return (
     <TouchableOpacity style={styles.budgetCard} onPress={onPress}>

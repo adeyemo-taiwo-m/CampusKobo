@@ -41,6 +41,7 @@ import { useAppContext } from "../../context/AppContext";
 import { ProgressBar } from "../../components/ProgressBar";
 import { OfflineBanner } from "../../components/OfflineBanner";
 import { formatCurrency, getPercentage } from "../../utils/formatters";
+import { useFormatCurrency } from "../../hooks/useFormatCurrency";
 import { SavingsGoal } from "../../types";
 
 // Returns an emoji that fits the goal name
@@ -61,6 +62,7 @@ const getGoalEmoji = (name: string): string => {
 
 export const SavingsScreen = () => {
   const router = useRouter();
+  const { formatCurrency } = useFormatCurrency();
 
   const { 
     enrichedSavingsGoals, 

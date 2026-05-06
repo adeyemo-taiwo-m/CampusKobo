@@ -10,7 +10,7 @@ import {
   SPACING,
   Fonts,
 } from '../constants';
-import { formatCurrency } from '../utils/formatters';
+import { useFormatCurrency } from '../hooks/useFormatCurrency';
 
 interface SummaryCardProps {
   label: string;
@@ -37,6 +37,7 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({
   onActionPress,
   style,
 }) => {
+  const { formatCurrency } = useFormatCurrency();
   return (
     <View style={[styles.card, style]}>
       <Text style={styles.label}>{label}</Text>

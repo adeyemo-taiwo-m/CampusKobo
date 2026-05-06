@@ -9,6 +9,7 @@ import {
   TEXT_SECONDARY,
   WHITE,
 } from "../constants";
+import { useFormatCurrency } from "../hooks/useFormatCurrency";
 
 export interface Transaction {
   id: string;
@@ -33,6 +34,7 @@ export const TransactionCard = ({
   onPress,
   isAmountHidden = false,
 }: TransactionCardProps) => {
+  const { currencySymbol } = useFormatCurrency();
   const isIncome = transaction.type === "income";
   const dateObj = new Date(transaction.date);
   const formattedTime = dateObj.toLocaleTimeString([], {
@@ -91,7 +93,7 @@ export const TransactionCard = ({
         <Text
           style={[styles.amount, { color: isIncome ? "#10B981" : "#EF4444" }]}
         >
-          {isIncome ? "+" : "-"}₦{isAmountHidden ? "••••" : transaction.amount.toLocaleString()}
+          {isIncome ? "+" : "-"}{currencySymbol}{isAmountHidden ? "••••" : transaction.amount.toLocaleString()}
         </Text>
       </View>
     </TouchableOpacity>

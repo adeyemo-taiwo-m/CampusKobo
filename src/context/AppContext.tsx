@@ -124,6 +124,12 @@ export interface AppContextType {
   prefsLoading: boolean;
   loadNotificationPrefs: () => Promise<void>;
   saveNotificationPrefs: (prefs: Partial<NotificationPreferences>) => Promise<void>;
+  
+  // Settings
+  currency: { code: string; symbol: string; name: string };
+  language: { code: string; name: string };
+  setCurrency: (currency: { code: string; symbol: string; name: string }) => Promise<void>;
+  setLanguage: (language: { code: string; name: string }) => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -147,6 +153,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [dashboardSummary, setDashboardSummary] = useState<DashboardSummary | null>(null);
   const [notificationPrefs, setNotificationPrefs] = useState<NotificationPreferences | null>(null);
   const [prefsLoading, setPrefsLoading] = useState(false);
+  const [currency, setCurrencyState] = useState({ code: 'NGN', symbol: '₦', name: 'Nigerian Naira' });
+  const [language, setLanguageState] = useState({ code: 'en', name: 'English' });
 
   const checkAuthStatus = async () => {
     setAuthLoading(true);
@@ -319,6 +327,17 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       let b = await StorageService.getBudgets();
       let s = await StorageService.getSavingsGoals();
       let r = await StorageService.getRecurringExpenses();
+      
+      // Load settings
+      try {
+        const savedCurrency = await AsyncStorage.getItem('campuskobo_currency');
+        if (savedCurrency) setCurrencyState(JSON.parse(savedCurrency));
+        
+        const savedLanguage = await AsyncStorage.getItem('campuskobo_language');
+        if (savedLanguage) setLanguageState(JSON.parse(savedLanguage));
+      } catch (e) {
+        console.warn('Failed to load settings from storage', e);
+      }
 
       if (u) {
         setIsBalanceHidden(!!u.hideBalance);
@@ -424,6 +443,16 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const setCurrency = async (newCurrency: { code: string; symbol: string; name: string }) => {
+    setCurrencyState(newCurrency);
+    await AsyncStorage.setItem('campuskobo_currency', JSON.stringify(newCurrency));
+  };
+
+  const setLanguage = async (newLanguage: { code: string; name: string }) => {
+    setLanguageState(newLanguage);
+    await AsyncStorage.setItem('campuskobo_language', JSON.stringify(newLanguage));
   };
 
   useEffect(() => {
@@ -1324,6 +1353,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         isThisMonth,
         isLastMonth,
         processRecurringExpense,
+        currency,
+        language,
+        setCurrency,
+        setLanguage,
       }}
     >
       {children}
