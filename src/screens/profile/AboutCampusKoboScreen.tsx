@@ -11,6 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import {
   WHITE,
   PRIMARY_GREEN,
@@ -52,9 +53,11 @@ export const AboutCampusKoboScreen = () => {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         {/* Hero Section */}
         <View style={styles.heroSection}>
-          <View style={styles.iconCircle}>
-            <Ionicons name="leaf" size={50} color={WHITE} />
-          </View>
+          <Image 
+            source={require('../../../assets/images/campuskobo-logo.svg')} 
+            style={styles.logoImage} 
+            contentFit="contain"
+          />
           <Text style={styles.appName}>CampusKobo</Text>
           <View style={styles.versionBadge}>
             <Text style={styles.versionText}>v1.0.0</Text>
@@ -153,19 +156,10 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     paddingVertical: 10,
   },
-  iconCircle: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
-    backgroundColor: PRIMARY_GREEN,
-    justifyContent: 'center',
-    alignItems: 'center',
+  logoImage: {
+    width: 100,
+    height: 100,
     marginBottom: 16,
-    elevation: 6,
-    shadowColor: PRIMARY_GREEN,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
   },
   appName: {
     fontSize: 28,

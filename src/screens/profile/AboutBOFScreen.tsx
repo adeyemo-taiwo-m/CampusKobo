@@ -79,9 +79,11 @@ export const AboutBOFScreen = () => {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         {/* Hero Section */}
         <View style={styles.heroSection}>
-          <View style={styles.logoPlaceholder}>
-            <Ionicons name="business" size={60} color={WHITE} />
-          </View>
+          <Image 
+            source={require('../../../assets/images/bof-oau-logo.png')} 
+            style={styles.logoImage} 
+            resizeMode="contain"
+          />
           <Text style={styles.heroTitle}>The Students' Professional Bureau of Finance</Text>
           <Text style={styles.heroSubtitle}>Obafemi Awolowo University, Ile-Ife</Text>
           
@@ -206,19 +208,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 24,
   },
-  logoPlaceholder: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: PRIMARY_GREEN,
-    justifyContent: 'center',
-    alignItems: 'center',
+  logoImage: {
+    width: 120,
+    height: 120,
     marginBottom: 16,
-    elevation: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
   },
   heroTitle: {
     fontSize: 20,
