@@ -18,17 +18,17 @@
 
 This guide wires every screen in the Profile & Settings section to the real backend API:
 
-| Feature | Screens Affected | API Endpoints |
-|---|---|---|
-| Edit Profile / Avatar | `ProfileSettingsScreen` | `PUT /users/profile`, `POST /users/avatar` |
-| Change Password | `ChangePasswordScreen` | `POST /auth/change-password` |
-| Change Email | `ChangeEmailScreen` | `POST /auth/change-email` |
-| Create / Update PIN | `SetPINScreen`, `ConfirmPINScreen`, `PINSuccessScreen` | `POST /auth/create-pin` |
-| Security & Privacy toggles | `SecurityPrivacyScreen` | `PUT /users/security/biometrics`, `PUT /users/privacy` |
-| Notification Settings | `NotificationSettingsScreen` | `GET/PUT /notifications/preferences` |
-| Help & FAQ / Support | `HelpFAQScreen` | `GET /support/faqs`, `POST /support/messages` |
-| Logout | `ProfileSettingsScreen` | `POST /auth/logout` |
-| Delete Account | `SecurityPrivacyScreen` | *(local clear only — no backend delete endpoint confirmed)* |
+| Feature                    | Screens Affected                                       | API Endpoints                                               |
+| -------------------------- | ------------------------------------------------------ | ----------------------------------------------------------- |
+| Edit Profile / Avatar      | `ProfileSettingsScreen`                                | `PUT /users/profile`, `POST /users/avatar`                  |
+| Change Password            | `ChangePasswordScreen`                                 | `POST /auth/change-password`                                |
+| Change Email               | `ChangeEmailScreen`                                    | `POST /auth/change-email`                                   |
+| Create / Update PIN        | `SetPINScreen`, `ConfirmPINScreen`, `PINSuccessScreen` | `POST /auth/create-pin`                                     |
+| Security & Privacy toggles | `SecurityPrivacyScreen`                                | `PUT /users/security/biometrics`, `PUT /users/privacy`      |
+| Notification Settings      | `NotificationSettingsScreen`                           | `GET/PUT /notifications/preferences`                        |
+| Help & FAQ / Support       | `HelpFAQScreen`                                        | `GET /support/faqs`, `POST /support/messages`               |
+| Logout                     | `ProfileSettingsScreen`                                | `POST /auth/logout`                                         |
+| Delete Account             | `SecurityPrivacyScreen`                                | _(local clear only — no backend delete endpoint confirmed)_ |
 
 ### Architecture Principle
 
@@ -63,27 +63,31 @@ This guide wires every screen in the Profile & Settings section to the real back
 > Add the following functions to the exported `authService` object (or as standalone exports, whichever pattern is used in your existing file):
 >
 > **`changePassword(data: ChangePasswordRequest): Promise<any>`**
+>
 > - POST to `API_ENDPOINTS.CHANGE_PASSWORD` with `data`
 > - Does NOT save tokens — this is a settings action, not an auth action
 > - Throws on error so the calling screen can catch it
 >
 > **`changeEmail(data: ChangeEmailRequest): Promise<any>`**
+>
 > - POST to `API_ENDPOINTS.CHANGE_EMAIL` with `data`
 > - Returns the response (which will include a message about verification email being sent)
 > - Throws on error
 >
 > **`createPin(data: CreatePinRequest): Promise<any>`**
+>
 > - POST to `API_ENDPOINTS.CREATE_PIN` with `data`
 > - Returns the response
 > - Throws on error
 >
 > Verify that `API_ENDPOINTS.CHANGE_PASSWORD`, `API_ENDPOINTS.CHANGE_EMAIL`, and `API_ENDPOINTS.CREATE_PIN` are defined in `/src/constants/api.ts`. If any are missing, add them now:
 >
-> ```typescript
+> ````typescript
 > CHANGE_PASSWORD: '/auth/change-password',
 > CHANGE_EMAIL: '/auth/change-email',
 > CREATE_PIN: '/auth/create-pin',
 > ```"
+> ````
 
 ---
 
@@ -117,44 +121,50 @@ This guide wires every screen in the Profile & Settings section to the real back
 > Add these functions if they do not already exist:
 >
 > **`getMe(): Promise<UserProfileResponse>`**
+>
 > - GET to `API_ENDPOINTS.GET_ME`
 > - Returns the full user profile from the server
 >
 > **`updateProfile(data: UpdateProfileRequest): Promise<UserProfileResponse>`**
+>
 > - PUT to `API_ENDPOINTS.UPDATE_PROFILE` with `data`
 > - Returns the updated user profile
 >
 > **`uploadAvatar(imageUri: string): Promise<AvatarUploadResponse>`**
+>
 > - POST to `API_ENDPOINTS.UPLOAD_AVATAR`
 > - Must use `FormData` — NOT `application/json`
 > - Create the FormData object like this:
 >   ```typescript
 >   const formData = new FormData();
->   const filename = imageUri.split('/').pop() ?? 'avatar.jpg';
+>   const filename = imageUri.split("/").pop() ?? "avatar.jpg";
 >   const match = /\.(\w+)$/.exec(filename);
->   const type = match ? `image/${match[1]}` : 'image/jpeg';
->   formData.append('file', { uri: imageUri, name: filename, type } as any);
+>   const type = match ? `image/${match[1]}` : "image/jpeg";
+>   formData.append("file", { uri: imageUri, name: filename, type } as any);
 >   ```
 > - Use `apiClient.post(API_ENDPOINTS.UPLOAD_AVATAR, formData, { headers: { 'Content-Type': 'multipart/form-data' } })`
 > - Returns `{ avatar_url: string }`
 >
 > **`updateBiometricSettings(data: BiometricSettingsRequest): Promise<any>`**
+>
 > - PUT to `API_ENDPOINTS.UPDATE_BIOMETRICS` with `data`
 > - Returns response
 >
 > **`updatePrivacySettings(data: PrivacySettingsRequest): Promise<any>`**
+>
 > - PUT to `API_ENDPOINTS.UPDATE_PRIVACY` with `data`
 > - Returns response
 >
 > Verify these constants exist in `/src/constants/api.ts` and add any missing ones:
 >
-> ```typescript
+> ````typescript
 > GET_ME: '/users/me',
 > UPDATE_PROFILE: '/users/profile',
 > UPLOAD_AVATAR: '/users/avatar',
 > UPDATE_BIOMETRICS: '/users/security/biometrics',
 > UPDATE_PRIVACY: '/users/privacy',
 > ```"
+> ````
 
 ---
 
@@ -177,7 +187,7 @@ This guide wires every screen in the Profile & Settings section to the real back
 >   bof_announcements: boolean;
 >   do_not_disturb: boolean;
 >   quiet_hours_start?: string; // e.g. '22:00'
->   quiet_hours_end?: string;   // e.g. '08:00'
+>   quiet_hours_end?: string; // e.g. '08:00'
 > }
 > ```
 >
@@ -186,18 +196,21 @@ This guide wires every screen in the Profile & Settings section to the real back
 > Create and export these functions:
 >
 > **`getPreferences(): Promise<NotificationPreferences>`**
+>
 > - GET to `API_ENDPOINTS.NOTIFICATION_PREFERENCES`
 > - Returns the user's saved notification preferences from the server
 >
 > **`updatePreferences(data: Partial<NotificationPreferences>): Promise<NotificationPreferences>`**
+>
 > - PUT to `API_ENDPOINTS.NOTIFICATION_PREFERENCES` with `data`
 > - Returns the updated preferences
 >
 > Add to `/src/constants/api.ts` if missing:
 >
-> ```typescript
+> ````typescript
 > NOTIFICATION_PREFERENCES: '/notifications/preferences',
 > ```"
+> ````
 
 ---
 
@@ -227,19 +240,22 @@ This guide wires every screen in the Profile & Settings section to the real back
 > Create and export:
 >
 > **`getFAQs(): Promise<FAQ[]>`**
+>
 > - GET to `API_ENDPOINTS.FAQS`
 > - Returns an array of FAQ objects
 >
 > **`sendSupportMessage(data: SupportMessageRequest): Promise<any>`**
+>
 > - POST to `API_ENDPOINTS.SUPPORT_MESSAGES` with `data`
 > - Returns the response
 >
 > Add to `/src/constants/api.ts` if missing:
 >
-> ```typescript
+> ````typescript
 > FAQS: '/support/faqs',
 > SUPPORT_MESSAGES: '/support/messages',
 > ```"
+> ````
 
 ---
 
@@ -250,10 +266,11 @@ This guide wires every screen in the Profile & Settings section to the real back
 > "Open `/src/context/AppContext.tsx`. Add the following new state variables alongside the existing ones:
 >
 > ```typescript
-> import { NotificationPreferences } from '../services/notificationService';
+> import { NotificationPreferences } from "../services/notificationService";
 >
 > // New state:
-> const [notificationPrefs, setNotificationPrefs] = useState<NotificationPreferences | null>(null);
+> const [notificationPrefs, setNotificationPrefs] =
+>   useState<NotificationPreferences | null>(null);
 > const [prefsLoading, setPrefsLoading] = useState(false);
 > ```
 >
@@ -268,7 +285,9 @@ This guide wires every screen in the Profile & Settings section to the real back
 >   } catch (error) {
 >     // Server not reachable — load from local AsyncStorage fallback
 >     try {
->       const local = await AsyncStorage.getItem('campuskobo_notification_prefs');
+>       const local = await AsyncStorage.getItem(
+>         "campuskobo_notification_prefs",
+>       );
 >       if (local) setNotificationPrefs(JSON.parse(local));
 >     } catch {
 >       // No local data either — use defaults (handled in the screen)
@@ -282,23 +301,31 @@ This guide wires every screen in the Profile & Settings section to the real back
 > Add a new function **`saveNotificationPrefs(prefs: Partial<NotificationPreferences>)`**:
 >
 > ```typescript
-> const saveNotificationPrefs = async (prefs: Partial<NotificationPreferences>) => {
+> const saveNotificationPrefs = async (
+>   prefs: Partial<NotificationPreferences>,
+> ) => {
 >   // Optimistic update: immediately update local context state
->   const merged = { ...notificationPrefs, ...prefs } as NotificationPreferences;
+>   const merged = {
+>     ...notificationPrefs,
+>     ...prefs,
+>   } as NotificationPreferences;
 >   setNotificationPrefs(merged);
 >
 >   // Persist locally as cache
 >   try {
->     await AsyncStorage.setItem('campuskobo_notification_prefs', JSON.stringify(merged));
+>     await AsyncStorage.setItem(
+>       "campuskobo_notification_prefs",
+>       JSON.stringify(merged),
+>     );
 >   } catch {
->     console.warn('Could not save notification prefs to local storage');
+>     console.warn("Could not save notification prefs to local storage");
 >   }
 >
 >   // Sync to server in the background — do not block UI or throw
 >   try {
 >     await notificationService.updatePreferences(prefs);
 >   } catch (error) {
->     console.warn('Could not sync notification prefs to server:', error);
+>     console.warn("Could not sync notification prefs to server:", error);
 >   }
 > };
 > ```
@@ -315,12 +342,13 @@ This guide wires every screen in the Profile & Settings section to the real back
 >
 > Add all new state and functions to the context value object:
 >
-> ```typescript
+> ````typescript
 > notificationPrefs,
 > prefsLoading,
 > loadNotificationPrefs,
 > saveNotificationPrefs,
 > ```"
+> ````
 
 ---
 
@@ -333,8 +361,8 @@ This guide wires every screen in the Profile & Settings section to the real back
 > Add these imports at the top:
 >
 > ```typescript
-> import { userService } from '../../services/userService';
-> import * as ImagePicker from 'expo-image-picker';
+> import { userService } from "../../services/userService";
+> import * as ImagePicker from "expo-image-picker";
 > ```
 >
 > Add these state variables inside the component:
@@ -360,7 +388,9 @@ This guide wires every screen in the Profile & Settings section to the real back
 >     // Close the edit modal
 >     setEditModalVisible(false);
 >   } catch (error: any) {
->     setSaveError(error.message || 'Failed to update profile. Please try again.');
+>     setSaveError(
+>       error.message || "Failed to update profile. Please try again.",
+>     );
 >   } finally {
 >     setIsSaving(false);
 >   }
@@ -373,8 +403,11 @@ This guide wires every screen in the Profile & Settings section to the real back
 > const handleAvatarUpload = async () => {
 >   // Request permission
 >   const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
->   if (status !== 'granted') {
->     Alert.alert('Permission needed', 'Please allow access to your photo library to upload an avatar.');
+>   if (status !== "granted") {
+>     Alert.alert(
+>       "Permission needed",
+>       "Please allow access to your photo library to upload an avatar.",
+>     );
 >     return;
 >   }
 >
@@ -391,9 +424,12 @@ This guide wires every screen in the Profile & Settings section to the real back
 >   setIsUploadingAvatar(true);
 >   try {
 >     const { avatar_url } = await userService.uploadAvatar(imageUri);
->     setApiUser(prev => prev ? { ...prev, avatar_url } : prev);
+>     setApiUser((prev) => (prev ? { ...prev, avatar_url } : prev));
 >   } catch (error: any) {
->     Alert.alert('Upload failed', error.message || 'Could not upload avatar. Please try again.');
+>     Alert.alert(
+>       "Upload failed",
+>       error.message || "Could not upload avatar. Please try again.",
+>     );
 >   } finally {
 >     setIsUploadingAvatar(false);
 >   }
@@ -424,9 +460,10 @@ This guide wires every screen in the Profile & Settings section to the real back
 >
 > Install `expo-image-picker` if not already installed:
 >
-> ```bash
+> ````bash
 > npx expo install expo-image-picker
 > ```"
+> ````
 
 ---
 
@@ -439,15 +476,15 @@ This guide wires every screen in the Profile & Settings section to the real back
 > Add these imports:
 >
 > ```typescript
-> import { authService } from '../../services/authService';
+> import { authService } from "../../services/authService";
 > ```
 >
 > Ensure these state variables exist:
 >
 > ```typescript
-> const [oldPassword, setOldPassword] = useState('');
-> const [newPassword, setNewPassword] = useState('');
-> const [confirmPassword, setConfirmPassword] = useState('');
+> const [oldPassword, setOldPassword] = useState("");
+> const [newPassword, setNewPassword] = useState("");
+> const [confirmPassword, setConfirmPassword] = useState("");
 > const [isLoading, setIsLoading] = useState(false);
 > const [apiError, setApiError] = useState<string | null>(null);
 > const [showSuccess, setShowSuccess] = useState(false);
@@ -466,15 +503,15 @@ This guide wires every screen in the Profile & Settings section to the real back
 >
 >   // Local validation first
 >   if (!oldPassword || !newPassword || !confirmPassword) {
->     setApiError('Please fill in all fields.');
+>     setApiError("Please fill in all fields.");
 >     return;
 >   }
 >   if (newPassword.length < 6) {
->     setApiError('New password must be at least 6 characters.');
+>     setApiError("New password must be at least 6 characters.");
 >     return;
 >   }
 >   if (newPassword !== confirmPassword) {
->     setApiError('New passwords do not match.');
+>     setApiError("New passwords do not match.");
 >     return;
 >   }
 >
@@ -486,7 +523,9 @@ This guide wires every screen in the Profile & Settings section to the real back
 >     });
 >     setShowSuccess(true);
 >   } catch (error: any) {
->     setApiError(error.message || 'Failed to update password. Please try again.');
+>     setApiError(
+>       error.message || "Failed to update password. Please try again.",
+>     );
 >   } finally {
 >     setIsLoading(false);
 >   }
@@ -510,12 +549,14 @@ This guide wires every screen in the Profile & Settings section to the real back
 > **Add an error card in the JSX** above the Submit button:
 >
 > ```tsx
-> {apiError && (
->   <View style={styles.errorCard}>
->     <Ionicons name="alert-circle-outline" size={18} color="#fff" />
->     <Text style={styles.errorText}>{apiError}</Text>
->   </View>
-> )}
+> {
+>   apiError && (
+>     <View style={styles.errorCard}>
+>       <Ionicons name="alert-circle-outline" size={18} color="#fff" />
+>       <Text style={styles.errorText}>{apiError}</Text>
+>     </View>
+>   );
+> }
 > ```
 >
 > Add these styles:
@@ -554,14 +595,14 @@ This guide wires every screen in the Profile & Settings section to the real back
 > Add this import:
 >
 > ```typescript
-> import { authService } from '../../services/authService';
+> import { authService } from "../../services/authService";
 > ```
 >
 > Ensure these state variables exist:
 >
 > ```typescript
-> const [newEmail, setNewEmail] = useState('');
-> const [password, setPassword] = useState('');
+> const [newEmail, setNewEmail] = useState("");
+> const [password, setPassword] = useState("");
 > const [isLoading, setIsLoading] = useState(false);
 > const [apiError, setApiError] = useState<string | null>(null);
 > const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -577,11 +618,11 @@ This guide wires every screen in the Profile & Settings section to the real back
 >   // Local validation
 >   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 >   if (!newEmail || !emailRegex.test(newEmail)) {
->     setApiError('Please enter a valid email address.');
+>     setApiError("Please enter a valid email address.");
 >     return;
 >   }
 >   if (!password) {
->     setApiError('Please enter your current password to confirm.');
+>     setApiError("Please enter your current password to confirm.");
 >     return;
 >   }
 >
@@ -589,12 +630,12 @@ This guide wires every screen in the Profile & Settings section to the real back
 >   try {
 >     await authService.changeEmail({ new_email: newEmail, password });
 >     setSuccessMessage(
->       `A verification email has been sent to ${newEmail}. Please verify it to complete the change.`
+>       `A verification email has been sent to ${newEmail}. Please verify it to complete the change.`,
 >     );
 >     // Update the local apiUser email optimistically
->     setApiUser(prev => prev ? { ...prev, email: newEmail } : prev);
+>     setApiUser((prev) => (prev ? { ...prev, email: newEmail } : prev));
 >   } catch (error: any) {
->     setApiError(error.message || 'Failed to update email. Please try again.');
+>     setApiError(error.message || "Failed to update email. Please try again.");
 >   } finally {
 >     setIsLoading(false);
 >   }
@@ -604,12 +645,14 @@ This guide wires every screen in the Profile & Settings section to the real back
 > **Add a success banner in the JSX** (shown above the button when `successMessage` is not null):
 >
 > ```tsx
-> {successMessage && (
->   <View style={styles.successCard}>
->     <Ionicons name="checkmark-circle-outline" size={18} color="#fff" />
->     <Text style={styles.successText}>{successMessage}</Text>
->   </View>
-> )}
+> {
+>   successMessage && (
+>     <View style={styles.successCard}>
+>       <Ionicons name="checkmark-circle-outline" size={18} color="#fff" />
+>       <Text style={styles.successText}>{successMessage}</Text>
+>     </View>
+>   );
+> }
 > ```
 >
 > Add styles (mirror the `errorCard` style but with green background `#10B981`).
@@ -629,16 +672,19 @@ This guide wires every screen in the Profile & Settings section to the real back
 > Add this import:
 >
 > ```typescript
-> import { authService } from '../../services/authService';
+> import { authService } from "../../services/authService";
 > ```
 >
 > The PIN value must be passed through navigation params. Confirm that `ConfirmPINScreen.tsx` navigates to `PINSuccessScreen` with the confirmed PIN:
 >
 > ```typescript
 > // In ConfirmPINScreen.tsx — when PINs match:
-> navigation.navigate('PINSuccess', { pin: enteredPin });
+> navigation.navigate("PINSuccess", { pin: enteredPin });
 > // OR for expo-router:
-> router.push({ pathname: '/profile/pin-success', params: { pin: enteredPin } });
+> router.push({
+>   pathname: "/profile/pin-success",
+>   params: { pin: enteredPin },
+> });
 > ```
 >
 > In `PINSuccessScreen.tsx`, read the PIN from params:
@@ -662,14 +708,14 @@ This guide wires every screen in the Profile & Settings section to the real back
 >     await authService.createPin({ pin });
 >   } catch (error) {
 >     // Log silently — PIN is saved locally, app lock still works
->     console.warn('PIN sync to server failed:', error);
+>     console.warn("PIN sync to server failed:", error);
 >   }
 >
 >   // 3. Navigate back to security settings
 >   // For React Navigation:
->   navigation.navigate('SecurityPrivacy');
+>   navigation.navigate("SecurityPrivacy");
 >   // For expo-router:
->   router.replace('/profile/security');
+>   router.replace("/profile/security");
 > };
 > ```
 >
@@ -686,7 +732,7 @@ This guide wires every screen in the Profile & Settings section to the real back
 > Add this import:
 >
 > ```typescript
-> import { userService } from '../../services/userService';
+> import { userService } from "../../services/userService";
 > ```
 >
 > The screen currently uses local `useState` for all toggle values. Keep those — they control the UI. Add API sync calls alongside them.
@@ -702,7 +748,7 @@ This guide wires every screen in the Profile & Settings section to the real back
 >   try {
 >     await userService.updateBiometricSettings(updates);
 >   } catch (error) {
->     console.warn('Could not sync biometric settings to server:', error);
+>     console.warn("Could not sync biometric settings to server:", error);
 >     // Do not show an error to the user — local state is the source of truth for security toggles
 >   }
 > };
@@ -718,7 +764,7 @@ This guide wires every screen in the Profile & Settings section to the real back
 >   try {
 >     await userService.updatePrivacySettings(updates);
 >   } catch (error) {
->     console.warn('Could not sync privacy settings to server:', error);
+>     console.warn("Could not sync privacy settings to server:", error);
 >   }
 > };
 > ```
@@ -783,7 +829,7 @@ This guide wires every screen in the Profile & Settings section to the real back
 > Add this import:
 >
 > ```typescript
-> import { useAppContext } from '../../context/AppContext';
+> import { useAppContext } from "../../context/AppContext";
 > ```
 >
 > Pull `notificationPrefs` and `saveNotificationPrefs` from context:
@@ -798,34 +844,34 @@ This guide wires every screen in the Profile & Settings section to the real back
 >
 > ```typescript
 > const [allNotifications, setAllNotifications] = useState(
->   notificationPrefs?.all_notifications ?? true
+>   notificationPrefs?.all_notifications ?? true,
 > );
 > const [budgetAlerts, setBudgetAlerts] = useState(
->   notificationPrefs?.budget_alerts ?? true
+>   notificationPrefs?.budget_alerts ?? true,
 > );
 > const [savingsReminders, setSavingsReminders] = useState(
->   notificationPrefs?.savings_reminders ?? true
+>   notificationPrefs?.savings_reminders ?? true,
 > );
 > const [billReminders, setBillReminders] = useState(
->   notificationPrefs?.bill_reminders ?? true
+>   notificationPrefs?.bill_reminders ?? true,
 > );
 > const [newContent, setNewContent] = useState(
->   notificationPrefs?.new_content ?? true
+>   notificationPrefs?.new_content ?? true,
 > );
 > const [finance101, setFinance101] = useState(
->   notificationPrefs?.finance_101 ?? true
+>   notificationPrefs?.finance_101 ?? true,
 > );
 > const [podcastUpdates, setPodcastUpdates] = useState(
->   notificationPrefs?.podcast_updates ?? false
+>   notificationPrefs?.podcast_updates ?? false,
 > );
 > const [appUpdates, setAppUpdates] = useState(
->   notificationPrefs?.app_updates ?? true
+>   notificationPrefs?.app_updates ?? true,
 > );
 > const [bofAnnouncements, setBofAnnouncements] = useState(
->   notificationPrefs?.bof_announcements ?? true
+>   notificationPrefs?.bof_announcements ?? true,
 > );
 > const [doNotDisturb, setDoNotDisturb] = useState(
->   notificationPrefs?.do_not_disturb ?? false
+>   notificationPrefs?.do_not_disturb ?? false,
 > );
 > ```
 >
@@ -908,7 +954,7 @@ This guide wires every screen in the Profile & Settings section to the real back
 > Add these imports:
 >
 > ```typescript
-> import { supportService, FAQ } from '../../services/supportService';
+> import { supportService, FAQ } from "../../services/supportService";
 > ```
 >
 > Add state variables:
@@ -919,8 +965,8 @@ This guide wires every screen in the Profile & Settings section to the real back
 > const [faqsError, setFaqsError] = useState<string | null>(null);
 >
 > // Support message form state
-> const [subject, setSubject] = useState('');
-> const [message, setMessage] = useState('');
+> const [subject, setSubject] = useState("");
+> const [message, setMessage] = useState("");
 > const [isSendingMessage, setIsSendingMessage] = useState(false);
 > const [messageError, setMessageError] = useState<string | null>(null);
 > const [messageSent, setMessageSent] = useState(false);
@@ -937,7 +983,7 @@ This guide wires every screen in the Profile & Settings section to the real back
 >       const data = await supportService.getFAQs();
 >       setFaqs(data);
 >     } catch (error: any) {
->       setFaqsError('Could not load FAQs. Showing cached content.');
+>       setFaqsError("Could not load FAQs. Showing cached content.");
 >       // If API fails, the static FAQ list already rendered in JSX serves as fallback
 >       // No need to clear faqs — if it was empty, the static list is fine
 >     } finally {
@@ -964,7 +1010,7 @@ This guide wires every screen in the Profile & Settings section to the real back
 >   setMessageError(null);
 >
 >   if (!subject.trim() || !message.trim()) {
->     setMessageError('Please fill in both the subject and message fields.');
+>     setMessageError("Please fill in both the subject and message fields.");
 >     return;
 >   }
 >
@@ -972,10 +1018,12 @@ This guide wires every screen in the Profile & Settings section to the real back
 >   try {
 >     await supportService.sendSupportMessage({ subject, message });
 >     setMessageSent(true);
->     setSubject('');
->     setMessage('');
+>     setSubject("");
+>     setMessage("");
 >   } catch (error: any) {
->     setMessageError(error.message || 'Failed to send message. Please try again.');
+>     setMessageError(
+>       error.message || "Failed to send message. Please try again.",
+>     );
 >   } finally {
 >     setIsSendingMessage(false);
 >   }
@@ -992,14 +1040,16 @@ This guide wires every screen in the Profile & Settings section to the real back
 > When `messageSent` is true, show a green success card above the form:
 >
 > ```tsx
-> {messageSent && (
->   <View style={styles.successCard}>
->     <Ionicons name="checkmark-circle-outline" size={18} color="#fff" />
->     <Text style={styles.successText}>
->       Message sent! Our team will get back to you within 24 hours.
->     </Text>
->   </View>
-> )}
+> {
+>   messageSent && (
+>     <View style={styles.successCard}>
+>       <Ionicons name="checkmark-circle-outline" size={18} color="#fff" />
+>       <Text style={styles.successText}>
+>         Message sent! Our team will get back to you within 24 hours.
+>       </Text>
+>     </View>
+>   );
+> }
 > ```
 >
 > Add an error card above the Send button that shows `messageError` in red if not null."
@@ -1015,6 +1065,7 @@ This guide wires every screen in the Profile & Settings section to the real back
 > **1. Service functions do NOT have internal try/catch**
 >
 > Open each of these files and verify that none of the exported functions contain try/catch blocks inside them:
+>
 > - `authService.ts` → `changePassword`, `changeEmail`, `createPin`
 > - `userService.ts` → `updateProfile`, `uploadAvatar`, `updateBiometricSettings`, `updatePrivacySettings`
 > - `notificationService.ts` → `getPreferences`, `updatePreferences`
@@ -1031,7 +1082,7 @@ This guide wires every screen in the Profile & Settings section to the real back
 >   const result = await someService.someMethod(data);
 >   // handle success
 > } catch (error: any) {
->   setApiError(error.message || 'Something went wrong.');
+>   setApiError(error.message || "Something went wrong.");
 > } finally {
 >   setIsLoading(false);
 > }
@@ -1051,7 +1102,7 @@ This guide wires every screen in the Profile & Settings section to the real back
 > // After getting the image URI:
 > const fileInfo = await FileSystem.getInfoAsync(imageUri);
 > if (fileInfo.exists && fileInfo.size && fileInfo.size > 5 * 1024 * 1024) {
->   Alert.alert('File too large', 'Please choose an image under 5MB.');
+>   Alert.alert("File too large", "Please choose an image under 5MB.");
 >   return;
 > }
 > ```
@@ -1076,6 +1127,7 @@ This guide wires every screen in the Profile & Settings section to the real back
 > "After completing all previous steps, perform the following manual tests on Expo Go. Fix any issues found before marking the integration complete.
 >
 > **Test 1: Edit Profile Name**
+>
 > 1. Open Profile screen — confirm name and email shown match `apiUser` from context
 > 2. Tap 'Edit Profile'
 > 3. Change name to something new — tap 'Save'
@@ -1083,12 +1135,14 @@ This guide wires every screen in the Profile & Settings section to the real back
 > 5. Navigate away and return — Expected: new name still shown (persisted to API and local)
 >
 > **Test 2: Avatar Upload**
+>
 > 1. Tap the avatar circle on Profile screen
 > 2. Select a photo from library
 > 3. Expected: uploading spinner shown briefly, then avatar updates to new photo
 > 4. Restart the app — Expected: avatar still shown (loaded from `apiUser.avatar_url`)
 >
 > **Test 3: Change Password**
+>
 > 1. Navigate to Security → Change Password
 > 2. Enter wrong current password — tap Update
 > 3. Expected: red error card with message from API ('incorrect password' or equivalent)
@@ -1096,6 +1150,7 @@ This guide wires every screen in the Profile & Settings section to the real back
 > 5. Expected: SuccessModal appears with 'Password Updated!' — tap Done — navigates back
 >
 > **Test 4: Change Email**
+>
 > 1. Navigate to Security → Change Email
 > 2. Enter invalid email format — tap Update
 > 3. Expected: inline validation error ('valid email address')
@@ -1103,6 +1158,7 @@ This guide wires every screen in the Profile & Settings section to the real back
 > 5. Expected: green success banner appears with verification email message
 >
 > **Test 5: Set PIN**
+>
 > 1. Navigate to Security → Set PIN
 > 2. Enter a 4-digit PIN — auto-navigates to Confirm PIN
 > 3. Enter different digits — Expected: shake animation + mismatch error, inputs cleared
@@ -1110,6 +1166,7 @@ This guide wires every screen in the Profile & Settings section to the real back
 > 5. Tap Done — Expected: navigates to Security screen, 'Set PIN' row description says 'PIN is set'
 >
 > **Test 6: Notification Settings Persistence**
+>
 > 1. Open Notification Settings — note current toggle states
 > 2. Toggle 'Budget Alerts' OFF
 > 3. Navigate away (back to Profile, then to Dashboard)
@@ -1119,6 +1176,7 @@ This guide wires every screen in the Profile & Settings section to the real back
 > 7. Expected: 'Budget Alerts' still OFF (loaded from context which loaded from server/local cache)
 >
 > **Test 7: Security Toggles + Dashboard Balance**
+>
 > 1. Open Security & Privacy — toggle 'Hide Balance' ON
 > 2. Navigate to Dashboard
 > 3. Expected: balance shows as '₦ ••••••'
@@ -1126,18 +1184,21 @@ This guide wires every screen in the Profile & Settings section to the real back
 > 5. Navigate to Dashboard — Expected: balance amount visible again
 >
 > **Test 8: Help FAQs from API**
+>
 > 1. Open Help & FAQ
 > 2. Expected: FAQ items load from API (brief loading skeleton may flash)
 > 3. Turn off internet — open Help & FAQ again
 > 4. Expected: FAQs still shown (cached or static fallback), yellow banner 'Could not load latest FAQs'
 >
 > **Test 9: Send Support Message**
+>
 > 1. Open Help & FAQ → Contact Us tab
 > 2. Fill in subject and message — tap Send
 > 3. Expected: loading spinner on button, then green success card appears, form clears
 > 4. Send empty form — Expected: error card shown, button does nothing
 >
 > **Test 10: Logout**
+>
 > 1. Tap Log Out on Profile screen — confirm in alert
 > 2. Expected: redirected to Welcome/Login screen
 > 3. Reopen app — Expected: login screen shown (no auto-login)
@@ -1148,20 +1209,20 @@ This guide wires every screen in the Profile & Settings section to the real back
 
 ## QUICK REFERENCE — File Changes Summary
 
-| File | Action | Purpose |
-|---|---|---|
-| `/src/services/authService.ts` | **Update** | Add `changePassword`, `changeEmail`, `createPin` |
-| `/src/services/userService.ts` | **Update** | Add `getMe`, `updateProfile`, `uploadAvatar`, `updateBiometricSettings`, `updatePrivacySettings` |
-| `/src/services/notificationService.ts` | **Create** | All `/notifications/preferences` calls |
-| `/src/services/supportService.ts` | **Create** | FAQ fetch + support message send |
-| `/src/context/AppContext.tsx` | **Update** | Add `notificationPrefs`, `saveNotificationPrefs`, `loadNotificationPrefs` |
-| `/src/screens/profile/ProfileSettingsScreen.tsx` | **Update** | API edit profile, avatar upload, API logout |
-| `/src/screens/profile/ChangePasswordScreen.tsx` | **Update** | API change password + SuccessModal |
-| `/src/screens/profile/ChangeEmailScreen.tsx` | **Update** | API change email + success banner |
-| `/src/screens/profile/PINSuccessScreen.tsx` | **Update** | Background PIN API sync |
-| `/src/screens/profile/SecurityPrivacyScreen.tsx` | **Update** | Background security/privacy sync to API |
-| `/src/screens/profile/NotificationSettingsScreen.tsx` | **Update** | Load + sync prefs from/to API via context |
-| `/src/screens/profile/HelpFAQScreen.tsx` | **Update** | Load FAQs from API, send support messages |
+| File                                                  | Action     | Purpose                                                                                          |
+| ----------------------------------------------------- | ---------- | ------------------------------------------------------------------------------------------------ |
+| `/src/services/authService.ts`                        | **Update** | Add `changePassword`, `changeEmail`, `createPin`                                                 |
+| `/src/services/userService.ts`                        | **Update** | Add `getMe`, `updateProfile`, `uploadAvatar`, `updateBiometricSettings`, `updatePrivacySettings` |
+| `/src/services/notificationService.ts`                | **Create** | All `/notifications/preferences` calls                                                           |
+| `/src/services/supportService.ts`                     | **Create** | FAQ fetch + support message send                                                                 |
+| `/src/context/AppContext.tsx`                         | **Update** | Add `notificationPrefs`, `saveNotificationPrefs`, `loadNotificationPrefs`                        |
+| `/src/screens/profile/ProfileSettingsScreen.tsx`      | **Update** | API edit profile, avatar upload, API logout                                                      |
+| `/src/screens/profile/ChangePasswordScreen.tsx`       | **Update** | API change password + SuccessModal                                                               |
+| `/src/screens/profile/ChangeEmailScreen.tsx`          | **Update** | API change email + success banner                                                                |
+| `/src/screens/profile/PINSuccessScreen.tsx`           | **Update** | Background PIN API sync                                                                          |
+| `/src/screens/profile/SecurityPrivacyScreen.tsx`      | **Update** | Background security/privacy sync to API                                                          |
+| `/src/screens/profile/NotificationSettingsScreen.tsx` | **Update** | Load + sync prefs from/to API via context                                                        |
+| `/src/screens/profile/HelpFAQScreen.tsx`              | **Update** | Load FAQs from API, send support messages                                                        |
 
 ---
 
@@ -1185,6 +1246,6 @@ This guide wires every screen in the Profile & Settings section to the real back
 
 ---
 
-*Document prepared for: CampusKobo Mobile App — BOF OAU*
-*Profile & Settings Integration Guide — Version 1.0 | May 2026*
-*Backend: https://campus-kobo-backend-gmiq.vercel.app*
+_Document prepared for: CampusKobo Mobile App — BOF OAU_
+_Profile & Settings Integration Guide — Version 1.0 | May 2026_
+_Backend: https://campus-kobo-backend-gmiq.vercel.app_

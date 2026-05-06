@@ -1,11 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  SafeAreaView,
   StatusBar,
   Image,
   Alert,
@@ -15,6 +14,7 @@ import {
   TouchableWithoutFeedback,
   ActivityIndicator,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import {
@@ -30,6 +30,7 @@ import { useAppContext } from '../../context/AppContext';
 import { InputField } from '../../components/InputField';
 import { OfflineBanner } from '../../components/OfflineBanner';
 import { userService } from '../../services/userService';
+import * as ImagePicker from 'expo-image-picker';
 
 const { height } = Dimensions.get('window');
 
@@ -76,10 +77,14 @@ export const ProfileSettingsScreen = () => {
     updateUser, 
     isLoading: contextLoading,
     apiUser,
-    setApiUser
+    setApiUser,
+    logoutFromApi
   } = useAppContext();
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   
   const initialName = apiUser?.full_name || user?.name || 'User';
   const initialEmail = apiUser?.email || user?.email || '';
@@ -97,35 +102,14 @@ export const ProfileSettingsScreen = () => {
 
   if (contextLoading) return null;
 
-  const handleLogout = () => {
-    Alert.alert(
-      'Log Out',
-      'Are you sure you want to log out?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { 
-      text: 'Log Out', 
-      style: 'destructive',
-      onPress: async () => {
-        try {
-          await logout();
-          // The layout will now handle the redirect automatically
-        } catch (error) {
-          console.error('Logout error:', error);
-          Alert.alert('Error', 'Failed to log out properly. Please try again.');
-        }
-      }
-    }
-      ]
-    );
-  };
 
   const handleEditProfile = async () => {
     if (!userName.trim()) {
-      Alert.alert('Error', 'Name cannot be empty');
+      setSaveError('Name cannot be empty');
       return;
     }
 
+    setSaveError(null);
     setIsUpdating(true);
     try {
       // 1. Update on API
@@ -133,16 +117,68 @@ export const ProfileSettingsScreen = () => {
       
       // 2. Update context states
       setApiUser(updatedApiUser);
-      await updateUser({ name: userName, phone: userPhone });
+      await updateUser({ name: userName });
       
       setIsEditModalVisible(false);
-      Alert.alert('Success', 'Profile updated successfully!');
     } catch (error: any) {
       console.error('Update profile error:', error);
-      Alert.alert('Update Failed', error.message || 'Could not update profile. Please try again.');
+      setSaveError(error.message || 'Could not update profile. Please try again.');
     } finally {
       setIsUpdating(false);
     }
+  };
+
+  const handleAvatarUpload = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission needed', 'Please allow access to your photo library to upload an avatar.');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+
+    if (result.canceled) return;
+
+    const imageUri = result.assets[0].uri;
+    setIsUploadingAvatar(true);
+    try {
+      const { avatar_url } = await userService.uploadAvatar(imageUri);
+      setApiUser(prev => prev ? { ...prev, avatar_url } : prev);
+    } catch (error: any) {
+      Alert.alert('Upload failed', error.message || 'Could not upload avatar. Please try again.');
+    } finally {
+      setIsUploadingAvatar(false);
+    }
+  };
+
+  const handleLogout = () => {
+    Alert.alert(
+      'Log Out',
+      'Are you sure you want to log out?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Log Out', 
+          style: 'destructive',
+          onPress: async () => {
+            setIsLoggingOut(true);
+            try {
+              await logoutFromApi();
+            } catch (error) {
+              console.error('Logout error:', error);
+              Alert.alert('Error', 'Failed to log out properly. Please try again.');
+            } finally {
+              setIsLoggingOut(false);
+            }
+          }
+        }
+      ]
+    );
   };
 
   return (
@@ -258,10 +294,15 @@ export const ProfileSettingsScreen = () => {
         <Text style={styles.versionText}>Version 1.0</Text>
 
         <TouchableOpacity 
-          style={styles.logoutBtn}
+          style={[styles.logoutBtn, isLoggingOut && styles.disabledBtn]}
           onPress={handleLogout}
+          disabled={isLoggingOut}
         >
-          <Text style={styles.logoutBtnText}>Log out</Text>
+          {isLoggingOut ? (
+            <ActivityIndicator color="#EF4444" size="small" />
+          ) : (
+            <Text style={styles.logoutBtnText}>Log out</Text>
+          )}
         </TouchableOpacity>
 
         <View style={{ height: 40 }} />
@@ -306,8 +347,17 @@ export const ProfileSettingsScreen = () => {
                           </Text>
                         </View>
                       )}
-                      <TouchableOpacity style={styles.avatarEditBadge}>
-                        <Ionicons name="image-outline" size={16} color={WHITE} />
+                      {isUploadingAvatar && (
+                        <View style={styles.avatarLoadingOverlay}>
+                          <ActivityIndicator color={PRIMARY_GREEN} size="small" />
+                        </View>
+                      )}
+                      <TouchableOpacity 
+                        style={styles.avatarEditBadge}
+                        onPress={handleAvatarUpload}
+                        disabled={isUploadingAvatar}
+                      >
+                        <Ionicons name="camera-outline" size={16} color={WHITE} />
                       </TouchableOpacity>
                     </View>
                   </View>
@@ -316,7 +366,11 @@ export const ProfileSettingsScreen = () => {
                     label="Name"
                     placeholder="Enter your name"
                     value={userName}
-                    onChangeText={setUserName}
+                    onChangeText={(text) => {
+                      setUserName(text);
+                      if (saveError) setSaveError(null);
+                    }}
+                    error={saveError || undefined}
                   />
 
                   <InputField
@@ -606,5 +660,12 @@ const styles = StyleSheet.create({
     color: WHITE,
     fontSize: 16,
     fontFamily: Fonts.bold,
+  },
+  avatarLoadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(255,255,255,0.6)',
+    borderRadius: 60,
+    alignItems: 'center',
+    justifyContent: 'center',
   }
 });

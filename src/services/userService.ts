@@ -16,6 +16,17 @@ export interface UserProfileUpdateRequest {
   // Other updatable fields
 }
 
+export interface BiometricSettingsRequest {
+  biometric_enabled: boolean;
+  face_id_enabled?: boolean;
+  fingerprint_enabled?: boolean;
+}
+
+export interface PrivacySettingsRequest {
+  hide_balance?: boolean;
+  data_analytics?: boolean;
+}
+
 /**
  * Get current user profile.
  */
@@ -68,10 +79,25 @@ export const listSessions = async (): Promise<any[]> => {
 };
 
 /**
- * Revoke a specific session.
+ * Revoke a specific user session.
  */
 export const revokeSession = async (sessionId: string): Promise<any> => {
-  return await apiClient.delete(API_ENDPOINTS.REVOKE_SESSION(sessionId));
+  const response = await apiClient.delete(API_ENDPOINTS.REVOKE_SESSION(sessionId));
+  return response;
+};
+
+/**
+ * Update biometric security settings.
+ */
+export const updateBiometricSettings = async (data: BiometricSettingsRequest): Promise<any> => {
+  return await apiClient.put(API_ENDPOINTS.UPDATE_BIOMETRICS, data);
+};
+
+/**
+ * Update privacy settings.
+ */
+export const updatePrivacySettings = async (data: PrivacySettingsRequest): Promise<any> => {
+  return await apiClient.put(API_ENDPOINTS.UPDATE_PRIVACY, data);
 };
 
 export const userService = {
@@ -81,4 +107,6 @@ export const userService = {
   uploadAvatar,
   listSessions,
   revokeSession,
+  updateBiometricSettings,
+  updatePrivacySettings,
 };

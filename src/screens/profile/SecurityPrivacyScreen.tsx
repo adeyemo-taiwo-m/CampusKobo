@@ -5,10 +5,10 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  SafeAreaView,
   StatusBar,
   Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import {
@@ -22,6 +22,7 @@ import {
 import { Header } from '../../components/Header';
 import { useAppContext } from '../../context/AppContext';
 import { StorageService } from '../../storage/StorageService';
+import { userService } from '../../services/userService';
 
 const CustomToggle = ({ value, onValueChange, disabled = false }: { value: boolean, onValueChange: (v: boolean) => void, disabled?: boolean }) => {
   return (
@@ -120,6 +121,29 @@ export const SecurityPrivacyScreen = () => {
     });
   };
 
+  const syncSecurityToServer = async (overrides: Record<string, boolean> = {}) => {
+    try {
+      await userService.updateBiometricSettings({
+        biometric_enabled: overrides.biometricUnlock ?? biometricUnlock,
+        app_lock_enabled: overrides.appLock ?? appLock,
+        pin_lock_enabled: overrides.pinLock ?? pinLock,
+      });
+    } catch (e) {
+      console.warn('Could not sync security settings to server', e);
+    }
+  };
+
+  const syncPrivacyToServer = async (overrides: Record<string, boolean> = {}) => {
+    try {
+      await userService.updatePrivacySettings({
+        hide_balance: overrides.hideBalance ?? isBalanceHidden,
+        data_analytics: overrides.dataAnalytics ?? dataAnalytics,
+      });
+    } catch (e) {
+      console.warn('Could not sync privacy settings to server', e);
+    }
+  };
+
   const handleDeleteAccount = () => {
     Alert.alert(
       'Delete Account',
@@ -158,7 +182,11 @@ export const SecurityPrivacyScreen = () => {
             title="App Lock"
             description="Require authentication to open CampusKobo"
             value={appLock}
-            onValueChange={(v) => { setAppLock(v); savePrefs({ appLock: v }); }}
+            onValueChange={(v) => { 
+              setAppLock(v); 
+              savePrefs({ appLock: v }); 
+              syncSecurityToServer({ appLock: v });
+            }}
             isLast={!appLock}
           />
           {appLock && (
@@ -168,14 +196,22 @@ export const SecurityPrivacyScreen = () => {
                 title="Face ID / Fingerprint"
                 description="Use biometric to unlock the app"
                 value={biometricUnlock}
-                onValueChange={(v) => { setBiometricUnlock(v); savePrefs({ biometricUnlock: v }); }}
+                onValueChange={(v) => { 
+                  setBiometricUnlock(v); 
+                  savePrefs({ biometricUnlock: v }); 
+                  syncSecurityToServer({ biometricUnlock: v });
+                }}
               />
               <SecurityRow
                 icon="grid-outline"
                 title="PIN Lock"
                 description="Use a 4-digit PIN to unlock the app"
                 value={pinLock}
-                onValueChange={(v) => { setPinLock(v); savePrefs({ pinLock: v }); }}
+                onValueChange={(v) => { 
+                  setPinLock(v); 
+                  savePrefs({ pinLock: v }); 
+                  syncSecurityToServer({ pinLock: v });
+                }}
                 isLast={true}
               />
             </>
@@ -213,14 +249,23 @@ export const SecurityPrivacyScreen = () => {
               title="Fingerprint Login"
               description="Use fingerprint to access your account"
               value={fingerprintLogin}
-              onValueChange={(v) => { setFingerprintLogin(v); savePrefs({ fingerprintLogin: v }); }}
+              onValueChange={(v) => { 
+                setFingerprintLogin(v); 
+                savePrefs({ fingerprintLogin: v }); 
+                // Biometric login often maps to the same setting on backend
+                syncSecurityToServer({ biometricUnlock: v });
+              }}
             />
             <SecurityRow
               icon="scan-outline"
               title="Face ID"
               description="Use Face ID to access your account"
               value={faceId}
-              onValueChange={(v) => { setFaceId(v); savePrefs({ faceId: v }); }}
+              onValueChange={(v) => { 
+                setFaceId(v); 
+                savePrefs({ faceId: v }); 
+                syncSecurityToServer({ biometricUnlock: v });
+              }}
               isLast={true}
             />
           </View>
@@ -235,14 +280,21 @@ export const SecurityPrivacyScreen = () => {
               title="Hide Balance"
               description="Mask your account balance on the dashboard"
               value={isBalanceHidden}
-              onValueChange={toggleBalanceVisibility}
+              onValueChange={(v) => {
+                toggleBalanceVisibility();
+                syncPrivacyToServer({ hideBalance: v });
+              }}
             />
             <SecurityRow
               icon="stats-chart-outline"
               title="Data & Analytics"
               description="Help improve CampusKobo with usage data"
               value={dataAnalytics}
-              onValueChange={(v) => { setDataAnalytics(v); savePrefs({ dataAnalytics: v }); }}
+              onValueChange={(v) => { 
+                setDataAnalytics(v); 
+                savePrefs({ dataAnalytics: v }); 
+                syncPrivacyToServer({ dataAnalytics: v });
+              }}
               isLast={true}
             />
           </View>

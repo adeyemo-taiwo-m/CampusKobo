@@ -25,7 +25,9 @@ import { transactionService } from "../services/transactionService";
 import { budgetService } from "../services/budgetService";
 import { savingsService } from "../services/savingsService";
 import { dashboardService, DashboardSummary } from "../services/dashboardService";
+import { notificationService, NotificationPreferences } from "../services/notificationService";
 import { API_ENDPOINTS } from "../constants/api";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export interface AppContextType {
   // Raw state
@@ -118,6 +120,10 @@ export interface AppContextType {
   registerWithApi: (full_name: string, email: string, password: string) => Promise<any>;
   logoutFromApi: () => Promise<void>;
   setApiUser: (user: ApiUser | null) => void;
+  notificationPrefs: NotificationPreferences | null;
+  prefsLoading: boolean;
+  loadNotificationPrefs: () => Promise<void>;
+  saveNotificationPrefs: (prefs: Partial<NotificationPreferences>) => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -139,6 +145,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [authLoading, setAuthLoading] = useState<boolean>(true);
   const [networkError, setNetworkError] = useState<boolean>(false);
   const [dashboardSummary, setDashboardSummary] = useState<DashboardSummary | null>(null);
+  const [notificationPrefs, setNotificationPrefs] = useState<NotificationPreferences | null>(null);
+  const [prefsLoading, setPrefsLoading] = useState(false);
 
   const checkAuthStatus = async () => {
     setAuthLoading(true);
@@ -213,8 +221,45 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       setIsAuthenticated(false);
       setApiUser(null);
+      setNotificationPrefs(null);
       await clearTokens();
       authEvents.emit(AUTH_EVENTS.LOGGED_OUT);
+    }
+  };
+
+  const loadNotificationPrefs = async () => {
+    setPrefsLoading(true);
+    try {
+      const prefs = await notificationService.getPreferences();
+      setNotificationPrefs(prefs);
+      // Cache locally
+      await StorageService.saveNotificationPreferences(prefs as any);
+    } catch (error) {
+      console.warn('Failed to load notification prefs from server, trying local storage');
+      const local = await StorageService.getNotificationPreferences();
+      if (local) setNotificationPrefs(local as any);
+    } finally {
+      setPrefsLoading(false);
+    }
+  };
+
+  const saveNotificationPrefs = async (prefs: Partial<NotificationPreferences>) => {
+    // Optimistic update
+    const merged = { ...notificationPrefs, ...prefs } as NotificationPreferences;
+    setNotificationPrefs(merged);
+
+    // Persist locally
+    try {
+      await StorageService.saveNotificationPreferences(merged as any);
+    } catch (e) {
+      console.warn('Failed to save notification prefs locally');
+    }
+
+    // Sync to server
+    try {
+      await notificationService.updatePreferences(prefs);
+    } catch (error) {
+      console.warn('Failed to sync notification prefs to server:', error);
     }
   };
 
@@ -250,6 +295,19 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     if (user) {
       await updateUser({ hideBalance: newVal });
     }
+  };
+
+  const updateUser = async (data: Partial<User>) => {
+    if (user) {
+      const updated = { ...user, ...data };
+      await StorageService.saveUser(updated);
+      setUserState(updated);
+    }
+  };
+
+  const setUser = (u: User | null) => {
+    setUserState(u);
+    if (u) StorageService.saveUser(u);
   };
 
   const loadAllData = async () => {
@@ -383,6 +441,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       }
     };
     loadApiUser();
+    loadNotificationPrefs();
 
     // Listen for auth events
     const onExpired = () => {
@@ -913,45 +972,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     setRecurringExpenses(updated);
   };
 
-  const toggleBalanceVisibility = () => {
-    setIsBalanceHidden(prev => !prev);
-    // Persist to user object as well if it exists
-    if (user) {
-      updateUser({ hideBalance: !isBalanceHidden });
-    }
-  };
-
-  const updateUser = async (data: Partial<User>) => {
-    if (user) {
-      const updated = { ...user, ...data };
-      await StorageService.saveUser(updated);
-      setUserState(updated);
-    }
-  };
-
-  const setUser = (u: User | null) => {
-    setUserState(u);
-    if (u) StorageService.saveUser(u);
-  };
-
-  const logout = async () => {
-    setIsLoading(true);
-    try {
-      await StorageService.clearAllData();
-      setUserState(null);
-      setTransactions([]);
-      setBudgets([]);
-      setSavingsGoals([]);
-      setRecurringExpenses([]);
-      
-      // Also logout from API if needed
-      await logoutFromApi();
-    } catch (error) {
-      console.error("Error logging out:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const processRecurringExpense = async (recurringId: string) => {
     const item = recurringExpenses.find(r => r.id === recurringId);
@@ -1263,6 +1283,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         registerWithApi,
         logoutFromApi,
         setApiUser,
+        notificationPrefs,
+        prefsLoading,
+        loadNotificationPrefs,
+        saveNotificationPrefs,
         dashboardSummary,
         totalIncomeLastMonth,
         totalExpensesLastMonth,

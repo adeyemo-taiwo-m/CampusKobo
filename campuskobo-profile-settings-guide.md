@@ -867,49 +867,49 @@ Make sure these font names match what you load in `App.tsx` with `useFonts`.
 Use this to track your progress. Check each item as you complete it.
 
 ### Routing
-- [ ] `app/profile/index.tsx` created
-- [ ] `app/profile/security.tsx` created
-- [ ] `app/profile/notifications.tsx` created
-- [ ] `app/profile/set-pin.tsx` created
-- [ ] `app/profile/confirm-pin.tsx` created
-- [ ] `app/profile/pin-success.tsx` created
-- [ ] `app/profile/help.tsx` created
-- [ ] `app/profile/change-password.tsx` created
-- [ ] `app/profile/change-email.tsx` created
+- [x] `app/profile/index.tsx` created
+- [x] `app/profile/security.tsx` created
+- [x] `app/profile/notifications.tsx` created
+- [x] `app/profile/set-pin.tsx` created
+- [x] `app/profile/confirm-pin.tsx` created
+- [x] `app/profile/pin-success.tsx` created
+- [x] `app/profile/help.tsx` created
+- [x] `app/profile/change-password.tsx` created
+- [x] `app/profile/change-email.tsx` created
 
 ### App Context
-- [ ] `user` exposed from context
-- [ ] `apiUser` and `setApiUser` added to context
-- [ ] `updateUser()` function exists and persists to storage
-- [ ] `logout()` function clears storage and resets state
-- [ ] `isBalanceHidden` added to context state
-- [ ] `toggleBalanceVisibility()` added to context
+- [x] `user` exposed from context
+- [x] `apiUser` and `setApiUser` added to context
+- [x] `updateUser()` function exists and persists to storage
+- [x] `logout()` function clears storage and resets state
+- [x] `isBalanceHidden` added to context state
+- [x] `toggleBalanceVisibility()` added to context
 
 ### Services
-- [ ] `src/services/authService.ts` created with `changePassword`, `changeEmail`, `createPin`
-- [ ] `src/services/userService.ts` created with `getProfile`, `updateProfile`
-- [ ] `src/services/index.ts` created
-- [ ] All API calls wrapped in try/catch
+- [x] `src/services/authService.ts` created with `changePassword`, `changeEmail`, `createPin`
+- [x] `src/services/userService.ts` created with `getProfile`, `updateProfile`
+- [x] `src/services/index.ts` created
+- [x] All API calls wrapped in try/catch
 
 ### Shared Components
-- [ ] `SuccessModal` exported from `SuccessScreen.tsx`
-- [ ] `OfflineBanner.tsx` created (or stubbed to return null)
-- [ ] `Button.tsx` supports `icon` prop
-- [ ] `InputField.tsx` supports `leftIcon`, `editable`, `state`, `multiline`, `outerContainerStyle` props
+- [x] `SuccessModal` exported from `SuccessScreen.tsx`
+- [x] `OfflineBanner.tsx` created (or stubbed to return null)
+- [x] `Button.tsx` supports `icon` prop
+- [x] `InputField.tsx` supports `leftIcon`, `editable`, `state`, `multiline`, `outerContainerStyle` props
 
 ### Feature Wiring
-- [ ] Dashboard balance respects `isBalanceHidden` from context
-- [ ] Dashboard avatar taps navigate to `/profile`
-- [ ] Notification preferences saved to AsyncStorage and loaded on mount
-- [ ] Security preferences saved to AsyncStorage and loaded on mount
-- [ ] PIN saved to user context after `PINSuccessScreen`
-- [ ] "Set PIN" row in Security shows correct description based on `user.hasPIN`
-- [ ] Delete Account calls `clearAllData()` then `logout()`
-- [ ] Root layout (`_layout.tsx`) watches `user` and redirects on logout
+- [x] Dashboard balance respects `isBalanceHidden` from context
+- [x] Dashboard avatar taps navigate to `/profile`
+- [x] Notification preferences saved to AsyncStorage and loaded on mount
+- [x] Security preferences saved to AsyncStorage and loaded on mount
+- [x] PIN saved to user context after `PINSuccessScreen`
+- [x] "Set PIN" row in Security shows correct description based on `user.hasPIN`
+- [x] Delete Account calls `clearAllData()` then `logout()`
+- [x] Root layout (`_layout.tsx`) watches `user` and redirects on logout
 
 ### Constants
-- [ ] `Fonts` object exported from `src/constants/index.ts`
-- [ ] Font names in `Fonts` match what is loaded in `App.tsx` via `useFonts`
+- [x] `Fonts` object exported from `src/constants/index.ts`
+- [x] Font names in `Fonts` match what is loaded in `App.tsx` via `useFonts`
 
 ---
 

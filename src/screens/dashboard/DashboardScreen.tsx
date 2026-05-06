@@ -3,7 +3,6 @@ import { useRouter } from "expo-router";
 import React, { useMemo, useState } from "react";
 import {
   Image,
-  SafeAreaView,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -12,6 +11,7 @@ import {
   View,
   RefreshControl,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { MainHeader } from "../../components/MainHeader";
 import { AddFundsBottomSheet } from "../../components/AddFundsBottomSheet";
 import { DarkCard } from "../../components/DarkCard";

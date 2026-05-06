@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  SafeAreaView,
   StatusBar,
   ScrollView,
   KeyboardAvoidingView,
@@ -12,6 +11,7 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import {
@@ -24,6 +24,7 @@ import {
 } from '../../constants';
 import { InputField } from '../../components/InputField';
 import { Button } from '../../components/Button';
+import { SuccessModal } from '../../components/SuccessScreen';
 import { authService } from '../../services/authService';
 import { useAppContext } from '../../context/AppContext';
 
@@ -39,6 +40,7 @@ export const ChangeEmailScreen = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const validate = () => {
     if (!newEmail.includes('@')) {
@@ -63,11 +65,7 @@ export const ChangeEmailScreen = () => {
         password: password,
       });
       
-      Alert.alert(
-        'Email Change Requested',
-        `A verification email has been sent to ${newEmail}. Please verify it to complete the change.`,
-        [{ text: 'OK', onPress: () => router.back() }]
-      );
+      setShowSuccess(true);
     } catch (error: any) {
       console.error('Change email error:', error);
       setApiError(error.message || 'Failed to request email change. Please check your password.');
@@ -81,6 +79,16 @@ export const ChangeEmailScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
+      
+      <SuccessModal
+        isVisible={showSuccess}
+        title="Email Change Requested!"
+        subtitle={`A verification link has been sent to ${newEmail}. Please verify to complete the change.`}
+        onDone={() => {
+          setShowSuccess(false);
+          router.back();
+        }}
+      />
       
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>

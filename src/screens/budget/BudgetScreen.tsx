@@ -4,7 +4,6 @@ import React from "react";
 import {
   ActivityIndicator,
   Image,
-  SafeAreaView,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -13,6 +12,7 @@ import {
   View,
   RefreshControl,
 } from "react-native";
+import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Progress from "react-native-progress";
 import { MainHeader } from "../../components/MainHeader";
 import { DarkCard } from "../../components/DarkCard";

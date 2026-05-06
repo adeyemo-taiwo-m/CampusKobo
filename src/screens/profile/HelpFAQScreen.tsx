@@ -1,11 +1,10 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  SafeAreaView,
   StatusBar,
   TextInput,
   LayoutAnimation,
@@ -13,6 +12,7 @@ import {
   UIManager,
   Linking,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import {
@@ -26,6 +26,7 @@ import {
 } from '../../constants';
 import { Header } from '../../components/Header';
 import { InputField } from '../../components/InputField';
+import { supportService } from '../../services/supportService';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -151,10 +152,33 @@ export const HelpFAQScreen = () => {
   const [contactName, setContactName] = useState('');
   const [contactEmail, setContactEmail] = useState('');
   const [contactIssue, setContactIssue] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [dynamicFaqs, setDynamicFaqs] = useState<FAQItem[]>([]);
+  const [isLoadingFaqs, setIsLoadingFaqs] = useState(false);
 
   const categories: Category[] = ['All', 'Expenses', 'Budget', 'Savings', 'Account'];
 
-  const filteredFAQs = faqs.filter(faq => {
+  useEffect(() => {
+    const loadFAQs = async () => {
+      setIsLoadingFaqs(true);
+      try {
+        const data = await supportService.getFAQs();
+        if (data && data.length > 0) {
+          // Map backend format to FAQItem if needed, or assume it matches
+          setDynamicFaqs(data as FAQItem[]);
+        }
+      } catch (e) {
+        console.warn('Failed to load dynamic FAQs, using local fallback', e);
+      } finally {
+        setIsLoadingFaqs(false);
+      }
+    };
+    loadFAQs();
+  }, []);
+
+  const currentFaqs = dynamicFaqs.length > 0 ? dynamicFaqs : faqs;
+
+  const filteredFAQs = currentFaqs.filter(faq => {
     const matchesSearch = faq.question.toLowerCase().includes(searchQuery.toLowerCase()) || 
                          faq.answer.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = selectedCategory === 'All' || faq.category === selectedCategory;
@@ -408,23 +432,40 @@ export const HelpFAQScreen = () => {
         </View>
 
         <TouchableOpacity 
-          style={styles.submitBtn}
-          onPress={() => {
+          style={[styles.submitBtn, (isSubmitting || !contactName || !contactEmail || !contactIssue) && styles.disabledBtn]}
+          onPress={async () => {
             if (contactName && contactEmail && contactIssue) {
-              Alert.alert(
-                'Message Sent',
-                'Your message has been sent. We will get back to you within 24 hours.',
-                [{ text: 'OK' }]
-              );
-              setContactName('');
-              setContactEmail('');
-              setContactIssue('');
+              setIsSubmitting(true);
+              try {
+                await supportService.sendMessage({
+                  name: contactName,
+                  email: contactEmail,
+                  message: contactIssue,
+                });
+                Alert.alert(
+                  'Message Sent',
+                  'Your message has been sent. We will get back to you within 24 hours.',
+                  [{ text: 'OK' }]
+                );
+                setContactName('');
+                setContactEmail('');
+                setContactIssue('');
+              } catch (error: any) {
+                Alert.alert('Error', error.message || 'Failed to send message. Please try again.');
+              } finally {
+                setIsSubmitting(false);
+              }
             } else {
               Alert.alert('Error', 'Please fill in all fields.');
             }
           }}
+          disabled={isSubmitting}
         >
-          <Text style={styles.submitBtnText}>Send message</Text>
+          {isSubmitting ? (
+            <ActivityIndicator color={WHITE} size="small" />
+          ) : (
+            <Text style={styles.submitBtnText}>Send message</Text>
+          )}
         </TouchableOpacity>
 
         <View style={{ height: 40 }} />
@@ -734,6 +775,9 @@ const styles = StyleSheet.create({
     color: WHITE,
     fontSize: 16,
     fontFamily: Fonts.bold,
+  },
+  disabledBtn: {
+    opacity: 0.6,
   },
   // Empty State
   emptyState: {

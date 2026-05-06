@@ -5,9 +5,10 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  SafeAreaView,
   StatusBar,
+  ActivityIndicator,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import {
@@ -20,6 +21,7 @@ import {
 } from '../../constants';
 import { Header } from '../../components/Header';
 import { StorageService } from '../../storage/StorageService';
+import { useAppContext } from '../../context/AppContext';
 
 const CustomToggle = ({ value, onValueChange, disabled = false }: { value: boolean, onValueChange: (v: boolean) => void, disabled?: boolean }) => {
   return (
@@ -69,55 +71,25 @@ const NotificationRow = ({
 
 export const NotificationSettingsScreen = () => {
   const router = useRouter();
+  const { notificationPrefs, saveNotificationPrefs, prefsLoading } = useAppContext();
   
-  const [allNotifications, setAllNotifications] = useState(true);
-  const [budgetAlerts, setBudgetAlerts] = useState(true);
-  const [savingsReminders, setSavingsReminders] = useState(true);
-  const [billReminders, setBillReminders] = useState(true);
-  const [newContent, setNewContent] = useState(true);
-  const [finance101, setFinance101] = useState(false);
-  const [podcastUpdates, setPodcastUpdates] = useState(false);
-  const [appUpdates, setAppUpdates] = useState(true);
-  const [bofAnnouncements, setBofAnnouncements] = useState(true);
-  const [doNotDisturb, setDoNotDisturb] = useState(false);
-  
-  // Persistence Logic
-  useEffect(() => {
-    const loadPrefs = async () => {
-      const saved = await StorageService.getNotificationPreferences();
-      if (saved) {
-        if (saved.allNotifications !== undefined) setAllNotifications(saved.allNotifications);
-        if (saved.budgetAlerts !== undefined) setBudgetAlerts(saved.budgetAlerts);
-        if (saved.savingsReminders !== undefined) setSavingsReminders(saved.savingsReminders);
-        if (saved.billReminders !== undefined) setBillReminders(saved.billReminders);
-        if (saved.newContent !== undefined) setNewContent(saved.newContent);
-        if (saved.finance101 !== undefined) setFinance101(saved.finance101);
-        if (saved.podcastUpdates !== undefined) setPodcastUpdates(saved.podcastUpdates);
-        if (saved.appUpdates !== undefined) setAppUpdates(saved.appUpdates);
-        if (saved.bofAnnouncements !== undefined) setBofAnnouncements(saved.bofAnnouncements);
-        if (saved.doNotDisturb !== undefined) setDoNotDisturb(saved.doNotDisturb);
-      }
-    };
-    loadPrefs();
-  }, []);
-
-  const savePrefs = async (overrides: Record<string, boolean> = {}) => {
-    await StorageService.saveNotificationPreferences({
-      allNotifications,
-      budgetAlerts,
-      savingsReminders,
-      billReminders,
-      newContent,
-      finance101,
-      podcastUpdates,
-      appUpdates,
-      bofAnnouncements,
-      doNotDisturb,
-      ...overrides,
-    });
+  const handleToggle = (key: string, value: boolean) => {
+    saveNotificationPrefs({ [key]: value });
   };
 
+  const allNotifications = notificationPrefs.allNotifications;
   const isGlobalDisabled = !allNotifications;
+
+  if (prefsLoading && Object.keys(notificationPrefs).length === 0) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Header title="Notifications" showBack={true} onBack={() => router.back()} />
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <ActivityIndicator color={PRIMARY_GREEN} size="large" />
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -133,8 +105,8 @@ export const NotificationSettingsScreen = () => {
             icon="notifications-outline"
             title="All Notifications"
             description="Turn off to mute all notifications"
-            value={allNotifications}
-            onValueChange={(v) => { setAllNotifications(v); savePrefs({ allNotifications: v }); }}
+            value={notificationPrefs.allNotifications}
+            onValueChange={(v) => handleToggle('allNotifications', v)}
             isLast={true}
           />
         </View>
@@ -147,24 +119,24 @@ export const NotificationSettingsScreen = () => {
               icon="wallet-outline"
               title="Budget Alerts"
               description="When you're close to your spending limit"
-              value={budgetAlerts}
-              onValueChange={(v) => { setBudgetAlerts(v); savePrefs({ budgetAlerts: v }); }}
+              value={notificationPrefs.budgetAlerts}
+              onValueChange={(v) => handleToggle('budgetAlerts', v)}
               disabled={isGlobalDisabled}
             />
             <NotificationRow
               icon="leaf-outline"
               title="Savings Reminders"
               description="When to add funds to your goals"
-              value={savingsReminders}
-              onValueChange={(v) => { setSavingsReminders(v); savePrefs({ savingsReminders: v }); }}
+              value={notificationPrefs.savingsReminders}
+              onValueChange={(v) => handleToggle('savingsReminders', v)}
               disabled={isGlobalDisabled}
             />
             <NotificationRow
               icon="receipt-outline"
               title="Bill Reminders"
               description="Recurring expense due date alerts"
-              value={billReminders}
-              onValueChange={(v) => { setBillReminders(v); savePrefs({ billReminders: v }); }}
+              value={notificationPrefs.billReminders}
+              onValueChange={(v) => handleToggle('billReminders', v)}
               disabled={isGlobalDisabled}
               isLast={true}
             />
@@ -179,24 +151,24 @@ export const NotificationSettingsScreen = () => {
               icon="book-outline"
               title="New Content"
               description="When new articles and videos are added"
-              value={newContent}
-              onValueChange={(v) => { setNewContent(v); savePrefs({ newContent: v }); }}
+              value={notificationPrefs.newContent}
+              onValueChange={(v) => handleToggle('newContent', v)}
               disabled={isGlobalDisabled}
             />
             <NotificationRow
               icon="school-outline"
               title="Finance 101"
               description="New episode available alerts"
-              value={finance101}
-              onValueChange={(v) => { setFinance101(v); savePrefs({ finance101: v }); }}
+              value={notificationPrefs.finance101}
+              onValueChange={(v) => handleToggle('finance101', v)}
               disabled={isGlobalDisabled}
             />
             <NotificationRow
               icon="headset-outline"
               title="Podcast Updates"
               description="New Market Pulse episode alerts"
-              value={podcastUpdates}
-              onValueChange={(v) => { setPodcastUpdates(v); savePrefs({ podcastUpdates: v }); }}
+              value={notificationPrefs.podcastUpdates}
+              onValueChange={(v) => handleToggle('podcastUpdates', v)}
               disabled={isGlobalDisabled}
               isLast={true}
             />
@@ -211,16 +183,16 @@ export const NotificationSettingsScreen = () => {
               icon="refresh-outline"
               title="App Updates"
               description="Latest features and improvements"
-              value={appUpdates}
-              onValueChange={(v) => { setAppUpdates(v); savePrefs({ appUpdates: v }); }}
+              value={notificationPrefs.appUpdates}
+              onValueChange={(v) => handleToggle('appUpdates', v)}
               disabled={isGlobalDisabled}
             />
             <NotificationRow
               icon="megaphone-outline"
               title="BOF OAU Announcements"
               description="News from Bureau of Finance OAU"
-              value={bofAnnouncements}
-              onValueChange={(v) => { setBofAnnouncements(v); savePrefs({ bofAnnouncements: v }); }}
+              value={notificationPrefs.bofAnnouncements}
+              onValueChange={(v) => handleToggle('bofAnnouncements', v)}
               disabled={isGlobalDisabled}
               isLast={true}
             />
@@ -235,12 +207,12 @@ export const NotificationSettingsScreen = () => {
               icon="moon-outline"
               title="Do Not Disturb"
               description="Mute all notifications during set hours"
-              value={doNotDisturb}
-              onValueChange={(v) => { setDoNotDisturb(v); savePrefs({ doNotDisturb: v }); }}
+              value={notificationPrefs.doNotDisturb}
+              onValueChange={(v) => handleToggle('doNotDisturb', v)}
               disabled={isGlobalDisabled}
-              isLast={!doNotDisturb}
+              isLast={!notificationPrefs.doNotDisturb}
             />
-            {doNotDisturb && (
+            {notificationPrefs.doNotDisturb && (
               <View style={styles.timePickerRow}>
                 <View style={styles.timeField}>
                   <Text style={styles.timeLabel}>From:</Text>
