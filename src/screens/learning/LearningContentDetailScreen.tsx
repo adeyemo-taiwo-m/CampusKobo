@@ -55,6 +55,7 @@ const LearningContentDetailScreen = () => {
   const type = (paramType as 'article' | 'video' | 'podcast') || (content as any)?.type || 'article';
 
   const [scrollProgress, setScrollProgress] = useState(0);
+  const [scrollY, setScrollY] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [hasMarkedProgress, setHasMarkedProgress] = useState(false);
 
@@ -94,6 +95,9 @@ const LearningContentDetailScreen = () => {
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     if (type !== 'article') return;
     const { contentOffset, contentSize, layoutMeasurement } = event.nativeEvent;
+    
+    setScrollY(contentOffset.y);
+    
     const totalHeight = contentSize.height - layoutMeasurement.height;
     const currentProgress = totalHeight > 0 ? contentOffset.y / totalHeight : 0;
     setScrollProgress(Math.min(1, Math.max(0, currentProgress)));
@@ -377,6 +381,18 @@ const LearningContentDetailScreen = () => {
         onBookmark={() => toggleBookmark(id as string)}
       />
 
+      {/* Sticky Progress Bar for Articles - appears after scrolling past title */}
+      {type === 'article' && scrollY > 300 && (
+        <View style={styles.stickyProgressContainer}>
+          <ProgressBar 
+            progress={scrollProgress} 
+            height={3} 
+            fillColor={PRIMARY_GREEN} 
+            backgroundColor="transparent"
+          />
+        </View>
+      )}
+
       <ScrollView 
         onScroll={handleScroll}
         scrollEventThrottle={16}
@@ -395,6 +411,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: BACKGROUND,
+  },
+  stickyProgressContainer: {
+    position: 'absolute',
+    top: 100, // Matches the height of the Header component
+    left: 0,
+    right: 0,
+    zIndex: 100,
+    backgroundColor: WHITE,
   },
   heroImage: {
     width: '100%',

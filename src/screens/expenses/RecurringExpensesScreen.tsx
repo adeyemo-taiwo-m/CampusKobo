@@ -13,7 +13,7 @@ import { useRouter, Stack } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { MainHeader } from "../../components/MainHeader";
-import { SummaryCard } from "../../components/SummaryCard";
+import { DarkCard } from "../../components/DarkCard";
 import { Button } from "../../components/Button";
 import {
   PRIMARY_GREEN,
@@ -157,13 +157,14 @@ export default function RecurringExpensesScreen() {
         </View>
 
         <View style={styles.summaryContainer}>
-          <SummaryCard
-            label="Recurring Overview"
+          <DarkCard
+            type="expenses"
             amount={activeSum}
-            limit={budgetLimit}
+            limitAmount={budgetLimit}
             progress={progress}
-            caption={`${getPercentage(activeSum, budgetLimit)}% of monthly budget`}
-            motivation="Auto-deducted every month"
+            periodLabel="Recurring this month"
+            label="Recurring Overview"
+            statusCaption="Auto-deducted every month"
           />
         </View>
       </View>
