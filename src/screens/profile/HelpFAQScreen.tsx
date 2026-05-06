@@ -13,6 +13,7 @@ import {
   Linking,
   ActivityIndicator,
   Alert,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -146,6 +147,7 @@ export const HelpFAQScreen = () => {
   const { user } = useAppContext();
   const { tab } = useLocalSearchParams<{ tab: string }>();
   const scrollViewRef = useRef<ScrollView>(null);
+  const [isSuccessModalVisible, setIsSuccessModalVisible] = useState(false);
   
   const [activeTab, setActiveTab] = useState<'FAQ' | 'Contact'>(tab === 'contact' ? 'Contact' : 'FAQ');
   const [searchQuery, setSearchQuery] = useState('');
@@ -487,11 +489,7 @@ export const HelpFAQScreen = () => {
                   message: contactIssue,
                   user_id: user?.id,
                 });
-                Alert.alert(
-                  'Message Sent',
-                  'Your message has been sent. We will get back to you within 24 hours.',
-                  [{ text: 'OK' }]
-                );
+                setIsSuccessModalVisible(true);
                 setContactName('');
                 setContactEmail('');
                 setContactSubject('');
@@ -522,8 +520,41 @@ export const HelpFAQScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
-      <Header title="Help & FAQ" showBack={true} onBack={() => router.back()} />
+      <Header 
+        title="Help & FAQ" 
+        showBack={true}
+        onBack={() => router.back()} 
+      />
+      
       {activeTab === 'FAQ' ? renderFAQTab() : renderContactTab()}
+
+      {/* Success Modal */}
+      <Modal
+        visible={isSuccessModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setIsSuccessModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.successModalContent}>
+            <View style={styles.successIconCircle}>
+              <Ionicons name="checkmark-circle" size={80} color={PRIMARY_GREEN} />
+            </View>
+            
+            <Text style={styles.successModalTitle}>Message Sent!</Text>
+            <Text style={styles.successModalMessage}>
+              Your message has been successfully sent. Our team will review it and get back to you within 24 hours.
+            </Text>
+            
+            <TouchableOpacity 
+              style={styles.successModalBtn}
+              onPress={() => setIsSuccessModalVisible(false)}
+            >
+              <Text style={styles.successModalBtnText}>Great!</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -834,5 +865,61 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 40,
+  },
+  // Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  successModalContent: {
+    backgroundColor: WHITE,
+    borderRadius: 24,
+    padding: 32,
+    width: '100%',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  successIconCircle: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: '#E7F5ED',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  successModalTitle: {
+    fontSize: 22,
+    fontFamily: Fonts.bold,
+    color: TEXT_PRIMARY,
+    marginBottom: 12,
+  },
+  successModalMessage: {
+    fontSize: 15,
+    fontFamily: Fonts.regular,
+    color: TEXT_SECONDARY,
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 32,
+  },
+  successModalBtn: {
+    backgroundColor: PRIMARY_GREEN,
+    borderRadius: 12,
+    height: 56,
+    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  successModalBtnText: {
+    color: WHITE,
+    fontSize: 16,
+    fontFamily: Fonts.bold,
   },
 });

@@ -8,6 +8,9 @@ export interface DashboardSummary {
   monthly_budget?: number;
   budget_spent?: number;
   savings_total?: number;
+  // Alternative field names from backend
+  total_spent?: number;
+  remaining_budget?: number;
 }
 
 export const dashboardService = {

@@ -1060,14 +1060,16 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const totalIncomeThisMonth = useMemo(() => {
-    if (dashboardSummary?.total_income !== undefined) return dashboardSummary.total_income;
+    const apiIncome = dashboardSummary?.total_income;
+    if (apiIncome !== undefined) return Number(apiIncome);
     return transactions
       .filter(t => t.type === 'income' && isThisMonth(t.date))
       .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
   }, [transactions, dashboardSummary]);
 
   const totalExpensesThisMonth = useMemo(() => {
-    if (dashboardSummary?.total_expenses !== undefined) return dashboardSummary.total_expenses;
+    const apiExpenses = dashboardSummary?.total_expenses ?? dashboardSummary?.total_spent;
+    if (apiExpenses !== undefined) return Number(apiExpenses);
     return transactions
       .filter(t => t.type === 'expense' && isThisMonth(t.date))
       .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
@@ -1086,7 +1088,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   [transactions]);
 
   const currentBalance = useMemo(() => {
-    if (dashboardSummary?.total_balance !== undefined) return dashboardSummary.total_balance;
+    const apiBalance = dashboardSummary?.total_balance;
+    if (apiBalance !== undefined) return Number(apiBalance);
+    // If balance isn't provided, we can fallback to calculating it or just use 0 if not sync'd yet
     const allIncome = transactions
       .filter(t => t.type === 'income')
       .reduce((sum, t) => sum + (Number(t.amount) || 0), 0);

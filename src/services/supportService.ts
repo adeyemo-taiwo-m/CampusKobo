@@ -29,21 +29,40 @@ export const getFAQs = async (): Promise<FAQ[]> => {
  * Sends a support message directly to Supabase.
  */
 export const sendMessage = async (data: SupportMessageRequest): Promise<any> => {
-  const { error } = await supabase
-    .from('support_messages')
-    .insert([
-      {
-        name: data.name,
-        email: data.email,
-        subject: data.subject,
-        message: data.message,
-        user_id: data.user_id || null,
-        status: 'pending' // Default status
-      }
-    ]);
+  const uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
 
-  if (error) throw error;
-  return { success: true };
+  console.log('📤 Sending support message to Supabase:', { ...data, id: uuid });
+  try {
+    const { error, data: insertedData } = await supabase
+      .from('support_messages')
+      .insert([
+        {
+          id: uuid,
+          name: data.name,
+          email: data.email,
+          subject: data.subject,
+          message: data.message,
+          user_id: data.user_id || null,
+          status: 'open'
+        }
+      ])
+      .select();
+
+    if (error) {
+      console.error('❌ Supabase Support Message Error:', error);
+      throw new Error(error.message || 'Failed to send message to database');
+    }
+    
+    console.log('✅ Supabase Support Message Success:', insertedData);
+    return { success: true, data: insertedData };
+  } catch (err: any) {
+    console.error('❌ Error in sendMessage:', err);
+    throw err;
+  }
 };
 
 export const supportService = {
