@@ -602,7 +602,7 @@ const styles = StyleSheet.create({
   },
   activeTabText: {
     color: TEXT_PRIMARY,
-    fontFamily: Fonts.bold,
+    fontFamily: Fonts.medium,
   },
   sectionTitle: {
     fontSize: 13,
@@ -635,7 +635,7 @@ const styles = StyleSheet.create({
   },
   quickHelpText: {
     fontSize: 14,
-    fontFamily: Fonts.bold,
+    fontFamily: Fonts.medium,
     color: TEXT_PRIMARY,
     lineHeight: 20,
   },
@@ -673,7 +673,7 @@ const styles = StyleSheet.create({
   },
   groupLabel: {
     fontSize: 12,
-    fontFamily: Fonts.bold,
+    fontFamily: Fonts.medium,
     color: '#9CA3AF',
     marginBottom: 12,
     textTransform: 'uppercase',
@@ -694,7 +694,7 @@ const styles = StyleSheet.create({
   },
   faqQuestion: {
     fontSize: 14,
-    fontFamily: Fonts.bold,
+    fontFamily: Fonts.medium,
     color: TEXT_PRIMARY,
     flex: 1,
     marginRight: 10,
@@ -736,7 +736,7 @@ const styles = StyleSheet.create({
   },
   stillNeedHelpTitle: {
     fontSize: 16,
-    fontFamily: Fonts.bold,
+    fontFamily: Fonts.medium,
     color: TEXT_PRIMARY,
   },
   stillNeedHelpSubtitle: {
@@ -754,7 +754,7 @@ const styles = StyleSheet.create({
   contactSupportText: {
     color: PRIMARY_GREEN,
     fontSize: 14,
-    fontFamily: Fonts.bold,
+    fontFamily: Fonts.medium,
   },
   fixedBottom: {
     padding: 20,
@@ -772,7 +772,7 @@ const styles = StyleSheet.create({
   sendMessageText: {
     color: WHITE,
     fontSize: 16,
-    fontFamily: Fonts.bold,
+    fontFamily: Fonts.medium,
   },
   // Contact Us Tab
   contactContent: {
@@ -851,7 +851,7 @@ const styles = StyleSheet.create({
   submitBtnText: {
     color: WHITE,
     fontSize: 16,
-    fontFamily: Fonts.bold,
+    fontFamily: Fonts.medium,
   },
   disabledBtn: {
     opacity: 0.6,
@@ -897,7 +897,7 @@ const styles = StyleSheet.create({
   },
   successModalTitle: {
     fontSize: 22,
-    fontFamily: Fonts.bold,
+    fontFamily: Fonts.medium,
     color: TEXT_PRIMARY,
     marginBottom: 12,
   },
@@ -920,6 +920,6 @@ const styles = StyleSheet.create({
   successModalBtnText: {
     color: WHITE,
     fontSize: 16,
-    fontFamily: Fonts.bold,
+    fontFamily: Fonts.medium,
   },
 });

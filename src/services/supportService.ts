@@ -18,11 +18,29 @@ export interface SupportMessageRequest {
 }
 
 /**
- * Returns an array of FAQ objects.
+ * Returns an array of FAQ objects directly from Supabase.
  */
 export const getFAQs = async (): Promise<FAQ[]> => {
-  const response = await apiClient.get(API_ENDPOINTS.FAQS);
-  return response as unknown as FAQ[];
+  const { data, error } = await supabase
+    .from('faq_items')
+    .select(`
+      id,
+      question,
+      answer,
+      category:faq_categories(name)
+    `)
+    .eq('is_published', true);
+
+  if (error) {
+    console.error('❌ Supabase Fetch FAQs Error:', error);
+    throw error;
+  }
+
+  // Flatten the category from the join
+  return (data || []).map(item => ({
+    ...item,
+    category: (item as any).category?.name || 'General'
+  })) as FAQ[];
 };
 
 /**
