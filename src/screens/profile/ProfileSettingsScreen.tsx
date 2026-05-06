@@ -280,12 +280,12 @@ export const ProfileSettingsScreen = () => {
             <SettingsRow
               icon="information-circle-outline"
               title="About CampusKobo"
-              onPress={() => Alert.alert('About', 'CampusKobo is your companion for financial literacy and student money management.')}
+              onPress={() => router.push('/profile/about-campuskobo')}
             />
             <SettingsRow
               icon="business-outline"
               title="About BOF OAU"
-              onPress={() => Alert.alert('BOF OAU', 'The Bureau of Finance, OAU is dedicated to financial excellence among students.')}
+              onPress={() => router.push('/profile/about-bof')}
               isLast={true}
             />
           </View>
