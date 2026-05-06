@@ -1,5 +1,4 @@
-import apiClient from './apiClient';
-import { API_ENDPOINTS } from '../constants/api';
+import { supabase } from '../lib/supabase';
 
 export interface NotificationPreferences {
   all_notifications: boolean;
@@ -17,19 +16,67 @@ export interface NotificationPreferences {
 }
 
 /**
- * Get the user's saved notification preferences from the server.
+ * Returns the user's notification preferences directly from Supabase.
  */
 export const getPreferences = async (): Promise<NotificationPreferences> => {
-  const response = await apiClient.get(API_ENDPOINTS.NOTIFICATION_PREFERENCES);
-  return response as unknown as NotificationPreferences;
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Not authenticated');
+
+  const { data, error } = await supabase
+    .from('notification_preferences')
+    .select('*')
+    .eq('user_id', user.id)
+    .single();
+
+  if (error && error.code !== 'PGRST116') { // PGRST116 is "no rows found"
+    console.error('❌ Supabase Fetch Preferences Error:', error);
+    throw error;
+  }
+
+  // If no preferences exist, return defaults
+  if (!data) {
+    return {
+      all_notifications: true,
+      budget_alerts: true,
+      savings_reminders: true,
+      bill_reminders: true,
+      new_content: true,
+      finance_101: true,
+      podcast_updates: true,
+      app_updates: true,
+      bof_announcements: true,
+      do_not_disturb: false,
+    };
+  }
+
+  return data as NotificationPreferences;
 };
 
 /**
- * Update the user's notification preferences.
+ * Update the user's notification preferences directly in Supabase.
  */
-export const updatePreferences = async (data: Partial<NotificationPreferences>): Promise<NotificationPreferences> => {
-  const response = await apiClient.put(API_ENDPOINTS.NOTIFICATION_PREFERENCES, data);
-  return response as unknown as NotificationPreferences;
+export const updatePreferences = async (data: Partial<NotificationPreferences>): Promise<any> => {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Not authenticated');
+
+  console.log('📤 Updating notification preferences in Supabase:', data);
+
+  const { error, data: updatedData } = await supabase
+    .from('notification_preferences')
+    .upsert({
+      user_id: user.id,
+      ...data,
+      updated_at: new Date().toISOString()
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error('❌ Supabase Update Preferences Error:', error);
+    throw new Error(error.message || 'Failed to update preferences in database');
+  }
+  
+  return updatedData;
 };
 
 export const notificationService = {

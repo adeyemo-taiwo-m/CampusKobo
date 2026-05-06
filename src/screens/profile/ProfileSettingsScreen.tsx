@@ -83,7 +83,8 @@ export const ProfileSettingsScreen = () => {
     currency,
     setCurrency,
     language,
-    setLanguage
+    setLanguage,
+    t
   } = useAppContext();
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [isCurrencyModalVisible, setIsCurrencyModalVisible] = useState(false);
