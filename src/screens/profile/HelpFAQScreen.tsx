@@ -14,6 +14,7 @@ import {
   ActivityIndicator,
   Alert,
   Modal,
+  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -142,6 +143,35 @@ const ExpandableFAQ = ({ item, isExpanded, onToggle }: { item: FAQItem, isExpand
   );
 };
 
+const LoadingSkeleton = () => {
+  const opacity = useRef(new Animated.Value(0.3)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(opacity, {
+          toValue: 0.7,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+        Animated.timing(opacity, {
+          toValue: 0.3,
+          duration: 800,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, []);
+
+  return (
+    <View style={styles.skeletonContainer}>
+      {[1, 2, 3].map((i) => (
+        <Animated.View key={i} style={[styles.skeletonItem, { opacity }]} />
+      ))}
+    </View>
+  );
+};
+
 export const HelpFAQScreen = () => {
   const router = useRouter();
   const { user } = useAppContext();
@@ -160,9 +190,9 @@ export const HelpFAQScreen = () => {
   const [faqsError, setFaqsError] = useState<string | null>(null);
 
   // Form State
-  const [contactSubject, setContactSubject] = useState('');
-  const [contactIssue, setContactIssue] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [subject, setSubject] = useState("");
+  const [message, setMessage] = useState("");
+  const [isSendingMessage, setIsSendingMessage] = useState(false);
   const [messageError, setMessageError] = useState<string | null>(null);
   const [messageSent, setMessageSent] = useState(false);
 
@@ -186,6 +216,28 @@ export const HelpFAQScreen = () => {
     };
     loadFAQs();
   }, []);
+
+  const handleSendMessage = async () => {
+    setMessageError(null);
+    setMessageSent(false);
+
+    if (!subject.trim() || !message.trim()) {
+      setMessageError("Please fill in both the subject and message fields.");
+      return;
+    }
+
+    setIsSendingMessage(true);
+    try {
+      await supportService.sendSupportMessage({ subject, message });
+      setMessageSent(true);
+      setSubject("");
+      setMessage("");
+    } catch (error: any) {
+      setMessageError(error.message || "Failed to send message. Please try again.");
+    } finally {
+      setIsSendingMessage(false);
+    }
+  };
 
   const currentFaqs = dynamicFaqs.length > 0 ? dynamicFaqs : faqs;
 
@@ -289,9 +341,7 @@ export const HelpFAQScreen = () => {
 
         {/* FAQ List */}
         {faqsLoading && dynamicFaqs.length === 0 ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={PRIMARY_GREEN} />
-          </View>
+          <LoadingSkeleton />
         ) : (
         filteredFAQs.length > 0 ? (
           <View style={styles.faqList}>
@@ -474,14 +524,14 @@ export const HelpFAQScreen = () => {
           
           <InputField
             placeholder="Subject"
-            value={contactSubject}
-            onChangeText={setContactSubject}
+            value={subject}
+            onChangeText={setSubject}
             outerContainerStyle={styles.formFieldOuter}
           />
           <InputField
             placeholder="Describe your issue"
-            value={contactIssue}
-            onChangeText={setContactIssue}
+            value={message}
+            onChangeText={setMessage}
             multiline
             numberOfLines={4}
             textAlignVertical="top"
@@ -492,34 +542,11 @@ export const HelpFAQScreen = () => {
         </View>
 
         <TouchableOpacity 
-          style={[styles.submitBtn, (isSubmitting || !contactSubject.trim() || !contactIssue.trim()) && styles.disabledBtn]}
-          onPress={async () => {
-            setMessageError(null);
-            setMessageSent(false);
-
-            if (!contactSubject.trim() || !contactIssue.trim()) {
-              setMessageError("Please fill in both the subject and message fields.");
-              return;
-            }
-
-            setIsSubmitting(true);
-            try {
-              await supportService.sendSupportMessage({ 
-                subject: contactSubject, 
-                message: contactIssue 
-              });
-              setMessageSent(true);
-              setContactSubject("");
-              setContactIssue("");
-            } catch (error: any) {
-              setMessageError(error.message || "Failed to send message. Please try again.");
-            } finally {
-              setIsSubmitting(false);
-            }
-          }}
-          disabled={isSubmitting}
+          style={[styles.submitBtn, (isSendingMessage || !subject.trim() || !message.trim()) && styles.disabledBtn]}
+          onPress={handleSendMessage}
+          disabled={isSendingMessage}
         >
-          {isSubmitting ? (
+          {isSendingMessage ? (
             <ActivityIndicator color={WHITE} size="small" />
           ) : (
             <Text style={styles.submitBtnText}>Send message</Text>
@@ -979,5 +1006,14 @@ const styles = StyleSheet.create({
     color: WHITE,
     fontSize: 16,
     fontFamily: Fonts.medium,
+  },
+  skeletonContainer: {
+    marginBottom: 24,
+    gap: 12,
+  },
+  skeletonItem: {
+    height: 60,
+    backgroundColor: '#E5E7EB',
+    borderRadius: 12,
   },
 });
