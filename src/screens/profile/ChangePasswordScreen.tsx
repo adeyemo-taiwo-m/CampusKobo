@@ -31,18 +31,21 @@ export const ChangePasswordScreen = () => {
   const router = useRouter();
   
   // Form State
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   
   // UI State
   const [isLoading, setIsLoading] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Password visibility toggles
+  const [showOld, setShowOld] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  
   const [passwordStrength, setPasswordStrength] = useState(0);
-  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // Password Strength Logic
   useEffect(() => {
@@ -54,34 +57,34 @@ export const ChangePasswordScreen = () => {
     setPasswordStrength(strength);
   }, [newPassword]);
 
-  const validate = () => {
-    const newErrors: Record<string, string> = {};
-    
-    if (newPassword.length < 6) {
-      newErrors.newPassword = 'Password must be at least 6 characters';
-    }
-    
-    if (newPassword !== confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
-    }
-    
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
   const handleSubmit = async () => {
-    if (!validate()) return;
-    
+    setApiError(null);
+
+    // Local validation first
+    if (!oldPassword || !newPassword || !confirmPassword) {
+      setApiError("Please fill in all fields.");
+      return;
+    }
+    if (newPassword.length < 6) {
+      setApiError("New password must be at least 6 characters.");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setApiError("New passwords do not match.");
+      return;
+    }
+
     setIsLoading(true);
     try {
       await authService.changePassword({
-        old_password: currentPassword,
+        old_password: oldPassword,
         new_password: newPassword,
       });
       setShowSuccess(true);
     } catch (error: any) {
-      console.error('Change password error:', error);
-      setErrors({ api: error.message || 'Failed to update password. Please check your current password.' });
+      setApiError(
+        error.message || "Failed to update password. Please try again.",
+      );
     } finally {
       setIsLoading(false);
     }
@@ -102,7 +105,7 @@ export const ChangePasswordScreen = () => {
     return 'Strong';
   };
 
-  const isFormValid = currentPassword.length > 0 && newPassword.length >= 6 && confirmPassword.length > 0;
+  const isFormValid = oldPassword.length > 0 && newPassword.length >= 6 && confirmPassword.length > 0;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -111,7 +114,7 @@ export const ChangePasswordScreen = () => {
       <SuccessModal
         isVisible={showSuccess}
         title="Password Updated!"
-        subtitle="Your account security has been updated successfully."
+        subtitle="Your password has been changed successfully. Use your new password next time you log in."
         onDone={() => {
           setShowSuccess(false);
           router.back();
@@ -135,10 +138,10 @@ export const ChangePasswordScreen = () => {
             Your new password must be different from previously used passwords.
           </Text>
 
-          {errors.api && (
-            <View style={styles.apiErrorCard}>
-              <Ionicons name="alert-circle" size={20} color="#EF4444" />
-              <Text style={styles.apiErrorText}>{errors.api}</Text>
+          {apiError && (
+            <View style={styles.errorCard}>
+              <Ionicons name="alert-circle-outline" size={18} color="#fff" />
+              <Text style={styles.errorText}>{apiError}</Text>
             </View>
           )}
 
@@ -146,13 +149,13 @@ export const ChangePasswordScreen = () => {
             <InputField
               label="Current Password"
               placeholder="Enter current password"
-              value={currentPassword}
-              onChangeText={setCurrentPassword}
-              secureTextEntry={!showCurrentPassword}
+              value={oldPassword}
+              onChangeText={setOldPassword}
+              secureTextEntry={!showOld}
               rightIcon={
-                <TouchableOpacity onPress={() => setShowCurrentPassword(!showCurrentPassword)}>
+                <TouchableOpacity onPress={() => setShowOld(!showOld)}>
                   <Ionicons 
-                    name={showCurrentPassword ? "eye-off-outline" : "eye-outline"} 
+                    name={showOld ? "eye-off-outline" : "eye-outline"} 
                     size={20} 
                     color={TEXT_SECONDARY} 
                   />
@@ -167,19 +170,18 @@ export const ChangePasswordScreen = () => {
                 placeholder="Enter new password"
                 value={newPassword}
                 onChangeText={setNewPassword}
-                secureTextEntry={!showNewPassword}
+                secureTextEntry={!showNew}
                 rightIcon={
-                  <TouchableOpacity onPress={() => setShowNewPassword(!showNewPassword)}>
+                  <TouchableOpacity onPress={() => setShowNew(!showNew)}>
                     <Ionicons 
-                      name={showNewPassword ? "eye-off-outline" : "eye-outline"} 
+                      name={showNew ? "eye-off-outline" : "eye-outline"} 
                       size={20} 
                       color={TEXT_SECONDARY} 
                     />
                   </TouchableOpacity>
                 }
-                containerStyle={[styles.input, errors.newPassword ? styles.inputError : null]}
+                containerStyle={styles.input}
               />
-              {errors.newPassword && <Text style={styles.errorText}>{errors.newPassword}</Text>}
               
               {newPassword.length > 0 && (
                 <View style={styles.strengthContainer}>
@@ -207,19 +209,18 @@ export const ChangePasswordScreen = () => {
                 placeholder="Confirm new password"
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
-                secureTextEntry={!showConfirmPassword}
+                secureTextEntry={!showConfirm}
                 rightIcon={
-                  <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
+                  <TouchableOpacity onPress={() => setShowConfirm(!showConfirm)}>
                     <Ionicons 
-                      name={showConfirmPassword ? "eye-off-outline" : "eye-outline"} 
+                      name={showConfirm ? "eye-off-outline" : "eye-outline"} 
                       size={20} 
                       color={TEXT_SECONDARY} 
                     />
                   </TouchableOpacity>
                 }
-                containerStyle={[styles.input, errors.confirmPassword ? styles.inputError : null]}
+                containerStyle={styles.input}
               />
-              {errors.confirmPassword && <Text style={styles.errorText}>{errors.confirmPassword}</Text>}
             </View>
           </View>
         </ScrollView>
@@ -276,21 +277,19 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     marginBottom: 24,
   },
-  apiErrorCard: {
-    backgroundColor: '#FEF2F2',
-    borderRadius: 12,
-    padding: 16,
+  errorCard: {
+    backgroundColor: '#EF4444',
+    borderRadius: 10,
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 24,
-    borderWidth: 1,
-    borderColor: '#FEE2E2',
+    gap: 8,
+    padding: 12,
+    marginBottom: 16,
   },
-  apiErrorText: {
-    color: '#EF4444',
+  errorText: {
+    color: '#fff',
     fontSize: 14,
-    fontFamily: Fonts.medium,
-    marginLeft: 10,
+    fontFamily: Fonts.regular,
     flex: 1,
   },
   form: {
