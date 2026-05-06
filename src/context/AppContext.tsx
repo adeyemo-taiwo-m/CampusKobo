@@ -28,6 +28,8 @@ import { dashboardService, DashboardSummary } from "../services/dashboardService
 import { notificationService, NotificationPreferences } from "../services/notificationService";
 import { API_ENDPOINTS } from "../constants/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { translate } from "../utils/i18n";
+import * as formatters from "../utils/formatters";
 
 export interface AppContextType {
   // Raw state
@@ -130,6 +132,12 @@ export interface AppContextType {
   language: { code: string; name: string };
   setCurrency: (currency: { code: string; symbol: string; name: string }) => Promise<void>;
   setLanguage: (language: { code: string; name: string }) => Promise<void>;
+
+  // Formatting & i18n
+  t: (key: string) => string;
+  formatCurrency: (amount: number, showSymbol?: boolean) => string;
+  formatCurrencyWithSign: (amount: number, type: 'income' | 'expense') => string;
+  formatCurrencyParts: (amount: number) => { whole: string; decimal: string };
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -466,6 +474,18 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     setLanguageState(newLanguage);
     await AsyncStorage.setItem('campuskobo_language', JSON.stringify(newLanguage));
   };
+
+  // Helper functions for formatting & i18n
+  const t = (key: string) => translate(key, language.code);
+  
+  const formatCurrency = (amount: number, showSymbol: boolean = true) => 
+    formatters.formatCurrency(amount, showSymbol, { symbol: currency.symbol, code: currency.code });
+
+  const formatCurrencyWithSign = (amount: number, type: 'income' | 'expense') =>
+    formatters.formatCurrencyWithSign(amount, type, { symbol: currency.symbol, code: currency.code });
+
+  const formatCurrencyParts = (amount: number) =>
+    formatters.formatCurrencyParts(amount, { symbol: currency.symbol, code: currency.code });
 
   useEffect(() => {
     // 1. Run auth check and data load in parallel
@@ -1369,6 +1389,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         language,
         setCurrency,
         setLanguage,
+        t,
+        formatCurrency,
+        formatCurrencyWithSign,
+        formatCurrencyParts,
       }}
     >
       {children}

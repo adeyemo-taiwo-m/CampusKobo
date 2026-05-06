@@ -54,6 +54,8 @@ export default function DashboardScreen() {
     loadAllData,
     isBalanceHidden,
     toggleBalanceVisibility,
+    t,
+    currency,
   } = useAppContext();
   const [isAddFundsVisible, setIsAddFundsVisible] = useState(false);
   const { toastProps, showToast } = useToast();
@@ -126,11 +128,11 @@ export default function DashboardScreen() {
 
           {/* ── BUDGET SECTION (Light Card Format) ── */}
           <View style={styles.lightCard}>
-            <Text style={styles.cardLabelGreen}>Budget</Text>
+            <Text style={styles.cardLabelGreen}>{t('dashboard.budget')}</Text>
             <View style={styles.cardMainRow}>
               <View style={styles.amountBaseline}>
                 <Text style={styles.mainAmountText}>
-                  {isBalanceHidden ? '₦ •••••' : formatCurrency(totalBudgetSpent)}
+                  {isBalanceHidden ? `${currency.symbol} •••••` : formatCurrency(totalBudgetSpent)}
                 </Text>
                 <Text style={styles.limitAmountText}>
                   /{isBalanceHidden ? '•••••' : formatCurrency(totalBudgetLimit)}
@@ -147,13 +149,13 @@ export default function DashboardScreen() {
           {/* ── SAVINGS SECTION (Light Card Format) ── */}
           {primarySavingsGoalEnriched ? (
             <View style={styles.lightCard}>
-              <Text style={styles.cardLabelGreen}>Savings Progress</Text>
+              <Text style={styles.cardLabelGreen}>{t('savings.progress')}</Text>
               <View style={styles.savingsContentRow}>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.goalNameLarge}>{primarySavingsGoalEnriched.name}</Text>
                   <View style={styles.amountBaseline}>
                     <Text style={styles.savingsAmountText}>
-                      {isBalanceHidden ? '₦ •••••' : formatCurrency(primarySavingsGoalEnriched.savedAmount)}
+                      {isBalanceHidden ? `${currency.symbol} •••••` : formatCurrency(primarySavingsGoalEnriched.savedAmount)}
                     </Text>
                     <Text style={styles.savingsLimitText}>
                       /{isBalanceHidden ? '•••••' : formatCurrency(primarySavingsGoalEnriched.targetAmount)}
@@ -201,9 +203,9 @@ export default function DashboardScreen() {
 
           {/* ── RECENT TRANSACTIONS ── */}
           <View style={styles.recentHeader}>
-            <Text style={styles.recentTitle}>Recent Transactions</Text>
+            <Text style={styles.recentTitle}>{t('dashboard.recent')}</Text>
             <TouchableOpacity onPress={() => router.push("/(tabs)/expenses")}>
-              <Text style={styles.viewAll}>View all</Text>
+              <Text style={styles.viewAll}>{t('dashboard.viewAll')}</Text>
             </TouchableOpacity>
           </View>
 

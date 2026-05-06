@@ -1,20 +1,35 @@
 import { format, isToday, isYesterday, parseISO, endOfMonth, differenceInDays } from 'date-fns';
 import { PRIMARY_GREEN } from '../constants';
 
-export const formatCurrency = (amount: number, showSymbol: boolean = true): string => {
-  if (isNaN(amount) || amount === null || amount === undefined) return showSymbol ? '₦0' : '0';
-  const formatted = Math.abs(amount).toLocaleString('en-NG', {
+export const formatCurrency = (
+  amount: number, 
+  showSymbol: boolean = true, 
+  config: { symbol?: string; code?: string } = { symbol: '₦', code: 'NGN' }
+): string => {
+  const { symbol = '₦', code = 'NGN' } = config;
+  if (isNaN(amount) || amount === null || amount === undefined) return showSymbol ? `${symbol}0` : '0';
+  
+  const locale = code === 'NGN' ? 'en-NG' : 'en-US';
+  const formatted = Math.abs(amount).toLocaleString(locale, {
     minimumFractionDigits: 0,
     maximumFractionDigits: 2,
   });
-  const symbol = showSymbol ? '₦' : '';
-  return `${symbol}${formatted}`;
+  
+  const displaySymbol = showSymbol ? symbol : '';
+  return `${displaySymbol}${formatted}`;
 };
 
 // Use this when you want negative values to show as red (pass the sign separately to the style)
-export const formatCurrencyWithSign = (amount: number, type: 'income' | 'expense'): string => {
-  const prefix = type === 'income' ? '+₦' : '-₦';
-  return `${prefix}${Math.abs(amount).toLocaleString('en-NG', {
+export const formatCurrencyWithSign = (
+  amount: number, 
+  type: 'income' | 'expense',
+  config: { symbol?: string; code?: string } = { symbol: '₦', code: 'NGN' }
+): string => {
+  const { symbol = '₦', code = 'NGN' } = config;
+  const prefix = type === 'income' ? `+${symbol}` : `-${symbol}`;
+  const locale = code === 'NGN' ? 'en-NG' : 'en-US';
+  
+  return `${prefix}${Math.abs(amount).toLocaleString(locale, {
     minimumFractionDigits: 0,
     maximumFractionDigits: 2,
   })}`;

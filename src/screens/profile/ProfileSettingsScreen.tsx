@@ -195,7 +195,7 @@ export const ProfileSettingsScreen = () => {
       <StatusBar barStyle="dark-content" />
       <OfflineBanner />
       <Header 
-        title="Profile & Settings" 
+        title={t('settings.title')} 
         showBack={true} 
         onBack={() => router.back()} 
       />
@@ -250,24 +250,24 @@ export const ProfileSettingsScreen = () => {
           <View style={styles.card}>
             <SettingsRow
               icon="cash-outline"
-              title="Currency"
+              title={t('settings.currency')}
               value={`${currency.symbol} ${currency.code}`}
               onPress={() => setIsCurrencyModalVisible(true)}
             />
             <SettingsRow
               icon="globe-outline"
-              title="Language"
+              title={t('settings.language')}
               value={language.name}
               onPress={() => setIsLanguageModalVisible(true)}
             />
             <SettingsRow
               icon="notifications-outline"
-              title="Notifications"
+              title={t('settings.notifications')}
               onPress={() => router.push('/profile/notifications')}
             />
             <SettingsRow
               icon="shield-checkmark-outline"
-              title="Security & Privacy"
+              title={t('settings.security')}
               subtitle="App lock, PIN, Biometric"
               onPress={() => router.push('/profile/security')}
               isLast={true}
