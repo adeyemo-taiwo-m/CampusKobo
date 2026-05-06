@@ -87,7 +87,7 @@ export const ProfileSettingsScreen = () => {
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [isCurrencyModalVisible, setIsCurrencyModalVisible] = useState(false);
   const [isLanguageModalVisible, setIsLanguageModalVisible] = useState(false);
-  const [isUpdating, setIsUpdating] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -109,28 +109,23 @@ export const ProfileSettingsScreen = () => {
   if (contextLoading) return null;
 
 
-  const handleEditProfile = async () => {
-    if (!userName.trim()) {
-      setSaveError('Name cannot be empty');
-      return;
-    }
-
+  const handleSaveProfile = async (newName: string) => {
     setSaveError(null);
-    setIsUpdating(true);
+    setIsSaving(true);
     try {
-      // 1. Update on API
-      const updatedApiUser = await userService.updateProfile({ full_name: userName });
-      
-      // 2. Update context states
-      setApiUser(updatedApiUser);
-      await updateUser({ name: userName });
-      
+      const updated = await userService.updateProfile({ full_name: newName });
+      // Update API user in context
+      setApiUser(updated);
+      // Also update local user name for consistency
+      await updateUser({ name: updated.full_name });
+      // Close the edit modal
       setIsEditModalVisible(false);
     } catch (error: any) {
-      console.error('Update profile error:', error);
-      setSaveError(error.message || 'Could not update profile. Please try again.');
+      setSaveError(
+        error.message || "Failed to update profile. Please try again.",
+      );
     } finally {
-      setIsUpdating(false);
+      setIsSaving(false);
     }
   };
 
@@ -164,26 +159,25 @@ export const ProfileSettingsScreen = () => {
 
   const handleLogout = () => {
     Alert.alert(
-      'Log Out',
-      'Are you sure you want to log out?',
+      "Log Out",
+      "Are you sure you want to log out?",
       [
-        { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Log Out', 
-          style: 'destructive',
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Log Out",
+          style: "destructive",
           onPress: async () => {
             setIsLoggingOut(true);
             try {
               await logoutFromApi();
             } catch (error) {
-              console.error('Logout error:', error);
-              Alert.alert('Error', 'Failed to log out properly. Please try again.');
+              Alert.alert("Error", "Failed to log out. Please try again.");
             } finally {
               setIsLoggingOut(false);
             }
-          }
-        }
-      ]
+          },
+        },
+      ],
     );
   };
 
@@ -200,24 +194,41 @@ export const ProfileSettingsScreen = () => {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         {/* Profile Card */}
         <View style={styles.profileCard}>
-          {apiUser?.avatar_url ? (
-            <Image 
-              source={{ uri: apiUser.avatar_url }} 
-              style={styles.avatar} 
-            />
-          ) : (
-            <View style={[styles.avatar, styles.initialsAvatar]}>
-              <Text style={styles.avatarInitials}>
-                {userName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2)}
-              </Text>
-            </View>
-          )}
+          <View style={styles.modalAvatarWrapper}>
+            {apiUser?.avatar_url ? (
+              <Image 
+                source={{ uri: apiUser.avatar_url }} 
+                style={styles.avatar} 
+              />
+            ) : (
+              <View style={[styles.avatar, styles.initialsAvatar]}>
+                <Text style={styles.avatarInitials}>
+                  {userName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2)}
+                </Text>
+              </View>
+            )}
+            {isUploadingAvatar && (
+              <View style={[styles.avatarLoadingOverlay, { borderRadius: 40 }]}>
+                <ActivityIndicator color={PRIMARY_GREEN} size="small" />
+              </View>
+            )}
+            <TouchableOpacity 
+              style={styles.avatarEditBadge}
+              onPress={handleAvatarUpload}
+              disabled={isUploadingAvatar}
+            >
+              <Ionicons name="camera-outline" size={16} color={WHITE} />
+            </TouchableOpacity>
+          </View>
           <View style={styles.profileInfo}>
             <Text style={styles.userName}>{userName}</Text>
             <Text style={styles.userEmail}>{userEmail}</Text>
             <TouchableOpacity 
               style={styles.editBtn}
-              onPress={() => setIsEditModalVisible(true)}
+              onPress={() => {
+                setSaveError(null);
+                setIsEditModalVisible(true);
+              }}
             >
               <Text style={styles.editBtnText}>Edit Profile</Text>
             </TouchableOpacity>
@@ -392,11 +403,11 @@ export const ProfileSettingsScreen = () => {
                 </ScrollView>
 
                 <TouchableOpacity 
-                  style={[styles.saveBtn, isUpdating && styles.disabledBtn]}
-                  onPress={handleEditProfile}
-                  disabled={isUpdating}
+                  style={[styles.saveBtn, isSaving && styles.disabledBtn]}
+                  onPress={() => handleSaveProfile(userName)}
+                  disabled={isSaving}
                 >
-                  {isUpdating ? (
+                  {isSaving ? (
                     <ActivityIndicator color={WHITE} size="small" />
                   ) : (
                     <Text style={styles.saveBtnText}>Save Changes</Text>
@@ -720,8 +731,8 @@ const styles = StyleSheet.create({
   },
   avatarEditBadge: {
     position: 'absolute',
-    bottom: 0,
-    right: 0,
+    bottom: 5,
+    right: 5,
     backgroundColor: PRIMARY_GREEN,
     width: 32,
     height: 32,
