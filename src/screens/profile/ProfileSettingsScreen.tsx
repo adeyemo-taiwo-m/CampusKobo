@@ -192,7 +192,7 @@ export const ProfileSettingsScreen = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <StatusBar barStyle="dark-content" />
       <OfflineBanner />
       <Header 
@@ -465,7 +465,7 @@ export const ProfileSettingsScreen = () => {
           setIsLanguageModalVisible(false);
         }}
       />
-    </SafeAreaView>
+    </View>
   );
 };
 

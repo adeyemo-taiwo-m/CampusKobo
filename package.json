@@ -9,7 +9,7 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "lint": "expo lint",
-    "tunnel": "concurrently \"npx expo start --lan\" \"lt --port 8081\""
+    "tunnel": "concurrently \"npx expo start --lan\" \"npx ngrok http 8081\" \"wait-on http://localhost:8081 && qrcode-terminal exp+campuskobo://expo-development-client/?url=https://spinning-lark-mystified.ngrok-free.dev\""
   },
   "dependencies": {
     "@expo-google-fonts/geist-mono": "^0.4.1",
@@ -72,7 +72,9 @@
     "eslint": "^9.25.0",
     "eslint-config-expo": "~10.0.0",
     "ngrok": "^5.0.0-beta.2",
-    "typescript": "~5.9.2"
+    "qrcode-terminal": "^0.12.0",
+    "typescript": "~5.9.2",
+    "wait-on": "^9.0.5"
   },
   "private": true
 }

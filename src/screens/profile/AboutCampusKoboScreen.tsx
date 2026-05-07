@@ -47,7 +47,7 @@ export const AboutCampusKoboScreen = () => {
   const { t } = useAppContext();
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <StatusBar barStyle="dark-content" />
       <Header title={t('about.campusTitle')} showBack={true} onBack={() => router.back()} />
 
@@ -126,7 +126,7 @@ export const AboutCampusKoboScreen = () => {
 
         <View style={{ height: 40 }} />
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 

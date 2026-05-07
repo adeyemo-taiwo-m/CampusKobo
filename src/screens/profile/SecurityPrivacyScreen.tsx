@@ -188,7 +188,7 @@ export const SecurityPrivacyScreen = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <StatusBar barStyle="dark-content" />
       <Header title={t('security.title')} showBack={true} onBack={() => router.back()} />
 
@@ -358,7 +358,7 @@ export const SecurityPrivacyScreen = () => {
         type="success"
         onHide={() => setToastVisible(false)}
       />
-    </SafeAreaView>
+    </View>
   );
 };
 

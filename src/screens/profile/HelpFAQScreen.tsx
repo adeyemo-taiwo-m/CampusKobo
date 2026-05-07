@@ -565,7 +565,7 @@ export const HelpFAQScreen = () => {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <StatusBar barStyle="dark-content" />
       <Header 
         title={t('help.title')} 
@@ -602,7 +602,7 @@ export const HelpFAQScreen = () => {
           </View>
         </View>
       </Modal>
-    </SafeAreaView>
+    </View>
   );
 };
 

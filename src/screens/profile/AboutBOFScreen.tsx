@@ -85,7 +85,7 @@ export const AboutBOFScreen = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <StatusBar barStyle="dark-content" />
       <Header title={t('about.bofTitle')} showBack={true} onBack={() => router.back()} />
 
@@ -215,7 +215,7 @@ export const AboutBOFScreen = () => {
 
         <View style={{ height: 40 }} />
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 

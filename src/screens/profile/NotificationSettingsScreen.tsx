@@ -145,17 +145,17 @@ export const NotificationSettingsScreen = () => {
 
   if (prefsLoading && Object.keys(notificationPrefs).length === 0) {
     return (
-      <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
         <Header title={t('notifications.title')} showBack={true} onBack={() => router.back()} />
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
           <ActivityIndicator color={PRIMARY_GREEN} size="large" />
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <StatusBar barStyle="dark-content" />
       <Header title={t('notifications.title')} showBack={true} onBack={() => router.back()} />
 
@@ -389,7 +389,7 @@ export const NotificationSettingsScreen = () => {
         selectedHour={getHourFromStr(quietHoursEnd)}
         title="Quiet Hours End Time"
       />
-    </SafeAreaView>
+    </View>
   );
 };
 
