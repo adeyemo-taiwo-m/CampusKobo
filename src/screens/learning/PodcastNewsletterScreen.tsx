@@ -24,6 +24,8 @@ import {
 import { Header } from '../../components/Header';
 import { useLearningContext } from '../../context/LearningContext';
 import { InputField } from '../../components/InputField';
+import { getLearningImageSource } from '../../utils/learningUtils';
+import { PodcastEpisodeCard } from '../../components/PodcastEpisodeCard';
 
 const PodcastNewsletterScreen = () => {
   const router = useRouter();
@@ -79,15 +81,17 @@ const PodcastNewsletterScreen = () => {
         </View>
 
         {/* Featured Banner Card */}
-        <PodcastEpisodeCard 
-          title="Market Pulse — EP 05: How to invest as a student"
-          duration="18 min"
-          image={<View style={{ backgroundColor: '#E8F5E9', width: '100%', height: 160, alignItems: 'center', justifyContent: 'center' }}><Ionicons name="megaphone-outline" size={60} color={PRIMARY_GREEN} /></View>}
-          onPress={() => router.push({
-            pathname: '/learning/detail',
-            params: { id: 'l-005', type: 'podcast' }
-          })}
-        />
+        {podcasts.length > 0 && (
+          <PodcastEpisodeCard 
+            title={podcasts[0].title}
+            duration={podcasts[0].duration}
+            image={getLearningImageSource(podcasts[0])}
+            onPress={() => router.push({
+              pathname: '/learning/detail',
+              params: { id: podcasts[0].id, type: 'podcast' }
+            })}
+          />
+        )}
 
         {/* Podcast Section */}
         <View style={styles.section}>
@@ -111,8 +115,12 @@ const PodcastNewsletterScreen = () => {
                   params: { id: item.id, type: 'podcast' }
                 })}
               >
-                <View style={[styles.podcastThumb, { backgroundColor: PRIMARY_GREEN, alignItems: 'center', justifyContent: 'center' }]}>
-                  <Ionicons name="headset-outline" size={24} color={WHITE} />
+                <View style={styles.podcastThumb}>
+                  <Image 
+                    source={getLearningImageSource(item)} 
+                    style={styles.podcastLogo}
+                    resizeMode="cover"
+                  />
                 </View>
                 <View style={styles.podcastInfo}>
                   <Text style={styles.podcastEp}>EP 0{item.episode_number}</Text>

@@ -10,6 +10,7 @@ import {
   LayoutAnimation,
   Platform,
   UIManager,
+  Image,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -24,6 +25,7 @@ import {
 import { Header } from '../../components/Header';
 import { ProgressBar } from '../../components/ProgressBar';
 import { useLearningContext } from '../../context/LearningContext';
+import { getLearningImageSource } from '../../utils/learningUtils';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -192,7 +194,14 @@ const Finance101SeriesScreen = () => {
               })}
             >
               <View style={[styles.episodeBadge, { backgroundColor: EPISODE_COLORS[index % EPISODE_COLORS.length] }]}>
-                <Text style={styles.episodeNumber}>0{episode.episode_number}</Text>
+                <Image 
+                  source={getLearningImageSource(episode)} 
+                  style={styles.episodeBadgeImage}
+                  resizeMode="cover"
+                />
+                <View style={styles.badgeOverlay}>
+                  <Text style={styles.episodeNumber}>0{episode.episode_number}</Text>
+                </View>
               </View>
               <View style={styles.episodeInfo}>
                 <Text style={styles.episodeTitle} numberOfLines={1}>
@@ -399,8 +408,19 @@ const styles = StyleSheet.create({
   },
   episodeNumber: {
     color: WHITE,
-    fontSize: 24,
+    fontSize: 16,
     fontFamily: Fonts.bold,
+  },
+  episodeBadgeImage: {
+    width: '100%',
+    height: '100%',
+    opacity: 0.6,
+  },
+  badgeOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0,0,0,0.2)',
   },
   episodeInfo: {
     flex: 1,

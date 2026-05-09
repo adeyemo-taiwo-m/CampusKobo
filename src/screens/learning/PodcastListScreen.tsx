@@ -19,6 +19,7 @@ import {
 } from '../../constants';
 import { Header } from '../../components/Header';
 import { useLearningContext } from '../../context/LearningContext';
+import { getLearningImageSource } from '../../utils/learningUtils';
 
 export const PodcastListScreen = () => {
   const router = useRouter();
@@ -31,8 +32,12 @@ export const PodcastListScreen = () => {
       
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollPadding}>
         <View style={styles.heroArt}>
-           <View style={styles.artCircle}>
-                <Ionicons name="mic" size={80} color={WHITE} />
+           <View style={styles.artContainer}>
+                <Image 
+                  source={getLearningImageSource({ type: 'podcast' })} 
+                  style={styles.artImage}
+                  resizeMode="cover"
+                />
            </View>
            <Text style={styles.heroTitle}>Market Pulse</Text>
            <Text style={styles.heroHost}>By BOF OAU</Text>
@@ -56,8 +61,12 @@ export const PodcastListScreen = () => {
               onPress={() => router.push({ pathname: '/learning/detail', params: { id: item.id, type: 'podcast' } })}
             >
               <View style={styles.episodeLeft}>
-                    <View style={[styles.podcastIconCircle, { backgroundColor: PRIMARY_GREEN, alignItems: 'center', justifyContent: 'center' }]}>
-                      <Ionicons name="headset-outline" size={30} color={WHITE} />
+                    <View style={styles.episodeImageContainer}>
+                      <Image 
+                        source={getLearningImageSource(item)} 
+                        style={styles.episodeImage}
+                        resizeMode="cover"
+                      />
                     </View>
                  <View style={styles.info}>
                     <Text style={styles.epTitle}>{item.title}</Text>
@@ -103,19 +112,26 @@ const styles = StyleSheet.create({
     paddingVertical: 40,
     backgroundColor: '#FAFAFA',
   },
-  artCircle: {
+  artContainer: {
     width: 160,
     height: 160,
     borderRadius: 80,
-    backgroundColor: '#4C1D95', // Deep purple
+    backgroundColor: '#FAFAFA',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 24,
     elevation: 8,
-    shadowColor: '#4C1D95',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.15,
     shadowRadius: 15,
+    overflow: 'hidden',
+    borderWidth: 4,
+    borderColor: WHITE,
+  },
+  artImage: {
+    width: '100%',
+    height: '100%',
   },
   heroTitle: {
     fontFamily: Fonts.bold,
@@ -182,16 +198,14 @@ const styles = StyleSheet.create({
     gap: 16,
     flex: 1,
   },
-  thumb: {
+  episodeImageContainer: {
     width: 48,
     height: 48,
     borderRadius: 12,
     backgroundColor: '#F3F4F6',
-    alignItems: 'center',
-    justifyContent: 'center',
     overflow: 'hidden',
   },
-  thumbLogo: {
+  episodeImage: {
     width: '100%',
     height: '100%',
   },

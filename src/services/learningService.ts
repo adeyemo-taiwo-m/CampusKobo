@@ -1,7 +1,10 @@
 import { supabase } from '../lib/supabase';
+import apiClient from './apiClient';
+import { API_ENDPOINTS } from '../constants/api';
 
 /**
- * LearningService handles all Supabase queries for the Learning feature.
+ * LearningService handles both Backend API and Supabase queries for the Learning feature.
+ * It attempts to use the Backend API first and falls back to Supabase if the API is unavailable.
  */
 export const LearningService = {
   /**
@@ -9,6 +12,17 @@ export const LearningService = {
    */
   async getAllCategories() {
     try {
+      // Try Backend API first
+      try {
+        const response = await apiClient.get(API_ENDPOINTS.LEARNING_CATEGORIES);
+        if (response && Array.isArray(response)) {
+          return response;
+        }
+      } catch (apiError) {
+        console.warn('[LearningService] Backend API failed for getAllCategories, falling back to Supabase:', apiError);
+      }
+
+      // Fallback to Supabase
       const { data, error } = await supabase
         .from('learning_categories')
         .select('*')
@@ -24,12 +38,23 @@ export const LearningService = {
 
   /**
    * Fetches from learning_content joined with learning_categories.
-   * If categorySlug is provided, filter by that category.
-   * Excludes Finance 101 series (filter out category name 'Finance 101').
-   * Order by created_at descending.
    */
   async getAllContent(categorySlug?: string) {
     try {
+      // Try Backend API first
+      try {
+        const url = categorySlug 
+          ? `${API_ENDPOINTS.LEARNING_CONTENT}?category=${categorySlug}`
+          : API_ENDPOINTS.LEARNING_CONTENT;
+        const response = await apiClient.get(url);
+        if (response && Array.isArray(response)) {
+          return response;
+        }
+      } catch (apiError) {
+        console.warn('[LearningService] Backend API failed for getAllContent, falling back to Supabase:', apiError);
+      }
+
+      // Fallback to Supabase
       let query = supabase
         .from('learning_content')
         .select(`
@@ -58,6 +83,17 @@ export const LearningService = {
    */
   async getFeaturedContent() {
     try {
+      // Try Backend API first
+      try {
+        const response = await apiClient.get(`${API_ENDPOINTS.LEARNING_CONTENT}?featured=true`);
+        if (response && Array.isArray(response)) {
+          return response;
+        }
+      } catch (apiError) {
+        console.warn('[LearningService] Backend API failed for getFeaturedContent, falling back to Supabase:', apiError);
+      }
+
+      // Fallback to Supabase
       const { data, error } = await supabase
         .from('learning_content')
         .select(`
@@ -80,6 +116,17 @@ export const LearningService = {
    */
   async getFinance101Series() {
     try {
+      // Try Backend API first
+      try {
+        const response = await apiClient.get(`${API_ENDPOINTS.LEARNING_CONTENT}?category=finance-101`);
+        if (response && Array.isArray(response)) {
+          return response;
+        }
+      } catch (apiError) {
+        console.warn('[LearningService] Backend API failed for getFinance101Series, falling back to Supabase:', apiError);
+      }
+
+      // Fallback to Supabase
       const { data, error } = await supabase
         .from('learning_content')
         .select(`
@@ -102,6 +149,17 @@ export const LearningService = {
    */
   async getContentById(id: string) {
     try {
+      // Try Backend API first
+      try {
+        const response = await apiClient.get(API_ENDPOINTS.LEARNING_CONTENT_BY_ID(id));
+        if (response) {
+          return response;
+        }
+      } catch (apiError) {
+        console.warn(`[LearningService] Backend API failed for getContentById(${id}), falling back to Supabase:`, apiError);
+      }
+
+      // Fallback to Supabase
       const { data, error } = await supabase
         .from('learning_content')
         .select(`

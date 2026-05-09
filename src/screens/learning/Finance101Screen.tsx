@@ -18,6 +18,8 @@ import {
 } from '../../constants';
 import { Header } from '../../components/Header';
 import { useLearningContext } from '../../context/LearningContext';
+import { getLearningImageSource } from '../../utils/learningUtils';
+import { Image } from 'react-native';
 
 export const Finance101Screen = () => {
   const router = useRouter();
@@ -40,8 +42,15 @@ export const Finance101Screen = () => {
               style={styles.episodeCard}
               onPress={() => router.push({ pathname: '/learning/detail', params: { id: item.id, isSeries: 'true' } })}
             >
-              <View style={[styles.episodeNumber, { backgroundColor: (item as any).color || PRIMARY_GREEN }]}>
-                <Text style={styles.numberText}>{index + 1}</Text>
+              <View style={styles.episodeImageContainer}>
+                <Image 
+                  source={getLearningImageSource(item)} 
+                  style={styles.episodeImage}
+                  resizeMode="cover"
+                />
+                <View style={[styles.numberOverlay, { backgroundColor: (item as any).color || PRIMARY_GREEN }]}>
+                  <Text style={styles.numberText}>{index + 1}</Text>
+                </View>
               </View>
               <View style={styles.episodeInfo}>
                 <Text style={styles.episodeTitle}>{item.title}</Text>
@@ -99,16 +108,31 @@ const styles = StyleSheet.create({
     gap: 16,
     elevation: 1,
   },
-  episodeNumber: {
-    width: 40,
-    height: 40,
+  episodeImageContainer: {
+    width: 50,
+    height: 50,
     borderRadius: 12,
+    overflow: 'hidden',
+  },
+  episodeImage: {
+    width: '100%',
+    height: '100%',
+  },
+  numberOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1.5,
+    borderColor: WHITE,
   },
   numberText: {
     fontFamily: Fonts.bold,
-    fontSize: 18,
+    fontSize: 10,
     color: WHITE,
   },
   episodeInfo: {

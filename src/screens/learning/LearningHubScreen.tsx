@@ -30,6 +30,7 @@ import {
   GLOSSARY_TERMS as STATIC_GLOSSARY_TERMS,
 } from '../../constants/learningData';
 import { ActivityIndicator } from 'react-native';
+import { getLearningImageSource } from '../../utils/learningUtils';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width * 0.45;
@@ -205,11 +206,11 @@ export const LearningHubScreen = () => {
                     params: { id: item.id, type: item.type }
                   })}
                 >
-                  <View style={[styles.featuredImagePlaceholder, { backgroundColor: '#F0F9F4' }]}>
-                    <Ionicons 
-                      name={item.type === 'article' ? 'document-text-outline' : 'play-circle-outline'} 
-                      size={40} 
-                      color={PRIMARY_GREEN} 
+                  <View style={styles.featuredImageContainer}>
+                    <Image 
+                      source={getLearningImageSource(item)} 
+                      style={styles.featuredImage}
+                      resizeMode="cover"
                     />
                   </View>
                   <View style={styles.featuredInfo}>
@@ -287,11 +288,11 @@ export const LearningHubScreen = () => {
                   params: { id: item.id, type: item.type }
                 })}
               >
-                <View style={[styles.latestImagePlaceholder, { backgroundColor: '#F0F9F4' }]}>
-                  <Ionicons 
-                    name={item.type === 'article' ? 'document-text' : 'play-circle'} 
-                    size={30} 
-                    color={PRIMARY_GREEN} 
+                <View style={styles.latestImageContainer}>
+                  <Image 
+                    source={getLearningImageSource(item)} 
+                    style={styles.latestImage}
+                    resizeMode="cover"
                   />
                 </View>
                 <View style={styles.latestInfo}>
@@ -356,11 +357,16 @@ export const LearningHubScreen = () => {
                   })}
                 >
                   <View style={styles.podcastIconWrapper}>
-                    <View style={styles.podcastIconCircle}>
-                      <MaterialCommunityIcons name="podcast" size={28} color={WHITE} />
+                    <Image 
+                      source={getLearningImageSource(pod)} 
+                      style={styles.podcastCardImage}
+                      resizeMode="cover"
+                    />
+                    <View style={styles.podcastIconOverlay}>
+                      <MaterialCommunityIcons name="podcast" size={24} color={WHITE} />
                     </View>
                   </View>
-                  <Text style={styles.podcastEpText}>EP 0{pod.episode_number} • {pod.title}</Text>
+                  <Text style={styles.podcastEpText} numberOfLines={1}>EP 0{pod.episode_number} • {pod.title}</Text>
                   <Text style={styles.podcastAction}>Listen Now →</Text>
                 </TouchableOpacity>
               ))}
@@ -539,11 +545,14 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 10,
   },
-  featuredImagePlaceholder: {
+  featuredImageContainer: {
     height: 180,
-    backgroundColor: WHITE,
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: '#F0F9F4',
+    overflow: 'hidden',
+  },
+  featuredImage: {
+    width: '100%',
+    height: '100%',
   },
   featuredIllustration: {
     width: '100%',
@@ -621,15 +630,17 @@ const styles = StyleSheet.create({
     padding: 12,
     alignItems: 'center',
   },
-  latestImagePlaceholder: {
+  latestImageContainer: {
     width: 60,
     height: 60,
     borderRadius: 12,
-    backgroundColor: '#F5F5F5',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 15,
+    backgroundColor: '#F0F9F4',
     overflow: 'hidden',
+    marginRight: 15,
+  },
+  latestImage: {
+    width: '100%',
+    height: '100%',
   },
   latestIllustration: {
     width: '100%',
@@ -680,16 +691,22 @@ const styles = StyleSheet.create({
     borderColor: '#F3F4F6',
   },
   podcastIconWrapper: {
-    marginBottom: 16,
+    width: '100%',
+    height: 100,
+    borderRadius: 16,
+    overflow: 'hidden',
+    backgroundColor: '#E5E7EB',
+    marginBottom: 12,
   },
-  podcastIconCircle: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: PRIMARY_GREEN,
+  podcastCardImage: {
+    width: '100%',
+    height: '100%',
+  },
+  podcastIconOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.3)',
     alignItems: 'center',
     justifyContent: 'center',
-    position: 'relative',
   },
   marketPulseBadge: {
     position: 'absolute',

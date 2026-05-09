@@ -30,6 +30,7 @@ import { LearningContent } from '../../types';
 
 import { useLearningContext } from '../../context/LearningContext';
 import { useEffect } from 'react';
+import { getLearningImageSource } from '../../utils/learningUtils';
 
 const { width } = Dimensions.get('window');
 
@@ -90,6 +91,7 @@ const LearningContentDetailScreen = () => {
       'Review your spending weekly',
     ],
     isFeatured: (content as any)?.is_featured || (content as any)?.isFeatured || false,
+    image_url: content?.image_url || content?.thumbnail_url || (content as any)?.image,
   };
 
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -152,8 +154,12 @@ const LearningContentDetailScreen = () => {
 
   const renderArticle = () => (
     <>
-      <View style={[styles.heroImage, { backgroundColor: '#F0F9F4', alignItems: 'center', justifyContent: 'center' }]}>
-        <Ionicons name="document-text-outline" size={80} color={PRIMARY_GREEN} />
+      <View style={styles.heroImageContainer}>
+        <Image 
+          source={getLearningImageSource(displayContent as any)} 
+          style={styles.heroImage}
+          resizeMode="cover"
+        />
       </View>
       
       <View style={styles.contentPadding}>
@@ -183,8 +189,12 @@ const LearningContentDetailScreen = () => {
           <Text style={styles.relatedHeader}>You Might Also Like</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.relatedScroll}>
             <TouchableOpacity style={styles.relatedCard}>
-              <View style={[styles.relatedImage, { backgroundColor: '#F0F9F4', alignItems: 'center', justifyContent: 'center' }]}>
-                <Ionicons name="bulb-outline" size={30} color={PRIMARY_GREEN} />
+              <View style={styles.relatedImageContainer}>
+                <Image 
+                  source={getLearningImageSource({ type: 'article' })} 
+                  style={styles.relatedImage}
+                  resizeMode="cover"
+                />
               </View>
               <Text style={styles.relatedTitle} numberOfLines={2}>How to save on a student budget</Text>
             </TouchableOpacity>
@@ -203,9 +213,11 @@ const LearningContentDetailScreen = () => {
   const renderVideo = () => (
     <>
       <View style={styles.videoPlayer}>
-        <View style={[styles.videoThumbnail, { backgroundColor: '#111', alignItems: 'center', justifyContent: 'center' }]}>
-           <Ionicons name="play-circle-outline" size={80} color={WHITE} />
-        </View>
+        <Image 
+          source={getLearningImageSource(displayContent as any)} 
+          style={styles.videoThumbnail}
+          resizeMode="cover"
+        />
         <View style={styles.videoOverlay}>
           <TouchableOpacity style={styles.playButtonLarge}>
             <Ionicons name="play" size={40} color={WHITE} />
@@ -291,9 +303,11 @@ const LearningContentDetailScreen = () => {
   const renderPodcast = () => (
     <View style={styles.podcastContainer}>
       <View style={styles.coverArtContainer}>
-        <View style={[styles.coverArtImage, { backgroundColor: PRIMARY_GREEN, alignItems: 'center', justifyContent: 'center' }]}>
-          <Ionicons name="mic-outline" size={100} color={WHITE} />
-        </View>
+        <Image 
+          source={getLearningImageSource(displayContent as any)} 
+          style={styles.coverArtImage}
+          resizeMode="cover"
+        />
       </View>
 
       <View style={styles.contentPadding}>
@@ -420,11 +434,17 @@ const styles = StyleSheet.create({
     zIndex: 100,
     backgroundColor: WHITE,
   },
-  heroImage: {
+  heroImageContainer: {
     width: '100%',
     height: 220,
+    backgroundColor: '#F0F9F4',
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
+    overflow: 'hidden',
+  },
+  heroImage: {
+    width: '100%',
+    height: '100%',
   },
   contentPadding: {
     padding: 20,
@@ -593,11 +613,17 @@ const styles = StyleSheet.create({
     width: 180,
     marginRight: 16,
   },
-  relatedImage: {
+  relatedImageContainer: {
     width: '100%',
     height: 100,
+    backgroundColor: '#F0F9F4',
     borderRadius: 12,
     marginBottom: 8,
+    overflow: 'hidden',
+  },
+  relatedImage: {
+    width: '100%',
+    height: '100%',
   },
   relatedTitle: {
     fontSize: 14,

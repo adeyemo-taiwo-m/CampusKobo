@@ -88,6 +88,7 @@ export interface LearningContent {
   category: string;
   duration: string;
   content: string;
+  image_url?: string;
   keyTakeaways?: string[];
   relatedContentIds?: string[];
   isFeatured: boolean;
