@@ -176,9 +176,19 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           setApiUser(profile);
           setIsAuthenticated(true);
           
+          // Sync security/privacy settings to local state
+          if (profile.hide_balance !== undefined) {
+            setIsBalanceHidden(profile.hide_balance);
+          }
+          
           // Sync API user with local user if needed
           if (user && user.email === profile.email) {
-            const updatedLocal = { ...user, name: profile.full_name };
+            const updatedLocal = { 
+              ...user, 
+              name: profile.full_name,
+              hideBalance: profile.hide_balance ?? user.hideBalance,
+              hasPIN: profile.pin_lock_enabled ?? user.hasPIN
+            };
             setUserState(updatedLocal);
             StorageService.saveUser(updatedLocal);
           }

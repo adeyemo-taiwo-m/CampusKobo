@@ -22,6 +22,7 @@ import {
   BORDER_GRAY,
 } from '../../constants';
 import { Header } from '../../components/Header';
+import { useAppContext } from '../../context/AppContext';
 
 const { width } = Dimensions.get('window');
 
@@ -147,10 +148,9 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     marginBottom: 16,
-  },
-  appName: {
+  },   appName: {
     fontSize: 28,
-    fontFamily: Fonts.Bold,
+    fontFamily: Fonts.bold,
     color: TEXT_PRIMARY,
   },
   versionBadge: {
@@ -162,12 +162,12 @@ const styles = StyleSheet.create({
   },
   versionText: {
     fontSize: 12,
-    fontFamily: Fonts.Bold,
+    fontFamily: Fonts.bold,
     color: PRIMARY_GREEN,
   },
   heroDescription: {
     fontSize: 16,
-    fontFamily: Fonts.Medium,
+    fontFamily: Fonts.medium,
     color: TEXT_SECONDARY,
     textAlign: 'center',
     marginTop: 16,
@@ -187,13 +187,13 @@ const styles = StyleSheet.create({
   },
   introTitle: {
     fontSize: 18,
-    fontFamily: Fonts.Bold,
+    fontFamily: Fonts.bold,
     color: TEXT_PRIMARY,
     marginBottom: 12,
   },
   introText: {
     fontSize: 15,
-    fontFamily: Fonts.Regular,
+    fontFamily: Fonts.regular,
     color: TEXT_SECONDARY,
     lineHeight: 24,
   },
@@ -207,13 +207,13 @@ const styles = StyleSheet.create({
   },
   offlineText: {
     fontSize: 13,
-    fontFamily: Fonts.Medium,
+    fontFamily: Fonts.medium,
     color: PRIMARY_GREEN,
     marginLeft: 8,
   },
   sectionHeading: {
     fontSize: 18,
-    fontFamily: Fonts.Bold,
+    fontFamily: Fonts.bold,
     color: TEXT_PRIMARY,
     marginBottom: 16,
     marginLeft: 4,
@@ -247,13 +247,13 @@ const styles = StyleSheet.create({
   },
   featureTitle: {
     fontSize: 15,
-    fontFamily: Fonts.Bold,
+    fontFamily: Fonts.bold,
     color: TEXT_PRIMARY,
     marginBottom: 6,
   },
   featureDescription: {
     fontSize: 12,
-    fontFamily: Fonts.Regular,
+    fontFamily: Fonts.regular,
     color: TEXT_SECONDARY,
     lineHeight: 18,
   },
@@ -270,7 +270,7 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 16,
-    fontFamily: Fonts.Bold,
+    fontFamily: Fonts.bold,
     color: TEXT_PRIMARY,
     marginBottom: 16,
   },
@@ -283,12 +283,12 @@ const styles = StyleSheet.create({
   },
   techLabel: {
     fontSize: 14,
-    fontFamily: Fonts.Medium,
+    fontFamily: Fonts.medium,
     color: TEXT_SECONDARY,
   },
   techValue: {
     fontSize: 14,
-    fontFamily: Fonts.Bold,
+    fontFamily: Fonts.bold,
     color: TEXT_PRIMARY,
   },
   footer: {
@@ -297,13 +297,14 @@ const styles = StyleSheet.create({
   },
   madeBy: {
     fontSize: 14,
-    fontFamily: Fonts.Medium,
+    fontFamily: Fonts.medium,
     color: PRIMARY_GREEN,
     marginBottom: 4,
   },
   legal: {
     fontSize: 12,
-    fontFamily: Fonts.Regular,
+    fontFamily: Fonts.regular,
     color: TEXT_SECONDARY,
   },
+
 });

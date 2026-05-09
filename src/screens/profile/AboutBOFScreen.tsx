@@ -23,6 +23,7 @@ import {
   BORDER_GRAY,
 } from '../../constants';
 import { Header } from '../../components/Header';
+import { useAppContext } from '../../context/AppContext';
 
 const { width } = Dimensions.get('window');
 
@@ -238,14 +239,14 @@ const styles = StyleSheet.create({
   },
   heroTitle: {
     fontSize: 20,
-    fontFamily: Fonts.Bold,
+    fontFamily: Fonts.bold,
     color: TEXT_PRIMARY,
     textAlign: 'center',
     paddingHorizontal: 20,
   },
   heroSubtitle: {
     fontSize: 14,
-    fontFamily: Fonts.Medium,
+    fontFamily: Fonts.medium,
     color: PRIMARY_GREEN,
     marginTop: 4,
   },
@@ -260,7 +261,7 @@ const styles = StyleSheet.create({
   },
   quoteText: {
     fontSize: 15,
-    fontFamily: Fonts.Medium,
+    fontFamily: Fonts.medium,
     fontStyle: 'italic',
     color: TEXT_SECONDARY,
     textAlign: 'center',
@@ -279,13 +280,13 @@ const styles = StyleSheet.create({
   },
   overviewText: {
     fontSize: 15,
-    fontFamily: Fonts.Regular,
+    fontFamily: Fonts.regular,
     color: TEXT_PRIMARY,
     lineHeight: 24,
     textAlign: 'center',
   },
   boldText: {
-    fontFamily: Fonts.Bold,
+    fontFamily: Fonts.bold,
     color: PRIMARY_GREEN,
   },
   statsGrid: {
@@ -309,12 +310,12 @@ const styles = StyleSheet.create({
   },
   statValue: {
     fontSize: 22,
-    fontFamily: Fonts.Bold,
+    fontFamily: Fonts.bold,
     color: PRIMARY_GREEN,
   },
   statLabel: {
     fontSize: 12,
-    fontFamily: Fonts.Medium,
+    fontFamily: Fonts.medium,
     color: TEXT_SECONDARY,
     marginTop: 4,
   },
@@ -336,14 +337,14 @@ const styles = StyleSheet.create({
   },
   infoCardTitle: {
     fontSize: 14,
-    fontFamily: Fonts.Bold,
+    fontFamily: Fonts.bold,
     color: TEXT_PRIMARY,
     marginTop: 8,
     marginBottom: 4,
   },
   infoCardText: {
     fontSize: 12,
-    fontFamily: Fonts.Regular,
+    fontFamily: Fonts.regular,
     color: TEXT_SECONDARY,
     textAlign: 'center',
     lineHeight: 18,
@@ -360,7 +361,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 12,
-    fontFamily: Fonts.Bold,
+    fontFamily: Fonts.bold,
     color: TEXT_SECONDARY,
     marginHorizontal: 12,
     letterSpacing: 1.2,
@@ -395,18 +396,18 @@ const styles = StyleSheet.create({
   },
   featureTitle: {
     fontSize: 15,
-    fontFamily: Fonts.Bold,
+    fontFamily: Fonts.bold,
     color: TEXT_PRIMARY,
   },
   featureDescription: {
     fontSize: 13,
-    fontFamily: Fonts.Regular,
+    fontFamily: Fonts.regular,
     color: TEXT_SECONDARY,
     marginTop: 2,
   },
   cardHeader: {
     fontSize: 15,
-    fontFamily: Fonts.Bold,
+    fontFamily: Fonts.bold,
     color: TEXT_PRIMARY,
     padding: 12,
     borderBottomWidth: 1,
@@ -424,12 +425,12 @@ const styles = StyleSheet.create({
   },
   leaderName: {
     fontSize: 14,
-    fontFamily: Fonts.Medium,
+    fontFamily: Fonts.medium,
     color: TEXT_PRIMARY,
   },
   leaderRole: {
     fontSize: 12,
-    fontFamily: Fonts.Regular,
+    fontFamily: Fonts.regular,
     color: TEXT_SECONDARY,
   },
   contactRow: {
@@ -441,7 +442,7 @@ const styles = StyleSheet.create({
   },
   contactText: {
     fontSize: 15,
-    fontFamily: Fonts.Medium,
+    fontFamily: Fonts.medium,
     color: TEXT_PRIMARY,
     marginLeft: 16,
   },
@@ -452,7 +453,7 @@ const styles = StyleSheet.create({
   },
   copyright: {
     fontSize: 12,
-    fontFamily: Fonts.Regular,
+    fontFamily: Fonts.regular,
     color: TEXT_SECONDARY,
   },
   footerLinks: {
@@ -462,7 +463,7 @@ const styles = StyleSheet.create({
   },
   footerLink: {
     fontSize: 12,
-    fontFamily: Fonts.Medium,
+    fontFamily: Fonts.medium,
     color: PRIMARY_GREEN,
   },
   footerDot: {

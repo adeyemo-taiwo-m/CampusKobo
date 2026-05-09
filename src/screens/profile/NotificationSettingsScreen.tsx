@@ -143,7 +143,7 @@ export const NotificationSettingsScreen = () => {
 
   const isGlobalDisabled = !allNotifications;
 
-  if (prefsLoading && Object.keys(notificationPrefs).length === 0) {
+  if (prefsLoading && (!notificationPrefs || Object.keys(notificationPrefs).length === 0)) {
     return (
       <View style={styles.container}>
         <Header title={t('notifications.title')} showBack={true} onBack={() => router.back()} />

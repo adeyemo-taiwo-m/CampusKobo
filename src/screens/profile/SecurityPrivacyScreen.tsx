@@ -85,7 +85,7 @@ const SecurityRow = ({
 
 export const SecurityPrivacyScreen = () => {
   const router = useRouter();
-  const { isBalanceHidden, toggleBalanceVisibility, user, logout, t } = useAppContext();
+  const { isBalanceHidden, toggleBalanceVisibility, user, apiUser, logout, t } = useAppContext();
   
   const [appLock, setAppLock] = useState(false);
   const [biometricUnlock, setBiometricUnlock] = useState(true);
@@ -101,7 +101,28 @@ export const SecurityPrivacyScreen = () => {
   // Persistence Logic
   useEffect(() => {
     const loadPrefs = async () => {
-      // 1. Try to load from Supabase
+      // 1. Use apiUser data if available (synced from backend)
+      if (apiUser) {
+        setAppLock(apiUser.app_lock_enabled ?? false);
+        setBiometricUnlock(apiUser.biometric_enabled ?? false);
+        setPinLock(apiUser.pin_lock_enabled ?? false);
+        setFingerprintLogin(apiUser.fingerprint_enabled ?? false);
+        setFaceId(apiUser.face_id_enabled ?? false);
+        setDataAnalytics(apiUser.allow_analytics ?? false);
+        
+        // Sync to storage
+        await StorageService.saveSecurityPreferences({
+          appLock: apiUser.app_lock_enabled ?? false,
+          biometricUnlock: apiUser.biometric_enabled ?? false,
+          pinLock: apiUser.pin_lock_enabled ?? false,
+          fingerprintLogin: apiUser.fingerprint_enabled ?? false,
+          faceId: apiUser.face_id_enabled ?? false,
+          dataAnalytics: apiUser.allow_analytics ?? false,
+        });
+        return;
+      }
+
+      // 2. Fallback to direct fetch if apiUser is missing but we're authenticated
       try {
         const remote = await securityService.getSecurityPreferences();
         if (remote) {
@@ -110,7 +131,7 @@ export const SecurityPrivacyScreen = () => {
           setPinLock(remote.pin_lock_enabled);
           setFingerprintLogin(remote.fingerprint_enabled);
           setFaceId(remote.face_id_enabled);
-          setDataAnalytics(remote.data_analytics_enabled);
+          setDataAnalytics(remote.allow_analytics);
           if (remote.hide_balance !== isBalanceHidden) toggleBalanceVisibility();
           
           // Sync to storage
@@ -120,15 +141,15 @@ export const SecurityPrivacyScreen = () => {
             pinLock: remote.pin_lock_enabled,
             fingerprintLogin: remote.fingerprint_enabled,
             faceId: remote.face_id_enabled,
-            dataAnalytics: remote.data_analytics_enabled,
+            dataAnalytics: remote.allow_analytics,
           });
           return;
         }
       } catch (e) {
-        console.warn("Failed to load security prefs from Supabase:", e);
+        console.warn("Failed to load security prefs from backend:", e);
       }
 
-      // 2. Fallback to local storage
+      // 3. Fallback to local storage
       const saved = await StorageService.getSecurityPreferences();
       if (saved) {
         if (saved.appLock !== undefined) setAppLock(saved.appLock);
@@ -140,7 +161,7 @@ export const SecurityPrivacyScreen = () => {
       }
     };
     loadPrefs();
-  }, []);
+  }, [apiUser]);
 
   const savePrefs = async (overrides: Record<string, boolean> = {}) => {
     await StorageService.saveSecurityPreferences({
@@ -154,13 +175,13 @@ export const SecurityPrivacyScreen = () => {
     });
   };
 
-  const syncSecurityToSupabase = async (updates: Partial<SecurityPreferences>) => {
+  const syncSecurityToBackend = async (updates: Partial<SecurityPreferences>) => {
     try {
       await securityService.updateSecurityPreferences(updates);
       setToastMessage(t('security.toastSynced'));
       setToastVisible(true);
     } catch (error) {
-      console.warn("Could not sync biometric settings to Supabase:", error);
+      console.warn("Could not sync security settings to backend:", error);
     }
   };
 
@@ -205,7 +226,7 @@ export const SecurityPrivacyScreen = () => {
             onValueChange={(v) => { 
               setAppLock(v); 
               savePrefs({ appLock: v }); 
-              syncSecurityToSupabase({ app_lock_enabled: v });
+              syncSecurityToBackend({ app_lock_enabled: v });
             }}
             isLast={!appLock}
           />
@@ -219,7 +240,7 @@ export const SecurityPrivacyScreen = () => {
                 onValueChange={(v) => { 
                   setBiometricUnlock(v); 
                   savePrefs({ biometricUnlock: v }); 
-                  syncSecurityToSupabase({ biometric_enabled: v });
+                  syncSecurityToBackend({ biometric_enabled: v });
                 }}
               />
               <SecurityRow
@@ -230,7 +251,7 @@ export const SecurityPrivacyScreen = () => {
                 onValueChange={(v) => { 
                   setPinLock(v); 
                   savePrefs({ pinLock: v }); 
-                  syncSecurityToSupabase({ pin_lock_enabled: v });
+                  syncSecurityToBackend({ pin_lock_enabled: v });
                 }}
                 isLast={true}
               />
@@ -272,7 +293,7 @@ export const SecurityPrivacyScreen = () => {
               onValueChange={(v) => { 
                 setFingerprintLogin(v); 
                 savePrefs({ fingerprintLogin: v }); 
-                syncSecurityToSupabase({ fingerprint_enabled: v });
+                syncSecurityToBackend({ fingerprint_enabled: v });
               }}
             />
             <SecurityRow
@@ -283,7 +304,7 @@ export const SecurityPrivacyScreen = () => {
               onValueChange={(v) => { 
                 setFaceId(v); 
                 savePrefs({ faceId: v }); 
-                syncSecurityToSupabase({ face_id_enabled: v });
+                syncSecurityToBackend({ face_id_enabled: v });
               }}
               isLast={true}
             />
@@ -301,7 +322,7 @@ export const SecurityPrivacyScreen = () => {
               value={isBalanceHidden}
               onValueChange={(v) => {
                 toggleBalanceVisibility();
-                syncSecurityToSupabase({ hide_balance: v });
+                syncSecurityToBackend({ hide_balance: v });
               }}
             />
             <SecurityRow
@@ -312,7 +333,7 @@ export const SecurityPrivacyScreen = () => {
               onValueChange={(v) => { 
                 setDataAnalytics(v); 
                 savePrefs({ dataAnalytics: v }); 
-                syncSecurityToSupabase({ data_analytics_enabled: v });
+                syncSecurityToBackend({ allow_analytics: v });
               }}
               isLast={true}
             />

@@ -44,13 +44,13 @@ export default function SignUpScreen() {
     if (validate()) {
       setIsLoading(true);
       try {
-        await registerWithApi(name, email, password);
+        await registerWithApi(name.trim(), email.trim().toLowerCase(), password);
         
         // For offline-first fallback, create a local user object
         const newUser = {
           id: Math.random().toString(36).substr(2, 9),
-          name,
-          email,
+          name: name.trim(),
+          email: email.trim().toLowerCase(),
           currency: 'NGN' as const,
           monthlyBudget: 0,
           selectedGoals: [],
@@ -103,6 +103,8 @@ export default function SignUpScreen() {
             value={email} 
             onChangeText={setEmail}
             keyboardType="email-address"
+            autoCapitalize="none"
+            autoCorrect={false}
             state={errors.email ? 'error' : 'default'}
             error={errors.email}
             editable={!isLoading}
@@ -113,6 +115,8 @@ export default function SignUpScreen() {
             value={password} 
             onChangeText={setPassword}
             secureTextEntry={!showPassword}
+            autoCapitalize="none"
+            autoCorrect={false}
             state={errors.password ? 'error' : 'default'}
             error={errors.password}
             editable={!isLoading}

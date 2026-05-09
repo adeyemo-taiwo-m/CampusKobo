@@ -70,6 +70,15 @@ export type ApiUser = {
   full_name: string;
   email: string;
   avatar_url?: string;
+  app_lock_enabled?: boolean;
+  biometric_enabled?: boolean;
+  pin_lock_enabled?: boolean;
+  fingerprint_enabled?: boolean;
+  face_id_enabled?: boolean;
+  hide_balance?: boolean;
+  allow_analytics?: boolean;
+  is_email_verified?: boolean;
+  has_pin?: boolean;
 };
 
 export interface LearningContent {

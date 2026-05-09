@@ -364,7 +364,7 @@ export const ProfileSettingsScreen = () => {
                       ) : (
                         <View style={[styles.modalAvatar, styles.initialsAvatarModal]}>
                           <Text style={styles.avatarInitialsModal}>
-                            {userName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2)}
+                            {userName.split(' ').filter(Boolean).map(n => n[0]).join('').toUpperCase().substring(0, 2)}
                           </Text>
                         </View>
                       )}
@@ -414,7 +414,7 @@ export const ProfileSettingsScreen = () => {
 
                 <TouchableOpacity 
                   style={[styles.saveBtn, isSaving && styles.disabledBtn]}
-                  onPress={() => handleSaveProfile(userName)}
+                  onPress={() => handleSaveProfile(editName)}
                   disabled={isSaving}
                 >
                   {isSaving ? (

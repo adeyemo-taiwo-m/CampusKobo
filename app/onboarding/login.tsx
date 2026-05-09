@@ -30,7 +30,7 @@ export default function LoginScreen() {
     setIsLoading(true);
     
     try {
-      await loginWithApi(email, password);
+      await loginWithApi(email.trim().toLowerCase(), password);
       // The useEffect above will handle the navigation
     } catch (error: any) {
       const errorMessage = error.message || 'Login failed. Please try again.';
@@ -68,6 +68,8 @@ export default function LoginScreen() {
             value={email} 
             onChangeText={setEmail}
             keyboardType="email-address"
+            autoCapitalize="none"
+            autoCorrect={false}
             editable={!isLoading}
           />
           <InputField 
@@ -76,6 +78,8 @@ export default function LoginScreen() {
             value={password} 
             onChangeText={setPassword}
             secureTextEntry={!showPassword}
+            autoCapitalize="none"
+            autoCorrect={false}
             editable={!isLoading}
             rightIcon={
               <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>

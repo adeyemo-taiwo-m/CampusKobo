@@ -6,9 +6,16 @@ export interface UserProfileResponse {
   email: string;
   full_name: string;
   avatar_url?: string;
-  is_verified: boolean;
+  is_email_verified: boolean;
   created_at: string;
-  // Add other fields as the API returns them
+  app_lock_enabled?: boolean;
+  biometric_enabled?: boolean;
+  pin_lock_enabled?: boolean;
+  fingerprint_enabled?: boolean;
+  face_id_enabled?: boolean;
+  hide_balance?: boolean;
+  allow_analytics?: boolean;
+  has_pin?: boolean;
 }
 
 export interface UserProfileUpdateRequest {
@@ -26,7 +33,7 @@ export interface BiometricSettingsRequest {
 
 export interface PrivacySettingsRequest {
   hide_balance?: boolean;
-  data_analytics?: boolean;
+  allow_analytics?: boolean;
 }
 
 /**
