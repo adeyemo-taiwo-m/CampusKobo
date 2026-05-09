@@ -228,18 +228,21 @@ export const HelpFAQScreen = () => {
 
     setIsSendingMessage(true);
     try {
-      await supportService.sendSupportMessage({ 
-        subject, 
-        message,
-        name: apiUser?.full_name || user?.name || 'User',
-        email: apiUser?.email || user?.email || 'no-email@campuskobo.com',
-        user_id: user?.id
-      });
-      setMessageSent(true);
-      setSubject("");
-      setMessage("");
+      const emailRecipient = 'bureauoffinance@gmail.com';
+      const mailtoUrl = `mailto:${emailRecipient}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(message)}`;
+      
+      const canOpen = await Linking.canOpenURL(mailtoUrl);
+      if (canOpen) {
+        await Linking.openURL(mailtoUrl);
+        setMessageSent(true);
+        setSubject("");
+        setMessage("");
+      } else {
+        setMessageError("No email client detected on this device. Please email us directly at bureauoffinance@gmail.com");
+      }
     } catch (error: any) {
-      setMessageError(error.message || "Failed to send message. Please try again.");
+      setMessageError("Could not open email client. Please try again.");
+      console.error('Email error:', error);
     } finally {
       setIsSendingMessage(false);
     }
@@ -402,7 +405,7 @@ export const HelpFAQScreen = () => {
       </ScrollView>
 
       <View style={styles.fixedBottom}>
-        <TouchableOpacity style={styles.sendMessageBtn}>
+        <TouchableOpacity style={styles.sendMessageBtn} onPress={() => setActiveTab('Contact')}>
           <Text style={styles.sendMessageText}>Send message</Text>
         </TouchableOpacity>
       </View>
