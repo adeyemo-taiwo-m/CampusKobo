@@ -14,12 +14,12 @@ export const getLearningImageSource = (item: Partial<LearningContent>) => {
   // Fallback to local placeholders based on type
   switch (item.type) {
     case 'article':
-      return require('../../assets/images/learning-article-placeholder.png');
+      return require('../../assets/images/la.png');
     case 'video':
-      return require('../../assets/images/learning-video-placeholder.png');
+      return require('../../assets/images/lv.png');
     case 'podcast':
-      return require('../../assets/images/learning-podcast-placeholder.png');
+      return require('../../assets/images/lp.png');
     default:
-      return require('../../assets/images/learning-article-placeholder.png');
+      return require('../../assets/images/la.png');
   }
 };
