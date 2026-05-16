@@ -83,7 +83,7 @@ export const uploadAvatar = async (imageUri: string): Promise<{ avatar_url: stri
     });
   }
 
-  if (__DEV__) console.log('🚀 Bypassing axios for avatar upload to resolve potential CORS issue...');
+  if (__DEV__) console.log('🚀 Bypassing axios for avatar upload to resolve potential CORS and FormData issues...');
   
   const token = await (async () => {
     try {
@@ -94,38 +94,31 @@ export const uploadAvatar = async (imageUri: string): Promise<{ avatar_url: stri
     }
   })();
 
-  let responseData: any;
-  
   const isWeb = Platform.OS === 'web';
-  if (__DEV__) console.log(`🔄 Using ${isWeb ? 'FETCH (Web)' : 'AXIOS (Native)'} path for upload`);
+  if (__DEV__) console.log(`🔄 Using FETCH (Unified) path for upload on ${isWeb ? 'Web' : 'Native'}`);
 
-  if (isWeb) {
-    // Web environment: use native fetch which often handles FormData + CORS better
-    const res = await fetch(`${API_BASE_URL}${API_ENDPOINTS.UPLOAD_AVATAR}`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Accept': 'application/json',
-      },
-      body: formData,
-    });
-    
-    if (!res.ok) {
-      const errorText = await res.text();
-      let errorMsg = `Upload failed with status ${res.status}`;
-      try {
-        const errorJson = JSON.parse(errorText);
-        errorMsg = errorJson.detail || errorJson.message || errorMsg;
-      } catch (e) {}
-      throw new Error(errorMsg);
-    }
-    
-    responseData = await res.json();
-  } else {
-    // Native environment: stick with apiClient
-    responseData = await apiClient.post(API_ENDPOINTS.UPLOAD_AVATAR, formData);
+  // Unified fetch approach for both Web and Native
+  // Native fetch handles FormData perfectly in React Native, avoiding axios/interceptor pitfalls
+  const res = await fetch(`${API_BASE_URL}${API_ENDPOINTS.UPLOAD_AVATAR}`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Accept': 'application/json',
+    },
+    body: formData as any,
+  });
+  
+  if (!res.ok) {
+    const errorText = await res.text();
+    let errorMsg = `Upload failed with status ${res.status}`;
+    try {
+      const errorJson = JSON.parse(errorText);
+      errorMsg = errorJson.detail || errorJson.message || errorMsg;
+    } catch (e) {}
+    throw new Error(errorMsg);
   }
   
+  const responseData = await res.json();
   const result = responseData;
   let avatar_url = result.avatar_url || result.data?.avatar_url || result.url || result.data?.url;
   

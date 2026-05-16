@@ -27,7 +27,12 @@ apiClient.interceptors.request.use(
     }
     
     if (__DEV__) {
-      console.log(`[API Request] ${config.method?.toUpperCase()} ${config.url}`, config.data ? { payload: config.data } : '');
+      console.log(`[API Request] ${config.method?.toUpperCase()} ${config.url}`);
+      if (config.data && !(config.data instanceof FormData)) {
+        console.log('Payload:', config.data);
+      } else if (config.data instanceof FormData) {
+        console.log('Payload: [FormData]');
+      }
     }
     
     return config;
