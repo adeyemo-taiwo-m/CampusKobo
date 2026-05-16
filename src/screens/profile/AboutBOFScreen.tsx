@@ -114,6 +114,14 @@ export const AboutBOFScreen = () => {
           </Text>
         </View>
 
+        {/* Brief History */}
+        <SectionTitle title={t('about.bofHistoryTitle') || 'Brief History'} />
+        <View style={styles.contentCard}>
+          <Text style={styles.historyText}>
+            {t('about.bofHistory')}
+          </Text>
+        </View>
+
         {/* Stats Grid */}
         <View style={styles.statsGrid}>
           <StatCard value="500+" label="Active Members" />
@@ -284,6 +292,13 @@ const styles = StyleSheet.create({
     color: TEXT_PRIMARY,
     lineHeight: 24,
     textAlign: 'center',
+  },
+  historyText: {
+    fontSize: 14,
+    fontFamily: Fonts.regular,
+    color: TEXT_PRIMARY,
+    lineHeight: 22,
+    textAlign: 'justify',
   },
   boldText: {
     fontFamily: Fonts.bold,
