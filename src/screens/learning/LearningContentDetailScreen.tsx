@@ -67,7 +67,6 @@ const LearningContentDetailScreen = () => {
   const [playbackStatus, setPlaybackStatus] = useState<AVPlaybackStatus | null>(null);
   const [audioPosition, setAudioPosition] = useState(0);
   const [audioDuration, setAudioDuration] = useState(0);
-  const [volume, setVolume] = useState(1.0);
 
   // Mark initial progress on mount
   useEffect(() => {
@@ -159,13 +158,6 @@ const LearningContentDetailScreen = () => {
     await sound.setPositionAsync(newPosition);
   };
 
-  const changeVolume = async (newVolume: number) => {
-    const clampedVolume = Math.max(0, Math.min(1, newVolume));
-    setVolume(clampedVolume);
-    if (sound) {
-      await sound.setVolumeAsync(clampedVolume);
-    }
-  };
 
   const formatMs = (ms: number) => {
     if (!ms || isNaN(ms)) return '0:00';
@@ -445,27 +437,6 @@ const LearningContentDetailScreen = () => {
             <TouchableOpacity><Ionicons name="play-skip-forward" size={28} color={TEXT_PRIMARY} /></TouchableOpacity>
           </View>
 
-          <View style={styles.audioExtraRow}>
-            <TouchableOpacity onPress={() => changeVolume(volume > 0 ? 0 : 1.0)}>
-              <Ionicons 
-                name={volume === 0 ? "volume-mute-outline" : volume < 0.5 ? "volume-low-outline" : "volume-medium-outline"} 
-                size={24} 
-                color={TEXT_PRIMARY} 
-              />
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={styles.volumeBar}
-              activeOpacity={1}
-              onPress={(e) => {
-                const x = e.nativeEvent.locationX;
-                const width = 150; // Approximated width of volume bar
-                changeVolume(x / width);
-              }}
-            >
-              <View style={[styles.volumeFill, { width: `${volume * 100}%` }]} />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.speedButton}><Text style={styles.speedText}>1x</Text></TouchableOpacity>
-          </View>
         </View>
 
         <Text style={styles.subHeader}>About this episode</Text>
@@ -863,11 +834,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  audioExtraRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
   volumeBar: {
     flex: 1,
     height: 4,
@@ -878,17 +844,6 @@ const styles = StyleSheet.create({
     height: '100%',
     backgroundColor: TEXT_PRIMARY,
     borderRadius: 2,
-  },
-  speedButton: {
-    backgroundColor: '#F3F4F6',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-  },
-  speedText: {
-    fontSize: 12,
-    fontFamily: Fonts.bold,
-    color: TEXT_PRIMARY,
   },
   moreEpisodesSection: {
     marginBottom: 32,
