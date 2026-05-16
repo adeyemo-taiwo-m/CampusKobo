@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { Audio, AVPlaybackStatus } from 'expo-av';
 import {
   WHITE,
   PRIMARY_GREEN,
@@ -61,6 +62,13 @@ const LearningContentDetailScreen = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [hasMarkedProgress, setHasMarkedProgress] = useState(false);
 
+  // Audio Playback States
+  const [sound, setSound] = useState<Audio.Sound | null>(null);
+  const [playbackStatus, setPlaybackStatus] = useState<AVPlaybackStatus | null>(null);
+  const [audioPosition, setAudioPosition] = useState(0);
+  const [audioDuration, setAudioDuration] = useState(0);
+  const [volume, setVolume] = useState(1.0);
+
   // Mark initial progress on mount
   useEffect(() => {
     if (id) {
@@ -75,6 +83,97 @@ const LearningContentDetailScreen = () => {
       setHasMarkedProgress(true);
     }
   }, [scrollProgress, hasMarkedProgress, id, type]);
+
+  // Audio loading and cleanup
+  useEffect(() => {
+    if (type === 'podcast') {
+      loadAudio();
+    }
+    return () => {
+      if (sound) {
+        sound.unloadAsync();
+      }
+    };
+  }, [id, type]);
+
+  const loadAudio = async () => {
+    const audioUrl = content?.media_url || (content as any)?.audio_url;
+    if (!audioUrl) return;
+
+    try {
+      if (sound) {
+        await sound.unloadAsync();
+      }
+
+      const { sound: newSound } = await Audio.Sound.createAsync(
+        { uri: audioUrl },
+        { shouldPlay: false, volume: volume },
+        onPlaybackStatusUpdate
+      );
+      setSound(newSound);
+    } catch (error) {
+      console.error('[Audio] Error loading sound:', error);
+    }
+  };
+
+  const onPlaybackStatusUpdate = (status: AVPlaybackStatus) => {
+    if (status.isLoaded) {
+      setPlaybackStatus(status);
+      setAudioPosition(status.positionMillis);
+      setAudioDuration(status.durationMillis || 0);
+      setIsPlaying(status.isPlaying);
+      
+      // Mark progress when audio is playing
+      if (status.isPlaying && status.durationMillis && id && !hasMarkedProgress) {
+        const progress = (status.positionMillis / status.durationMillis) * 100;
+        if (progress > 90) {
+          markContentProgress(id as string, 'completed', 100);
+          setHasMarkedProgress(true);
+        } else if (progress > 10) {
+          markContentProgress(id as string, 'in_progress', Math.round(progress));
+        }
+      }
+    } else if (status.error) {
+      console.error(`[Audio] Playback error: ${status.error}`);
+    }
+  };
+
+  const togglePlayback = async () => {
+    if (!sound) return;
+    if (isPlaying) {
+      await sound.pauseAsync();
+    } else {
+      await sound.playAsync();
+    }
+  };
+
+  const seekForward = async () => {
+    if (!sound || !playbackStatus?.isLoaded) return;
+    const newPosition = Math.min(audioDuration, audioPosition + 15000);
+    await sound.setPositionAsync(newPosition);
+  };
+
+  const seekBackward = async () => {
+    if (!sound || !playbackStatus?.isLoaded) return;
+    const newPosition = Math.max(0, audioPosition - 15000);
+    await sound.setPositionAsync(newPosition);
+  };
+
+  const changeVolume = async (newVolume: number) => {
+    const clampedVolume = Math.max(0, Math.min(1, newVolume));
+    setVolume(clampedVolume);
+    if (sound) {
+      await sound.setVolumeAsync(clampedVolume);
+    }
+  };
+
+  const formatMs = (ms: number) => {
+    if (!ms || isNaN(ms)) return '0:00';
+    const totalSeconds = Math.floor(ms / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+  };
 
   const displayContent = {
     id: content?.id || '1',
@@ -92,7 +191,8 @@ const LearningContentDetailScreen = () => {
       'Review your spending weekly',
     ],
     isFeatured: (content as any)?.is_featured || (content as any)?.isFeatured || false,
-    image_url: content?.image_url || content?.thumbnail_url || content?.cover_image_url || (content as any)?.image || (content as any)?.media_url,
+    image_url: content?.image_url || content?.thumbnail_url || content?.cover_image_url || (content as any)?.image,
+    media_url: content?.media_url || (content as any)?.audio_url || (content as any)?.video_url,
   };
 
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -321,51 +421,74 @@ const LearningContentDetailScreen = () => {
 
         <View style={styles.audioPlayer}>
           <View style={styles.audioProgressContainer}>
-            <ProgressBar progress={0.3} height={4} fillColor={PRIMARY_GREEN} />
+            <ProgressBar 
+              progress={audioDuration > 0 ? audioPosition / audioDuration : 0} 
+              height={4} 
+              fillColor={PRIMARY_GREEN} 
+            />
             <View style={styles.audioTimeRow}>
-              <Text style={styles.audioTimeText}>5:30</Text>
-              <Text style={styles.audioTimeText}>{displayContent.duration}</Text>
+              <Text style={styles.audioTimeText}>{formatMs(audioPosition)}</Text>
+              <Text style={styles.audioTimeText}>{audioDuration > 0 ? formatMs(audioDuration) : displayContent.duration}</Text>
             </View>
           </View>
 
           <View style={styles.audioControls}>
             <TouchableOpacity><Ionicons name="play-skip-back" size={28} color={TEXT_PRIMARY} /></TouchableOpacity>
-            <TouchableOpacity><Ionicons name="refresh" size={28} color={TEXT_PRIMARY} style={{ transform: [{ scaleX: -1 }] }} /></TouchableOpacity>
+            <TouchableOpacity onPress={seekBackward}><Ionicons name="refresh" size={28} color={TEXT_PRIMARY} style={{ transform: [{ scaleX: -1 }] }} /></TouchableOpacity>
             <TouchableOpacity 
               style={styles.playPauseButton}
-              onPress={() => setIsPlaying(!isPlaying)}
+              onPress={togglePlayback}
             >
               <Ionicons name={isPlaying ? "pause" : "play"} size={32} color={WHITE} />
             </TouchableOpacity>
-            <TouchableOpacity><Ionicons name="refresh" size={28} color={TEXT_PRIMARY} /></TouchableOpacity>
+            <TouchableOpacity onPress={seekForward}><Ionicons name="refresh" size={28} color={TEXT_PRIMARY} /></TouchableOpacity>
             <TouchableOpacity><Ionicons name="play-skip-forward" size={28} color={TEXT_PRIMARY} /></TouchableOpacity>
           </View>
 
           <View style={styles.audioExtraRow}>
-            <TouchableOpacity><Ionicons name="volume-medium-outline" size={24} color={TEXT_PRIMARY} /></TouchableOpacity>
-            <View style={styles.volumeBar}>
-              <View style={[styles.volumeFill, { width: '40%' }]} />
-            </View>
+            <TouchableOpacity onPress={() => changeVolume(volume > 0 ? 0 : 1.0)}>
+              <Ionicons 
+                name={volume === 0 ? "volume-mute-outline" : volume < 0.5 ? "volume-low-outline" : "volume-medium-outline"} 
+                size={24} 
+                color={TEXT_PRIMARY} 
+              />
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.volumeBar}
+              activeOpacity={1}
+              onPress={(e) => {
+                const x = e.nativeEvent.locationX;
+                const width = 150; // Approximated width of volume bar
+                changeVolume(x / width);
+              }}
+            >
+              <View style={[styles.volumeFill, { width: `${volume * 100}%` }]} />
+            </TouchableOpacity>
             <TouchableOpacity style={styles.speedButton}><Text style={styles.speedText}>1x</Text></TouchableOpacity>
           </View>
         </View>
 
         <Text style={styles.subHeader}>About this episode</Text>
         <Text style={styles.bodyText}>
-          Learn how to make your allowance last all month with simple money habits.
+          {displayContent.content || 'Learn how to make your allowance last all month with simple money habits.'}
         </Text>
 
         {renderKeyTakeaways()}
 
         <View style={styles.moreEpisodesSection}>
           <Text style={styles.relatedHeader}>More Episodes</Text>
-          {[
-            { id: '1', title: 'The Nigerian Economy Explained', duration: '24 min' },
-            { id: '2', title: 'How to Invest in Stocks Locally', duration: '31 min' },
-            { id: '3', title: 'Crypto in Nigeria — Risk or Reward?', duration: '18 min' },
-            { id: '4', title: 'Saving on a Student Budget', duration: '12 min' },
-          ].map((item) => (
-            <TouchableOpacity key={item.id} style={styles.episodeItem}>
+          {allContent
+            .filter(c => c.type === 'podcast' && c.id !== id)
+            .slice(0, 4)
+            .map((item) => (
+            <TouchableOpacity 
+              key={item.id} 
+              style={styles.episodeItem}
+              onPress={() => router.push({
+                pathname: '/learning/detail',
+                params: { id: item.id, type: 'podcast', content: JSON.stringify(item) }
+              })}
+            >
               <View style={[styles.episodeCover, { backgroundColor: PRIMARY_GREEN, alignItems: 'center', justifyContent: 'center' }]}>
                 <Ionicons name="headset-outline" size={24} color={WHITE} />
               </View>
