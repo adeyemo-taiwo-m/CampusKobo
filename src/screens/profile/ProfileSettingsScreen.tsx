@@ -13,6 +13,7 @@ import {
   Modal,
   TouchableWithoutFeedback,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -31,7 +32,7 @@ import { InputField } from '../../components/InputField';
 import { OfflineBanner } from '../../components/OfflineBanner';
 import { userService } from '../../services/userService';
 import * as ImagePicker from 'expo-image-picker';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 
 const { height } = Dimensions.get('window');
 
@@ -147,20 +148,42 @@ export const ProfileSettingsScreen = () => {
 
     if (result.canceled) return;
 
-    const imageUri = result.assets[0].uri;
+    const asset = result.assets[0];
+    const imageUri = asset.uri;
+    const fileSize = asset.fileSize; // Available in newer expo-image-picker
     
-    // File size check (Step 13.4)
-    const fileInfo = await FileSystem.getInfoAsync(imageUri);
-    if (fileInfo.exists && fileInfo.size && fileInfo.size > 5 * 1024 * 1024) {
+    // File size check (5MB limit)
+    if (fileSize && fileSize > 5 * 1024 * 1024) {
       Alert.alert("File too large", "Please choose an image under 5MB.");
       return;
     }
 
+    // Fallback for older versions or web where getInfo might still be needed if fileSize is missing
+    if (!fileSize && Platform.OS !== 'web') {
+      const fileInfo = await FileSystem.getInfoAsync(imageUri);
+      if (fileInfo.exists && fileInfo.size && fileInfo.size > 5 * 1024 * 1024) {
+        Alert.alert("File too large", "Please choose an image under 5MB.");
+        return;
+      }
+    }
+
     setIsUploadingAvatar(true);
     try {
-      const { avatar_url } = await userService.uploadAvatar(imageUri);
-      setApiUser(prev => prev ? { ...prev, avatar_url } : prev);
+      console.log('📸 Starting avatar upload for URI:', imageUri);
+      const result = await userService.uploadAvatar(imageUri);
+      const avatar_url = result.avatar_url;
+      
+      console.log('✅ Upload successful. New URL:', avatar_url);
+      
+      // Add cache breaker to force image reload if the URL is the same
+      const cachedAvatarUrl = `${avatar_url}${avatar_url.includes('?') ? '&' : '?'}t=${Date.now()}`;
+      setApiUser(prev => prev ? { ...prev, avatar_url: cachedAvatarUrl } : prev);
+      // Also update local user for offline consistency
+      await updateUser({ avatar_url: cachedAvatarUrl });
+      
+      Alert.alert('Success', 'Profile picture updated successfully!');
     } catch (error: any) {
+      console.error('❌ Avatar upload failed:', error);
       Alert.alert('Upload failed', error.message || 'Could not upload avatar. Please try again.');
     } finally {
       setIsUploadingAvatar(false);
@@ -207,6 +230,7 @@ export const ProfileSettingsScreen = () => {
           <View style={styles.modalAvatarWrapper}>
             {apiUser?.avatar_url ? (
               <Image 
+                key={apiUser.avatar_url}
                 source={{ uri: apiUser.avatar_url }} 
                 style={styles.avatar} 
               />
@@ -358,6 +382,7 @@ export const ProfileSettingsScreen = () => {
                     <View style={styles.modalAvatarWrapper}>
                       {apiUser?.avatar_url ? (
                         <Image 
+                          key={apiUser.avatar_url}
                           source={{ uri: apiUser.avatar_url }} 
                           style={styles.modalAvatar} 
                         />

@@ -7,7 +7,6 @@ const apiClient = axios.create({
   baseURL: API_BASE_URL,
   timeout: API_TIMEOUT,
   headers: {
-    'Content-Type': 'application/json',
     'Accept': 'application/json',
   },
 });
@@ -18,6 +17,13 @@ apiClient.interceptors.request.use(
     const token = await getAccessToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+    }
+    
+    // Auto-detect FormData and remove Content-Type to let browser set it with boundary
+    if (config.data instanceof FormData) {
+      if (config.headers['Content-Type']) {
+        delete config.headers['Content-Type'];
+      }
     }
     
     if (__DEV__) {
@@ -85,8 +91,14 @@ apiClient.interceptors.response.use(
     
     let message = detail || error.message || 'An unexpected error occurred';
     
-    // Specific handling for browser/network failures (CORS, offline, etc.)
-    if (error.message === 'Network Error') {
+    // Specific handling for common HTTP errors
+    if (status === 413) {
+      message = 'The image file is too large. Please choose a smaller file (under 5MB).';
+    } else if (status === 403) {
+      message = 'You do not have permission to perform this action.';
+    } else if (status === 404) {
+      message = 'The requested resource was not found on the server.';
+    } else if (error.message === 'Network Error') {
       message = 'Network error: Cannot reach the server. This may be due to CORS restrictions on web or your internet connection.';
     }
     

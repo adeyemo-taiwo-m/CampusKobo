@@ -1,5 +1,6 @@
+import { Platform } from 'react-native';
 import apiClient from './apiClient';
-import { API_ENDPOINTS } from '../constants/api';
+import { API_ENDPOINTS, API_BASE_URL } from '../constants/api';
 
 export interface UserProfileResponse {
   id: string;
@@ -61,22 +62,86 @@ export const uploadAvatar = async (imageUri: string): Promise<{ avatar_url: stri
   // Extract file name and type from URI
   const uriParts = imageUri.split('.');
   const fileType = uriParts[uriParts.length - 1];
-  const fileName = imageUri.split('/').pop();
+  const fileName = imageUri.split('/').pop() || 'avatar';
+  const hasExtension = fileName.includes('.');
+  const finalFileName = hasExtension ? fileName : `${fileName}.${fileType || 'jpg'}`;
 
-  // @ts-ignore - FormData expects a specific object structure in RN
-  formData.append('file', {
-    uri: imageUri,
-    name: fileName || `avatar.${fileType}`,
-    type: `image/${fileType}`,
-  });
+  if (typeof window !== 'undefined' && window.navigator) {
+    // Web platform
+    const response = await fetch(imageUri);
+    const blob = await response.blob();
+    const file = new File([blob], finalFileName, { type: blob.type || 'image/jpeg' });
+    formData.append('file', file);
+    if (__DEV__) console.log('📁 Web FormData created with File:', finalFileName, file.type, file.size);
+  } else {
+    // React Native platform
+    // @ts-ignore - FormData expects a specific object structure in RN
+    formData.append('file', {
+      uri: imageUri,
+      name: finalFileName,
+      type: `image/${fileType || 'jpg'}`,
+    });
+  }
 
-  const response = await apiClient.post(API_ENDPOINTS.UPLOAD_AVATAR, formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
-  });
+  if (__DEV__) console.log('🚀 Bypassing axios for avatar upload to resolve potential CORS issue...');
   
-  return response as unknown as { avatar_url: string };
+  const token = await (async () => {
+    try {
+      const { getAccessToken } = await import('../storage/TokenStorage');
+      return await getAccessToken();
+    } catch (e) {
+      return null;
+    }
+  })();
+
+  let responseData: any;
+  
+  const isWeb = Platform.OS === 'web';
+  if (__DEV__) console.log(`🔄 Using ${isWeb ? 'FETCH (Web)' : 'AXIOS (Native)'} path for upload`);
+
+  if (isWeb) {
+    // Web environment: use native fetch which often handles FormData + CORS better
+    const res = await fetch(`${API_BASE_URL}${API_ENDPOINTS.UPLOAD_AVATAR}`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/json',
+      },
+      body: formData,
+    });
+    
+    if (!res.ok) {
+      const errorText = await res.text();
+      let errorMsg = `Upload failed with status ${res.status}`;
+      try {
+        const errorJson = JSON.parse(errorText);
+        errorMsg = errorJson.detail || errorJson.message || errorMsg;
+      } catch (e) {}
+      throw new Error(errorMsg);
+    }
+    
+    responseData = await res.json();
+  } else {
+    // Native environment: stick with apiClient
+    responseData = await apiClient.post(API_ENDPOINTS.UPLOAD_AVATAR, formData);
+  }
+  
+  const result = responseData;
+  let avatar_url = result.avatar_url || result.data?.avatar_url || result.url || result.data?.url;
+  
+  if (!avatar_url) {
+    if (__DEV__) console.error('❌ Upload Response missing avatar_url:', JSON.stringify(result));
+    throw new Error('The server uploaded the image but did not return a valid URL.');
+  }
+
+  // Handle relative URLs from backend
+  if (avatar_url && !avatar_url.startsWith('http')) {
+    // Remove /api/v1 from base URL if the returned path already includes it or is intended to be relative to root
+    const baseUrl = API_BASE_URL.replace('/api/v1', '');
+    avatar_url = `${baseUrl}${avatar_url.startsWith('/') ? '' : '/'}${avatar_url}`;
+  }
+  
+  return { avatar_url };
 };
 
 /**

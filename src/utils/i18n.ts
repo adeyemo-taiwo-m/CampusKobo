@@ -14,6 +14,7 @@ const translations: Record<LanguageCode, Record<string, string>> = {
     'dashboard.recent': 'Recent Transactions',
     'dashboard.viewAll': 'View All',
     'settings.title': 'Profile & Settings',
+    'settings.preferences': 'Account Preferences',
     'settings.currency': 'Currency',
     'settings.language': 'Language',
     'settings.notifications': 'Notifications',
@@ -174,6 +175,7 @@ const translations: Record<LanguageCode, Record<string, string>> = {
     'dashboard.recent': 'Awọn iṣowo aipẹ',
     'dashboard.viewAll': 'Wo gbogbo rẹ',
     'settings.title': 'Eto Profaili',
+    'settings.preferences': 'Awọn ayanfẹ akọọlẹ',
     'settings.currency': 'Owo ti a n lo',
     'settings.language': 'Ede',
     'settings.notifications': 'Awọn iwifunni',
@@ -194,6 +196,7 @@ const translations: Record<LanguageCode, Record<string, string>> = {
     'dashboard.recent': 'Transactions récentes',
     'dashboard.viewAll': 'Voir tout',
     'settings.title': 'Profil et paramètres',
+    'settings.preferences': 'Préférences du compte',
     'settings.currency': 'Devise',
     'settings.language': 'Langue',
     'settings.notifications': 'Notifications',
@@ -354,6 +357,7 @@ const translations: Record<LanguageCode, Record<string, string>> = {
     'dashboard.recent': 'Transacciones recientes',
     'dashboard.viewAll': 'Ver todo',
     'settings.title': 'Perfil y ajustes',
+    'settings.preferences': 'Preferencias de la cuenta',
     'settings.currency': 'Moneda',
     'settings.language': 'Idioma',
     'settings.notifications': 'Notificaciones',
@@ -372,6 +376,7 @@ const translations: Record<LanguageCode, Record<string, string>> = {
     'dashboard.budget': 'Kasafin kudi',
     'dashboard.savings': 'Ajiye kudi',
     'settings.title': 'Saitin Bayanan Martaba',
+    'settings.preferences': 'Abubuwan da ake so na asusun',
     'settings.logout': 'Fita',
   },
   ig: {
@@ -381,6 +386,7 @@ const translations: Record<LanguageCode, Record<string, string>> = {
     'dashboard.budget': 'Atụmatụ ego',
     'dashboard.savings': 'Ego echekwara',
     'settings.title': 'Ntọala Profaịlụ',
+    'settings.preferences': 'Ihe ndekọ ndekọ',
     'settings.logout': 'Puo',
   }
 };

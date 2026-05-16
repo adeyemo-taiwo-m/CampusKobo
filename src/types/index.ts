@@ -63,6 +63,7 @@ export interface User {
   pin?: string;
   hideBalance?: boolean;
   hasCompletedOnboarding: boolean;
+  avatar_url?: string;
 }
 
 export type ApiUser = {

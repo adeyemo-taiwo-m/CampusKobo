@@ -42,6 +42,7 @@ export const MainHeader = ({ title }: MainHeaderProps) => {
           <View style={styles.avatar}>
             {apiUser?.avatar_url ? (
               <Image
+                key={apiUser.avatar_url}
                 source={{ uri: apiUser.avatar_url }}
                 style={styles.avatarImage}
               />
