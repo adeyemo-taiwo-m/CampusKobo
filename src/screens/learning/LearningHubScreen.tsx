@@ -203,7 +203,7 @@ export const LearningHubScreen = () => {
                   style={styles.featuredCard}
                   onPress={() => router.push({
                     pathname: '/learning/detail' as any,
-                    params: { id: item.id, type: item.type }
+                    params: { id: item.id, type: item.type, content: JSON.stringify(item) }
                   })}
                 >
                   <View style={styles.featuredImageContainer}>
@@ -263,7 +263,7 @@ export const LearningHubScreen = () => {
                   ]}
                   onPress={() => router.push({
                     pathname: '/learning/detail' as any,
-                    params: { id: episode.id, isSeries: 'true', type: 'article' }
+                    params: { id: episode.id, isSeries: 'true', type: 'article', content: JSON.stringify(episode) }
                   })}
                 >
                   <Text style={styles.episodeNumber}>EP 0{episode.episode_number}</Text>
@@ -285,7 +285,7 @@ export const LearningHubScreen = () => {
                 style={styles.latestCard}
                 onPress={() => router.push({
                   pathname: '/learning/detail' as any,
-                  params: { id: item.id, type: item.type }
+                  params: { id: item.id, type: item.type, content: JSON.stringify(item) }
                 })}
               >
                 <View style={styles.latestImageContainer}>

@@ -88,7 +88,7 @@ const PodcastNewsletterScreen = () => {
             image={getLearningImageSource(podcasts[0])}
             onPress={() => router.push({
               pathname: '/learning/detail',
-              params: { id: podcasts[0].id, type: 'podcast' }
+              params: { id: podcasts[0].id, type: 'podcast', content: JSON.stringify(podcasts[0]) }
             })}
           />
         )}
@@ -112,7 +112,7 @@ const PodcastNewsletterScreen = () => {
                 style={styles.podcastItem}
                 onPress={() => router.push({
                   pathname: '/learning/detail',
-                  params: { id: item.id, type: 'podcast' }
+                  params: { id: item.id, type: 'podcast', content: JSON.stringify(item) }
                 })}
               >
                 <View style={styles.podcastThumb}>

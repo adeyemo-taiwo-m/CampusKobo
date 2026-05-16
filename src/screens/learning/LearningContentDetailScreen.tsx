@@ -42,6 +42,7 @@ const LearningContentDetailScreen = () => {
   const { 
     allContent, 
     finance101Series, 
+    featuredContent,
     isBookmarked: checkIsBookmarked, 
     toggleBookmark, 
     markContentProgress 
@@ -50,7 +51,7 @@ const LearningContentDetailScreen = () => {
   // Find content from context
   const foundContent = isSeries === 'true' 
     ? finance101Series.find(e => e.id === id)
-    : allContent.find(c => c.id === id);
+    : allContent.find(c => c.id === id) || (featuredContent || []).find(f => f.id === id);
 
   const content = params.content ? JSON.parse(params.content as string) : foundContent;
   const type = (paramType as 'article' | 'video' | 'podcast') || (content as any)?.type || 'article';
@@ -91,7 +92,7 @@ const LearningContentDetailScreen = () => {
       'Review your spending weekly',
     ],
     isFeatured: (content as any)?.is_featured || (content as any)?.isFeatured || false,
-    image_url: content?.image_url || content?.thumbnail_url || (content as any)?.image,
+    image_url: content?.image_url || content?.thumbnail_url || content?.cover_image_url || (content as any)?.image || (content as any)?.media_url,
   };
 
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
