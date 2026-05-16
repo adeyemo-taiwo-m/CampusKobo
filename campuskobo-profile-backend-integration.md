@@ -1247,5 +1247,5 @@ This guide wires every screen in the Profile & Settings section to the real back
 ---
 
 _Document prepared for: CampusKobo Mobile App — BOF OAU_
-_Profile & Settings Integration Guide — Version 1.0 | May 2026_
+_Profile & Settings Integration Guide — Version 1.1 | May 2026_
 _Backend: https://campus-kobo-backend-gmiq.vercel.app_

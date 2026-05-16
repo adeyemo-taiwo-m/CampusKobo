@@ -2,7 +2,7 @@
 
 > A student personal finance app built for BOF OAU — track spending, control budgets, and build savings habits.
 
-![Version](https://img.shields.io/badge/version-1.0.0-brightgreen) ![Platform](https://img.shields.io/badge/platform-iOS%20%7C%20Android-blue) ![Built With](https://img.shields.io/badge/built%20with-React%20Native%20%2B%20Expo-black) ![Status](https://img.shields.io/badge/status-in%20development-orange)
+![Version](https://img.shields.io/badge/version-1.1.0-brightgreen) ![Platform](https://img.shields.io/badge/platform-iOS%20%7C%20Android-blue) ![Built With](https://img.shields.io/badge/built%20with-React%20Native%20%2B%20Expo-black) ![Status](https://img.shields.io/badge/status-stable-green)
 
 ---
 
@@ -277,5 +277,5 @@ Please follow the existing code style and component patterns when contributing.
 ---
 
 <p align="center">
-  Made with 💚 by BOF OAU &nbsp;•&nbsp; CampusKobo v1.0.0 &nbsp;•&nbsp; April 2026
+  Made with 💚 by BOF OAU &nbsp;•&nbsp; CampusKobo v1.1.0 &nbsp;•&nbsp; May 2026
 </p>

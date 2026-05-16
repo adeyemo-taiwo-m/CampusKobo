@@ -854,4 +854,4 @@ After wiring up the dashboard, paste this test sequence to your agent:
 ---
 
 _CampusKobo Dashboard Calculations Guide — BOF OAU_
-_Version 1.0 | May 2026_
+_Version 1.1 | May 2026_

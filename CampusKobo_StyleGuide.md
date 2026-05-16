@@ -1,6 +1,6 @@
 # CampusKobo — UI Style Guide
 ### Professional Design System for BOF OAU's Student Finance App
-*Version 1.0 · April 2026*
+*Version 1.1 · May 2026*
 
 ---
 

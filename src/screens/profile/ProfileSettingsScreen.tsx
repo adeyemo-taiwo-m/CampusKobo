@@ -312,7 +312,7 @@ export const ProfileSettingsScreen = () => {
           </View>
         </View>
 
-        <Text style={styles.versionText}>Version 1.0</Text>
+        <Text style={styles.versionText}>Version 1.1</Text>
 
         <TouchableOpacity 
           style={[styles.logoutBtn, isLoggingOut && styles.disabledBtn]}

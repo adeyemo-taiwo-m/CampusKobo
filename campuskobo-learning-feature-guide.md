@@ -41,7 +41,7 @@ The Learning Feature has three parts:
 
 **What this creates:**
 - `learning_categories` table — stores categories like Budgeting, Saving, Investing
-- `learning_content` table — stores all articles, videos, podcasts, and Finance 101 episodes
+- `learning_content` table — stores all articles, videos, podcasts, and Finance 101 episodes. **Now includes `cover_image_url` and `media_url` for dynamic media.**
 
 ---
 
@@ -81,6 +81,10 @@ CREATE TABLE public.user_bookmarks (
     bookmarked_at TIMESTAMPTZ DEFAULT now(),
     UNIQUE(user_id, content_id)
 );
+
+-- Update learning_content to support media (run if fields are missing)
+ALTER TABLE public.learning_content ADD COLUMN IF NOT EXISTS cover_image_url TEXT;
+ALTER TABLE public.learning_content ADD COLUMN IF NOT EXISTS media_url TEXT;
 ```
 
 ---
@@ -225,6 +229,8 @@ Create the file `/src/services/LearningService.ts`. Paste this instruction into 
 > **getFinance101Series()** — fetches all content from category 'Finance 101', ordered by episode_number ascending.
 >
 > **getContentById(id: string)** — fetches a single content item by its id.
+>
+> **Note on Media Fields:** Ensure `cover_image_url` and `media_url` are included in the select statements. The app now uses these for dynamic thumbnails and video/podcast playback.
 >
 > **getGlossaryTerms(searchQuery?: string)** — fetches all glossary terms. If searchQuery is provided, filter where term ILIKE `%searchQuery%`. Order by term ascending.
 >
@@ -406,11 +412,15 @@ Paste this instruction into your coding agent (this is for the admin web app, no
 > - Duration (text input, e.g. '3 min read' or '5 min')
 > - Episode Number (number input, only shown if category is Finance 101)
 > - Is Featured (checkbox toggle)
+> - **Cover Image** (File upload field: uploads to Supabase Storage `learning-assets` bucket and saves the URL to `cover_image_url`)
+> - **Media File** (File upload field: for Video/Podcast. Uploads to `learning-assets` and saves URL to `media_url`)
 > - Content Body (large textarea, the article/podcast description text)
 > - Key Takeaways (dynamic list: text inputs with Add and Remove buttons. Saves as JSON array.)
 > - Related Content IDs (text input, comma-separated, converts to JSON array on save)
 >
 > On submit: if new, use `supabase.from('learning_content').insert()`. If editing, use `.update()`. On success show green success banner and redirect to /content.
+>
+> **Note on Media Uploads:** Use `supabase.storage.from('learning-assets').upload()` to handle the files before saving the record.
 >
 > **Page 5 — Categories (/categories)**
 > Table showing all categories. Each row has Edit and Delete buttons. 'Add Category' button opens a modal form with: Name, Slug (auto-generated from name), Description, Icon Name fields.
@@ -520,6 +530,7 @@ Work through these in order. Check each one off before moving to the next.
 - [ ] Run the RLS policies SQL
 - [ ] Run the glossary seed data SQL
 - [ ] Create admin user in Supabase Authentication
+- [ ] Create Supabase Storage bucket named `learning-assets` (set to Public)
 - [ ] Verify all tables show data in Supabase Table Editor
 
 ### Phase 2 — Phone App Backend Connection
@@ -549,7 +560,7 @@ Work through these in order. Check each one off before moving to the next.
 - [ ] Build Login page
 - [ ] Build Dashboard page with stats
 - [ ] Build Content List page (table + search)
-- [ ] Build Add/Edit Content form
+- [ ] Build Add/Edit Content form with File Uploads for Media
 - [ ] Build Categories page
 - [ ] Build Glossary management page
 - [ ] Build Sidebar navigation
@@ -571,13 +582,13 @@ Work through these in order. Check each one off before moving to the next.
 
 ### Supabase Table Summary
 
-| Table | Purpose |
-|---|---|
-| `learning_categories` | Categories like Budgeting, Saving, Investing |
-| `learning_content` | All articles, videos, podcasts, Finance 101 episodes |
-| `glossary_terms` | The 25+ financial glossary definitions |
-| `user_content_progress` | Tracks which content each user has read/completed |
-| `user_bookmarks` | Stores bookmarked content per user |
+| Table | Purpose | Fields to Watch |
+|---|---|---|
+| `learning_categories` | Categories like Budgeting, Saving, Investing | name, slug, icon |
+| `learning_content` | All articles, videos, podcasts, Finance 101 episodes | title, type, **cover_image_url**, **media_url** |
+| `glossary_terms` | The 25+ financial glossary definitions | term, definition |
+| `user_content_progress` | Tracks which content each user has read/completed | user_id, content_id, status |
+| `user_bookmarks` | Stores bookmarked content per user | user_id, content_id |
 
 ### Key File Locations
 
@@ -624,4 +635,4 @@ When you write article content in the admin app, you can use plain paragraphs se
 ---
 
 _CampusKobo Learning Feature Guide — BOF OAU_
-_Version 1.0 | May 2026_
+_Version 1.1 | May 2026_

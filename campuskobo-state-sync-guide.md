@@ -1209,4 +1209,4 @@ After completing all parts above, paste this final verification instruction to y
 ---
 
 _CampusKobo State Synchronization Guide — BOF OAU_
-_Version 1.0 | May 2026_
+_Version 1.1 | May 2026_

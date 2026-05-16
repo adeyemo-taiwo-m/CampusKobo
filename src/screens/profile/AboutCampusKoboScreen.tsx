@@ -62,7 +62,7 @@ export const AboutCampusKoboScreen = () => {
           />
           <Text style={styles.appName}>CampusKobo</Text>
           <View style={styles.versionBadge}>
-            <Text style={styles.versionText}>v1.0.0</Text>
+            <Text style={styles.versionText}>v1.1.0</Text>
           </View>
           <Text style={styles.heroDescription}>
             {t('about.campusHero')}
