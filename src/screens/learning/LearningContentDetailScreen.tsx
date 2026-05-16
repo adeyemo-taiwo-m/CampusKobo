@@ -15,6 +15,7 @@ import {
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Audio, AVPlaybackStatus } from 'expo-av';
+import Slider from '@react-native-community/slider';
 import {
   WHITE,
   PRIMARY_GREEN,
@@ -61,6 +62,7 @@ const LearningContentDetailScreen = () => {
   const [scrollY, setScrollY] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [hasMarkedProgress, setHasMarkedProgress] = useState(false);
+  const [isSeeking, setIsSeeking] = useState(false);
 
   // Audio Playback States
   const [sound, setSound] = useState<Audio.Sound | null>(null);
@@ -106,7 +108,7 @@ const LearningContentDetailScreen = () => {
 
       const { sound: newSound } = await Audio.Sound.createAsync(
         { uri: audioUrl },
-        { shouldPlay: false, volume: volume },
+        { shouldPlay: false },
         onPlaybackStatusUpdate
       );
       setSound(newSound);
@@ -118,7 +120,9 @@ const LearningContentDetailScreen = () => {
   const onPlaybackStatusUpdate = (status: AVPlaybackStatus) => {
     if (status.isLoaded) {
       setPlaybackStatus(status);
-      setAudioPosition(status.positionMillis);
+      if (!isSeeking) {
+        setAudioPosition(status.positionMillis);
+      }
       setAudioDuration(status.durationMillis || 0);
       setIsPlaying(status.isPlaying);
       
@@ -156,6 +160,17 @@ const LearningContentDetailScreen = () => {
     if (!sound || !playbackStatus?.isLoaded) return;
     const newPosition = Math.max(0, audioPosition - 15000);
     await sound.setPositionAsync(newPosition);
+  };
+
+  const onSlidingStart = () => {
+    setIsSeeking(true);
+  };
+
+  const onSlidingComplete = async (value: number) => {
+    if (sound) {
+      await sound.setPositionAsync(value);
+    }
+    setIsSeeking(false);
   };
 
 
@@ -413,10 +428,17 @@ const LearningContentDetailScreen = () => {
 
         <View style={styles.audioPlayer}>
           <View style={styles.audioProgressContainer}>
-            <ProgressBar 
-              progress={audioDuration > 0 ? audioPosition / audioDuration : 0} 
-              height={4} 
-              fillColor={PRIMARY_GREEN} 
+            <Slider
+              style={styles.slider}
+              value={audioPosition}
+              minimumValue={0}
+              maximumValue={audioDuration}
+              onSlidingStart={onSlidingStart}
+              onSlidingComplete={onSlidingComplete}
+              onValueChange={(value) => setAudioPosition(value)}
+              minimumTrackTintColor={PRIMARY_GREEN}
+              maximumTrackTintColor="#F3F4F6"
+              thumbTintColor={PRIMARY_GREEN}
             />
             <View style={styles.audioTimeRow}>
               <Text style={styles.audioTimeText}>{formatMs(audioPosition)}</Text>
@@ -808,7 +830,11 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   audioProgressContainer: {
-    marginBottom: 20,
+    marginBottom: 10,
+  },
+  slider: {
+    width: '100%',
+    height: 40,
   },
   audioTimeRow: {
     flexDirection: 'row',
@@ -833,17 +859,6 @@ const styles = StyleSheet.create({
     backgroundColor: PRIMARY_GREEN,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  volumeBar: {
-    flex: 1,
-    height: 4,
-    backgroundColor: '#F3F4F6',
-    borderRadius: 2,
-  },
-  volumeFill: {
-    height: '100%',
-    backgroundColor: TEXT_PRIMARY,
-    borderRadius: 2,
   },
   moreEpisodesSection: {
     marginBottom: 32,
