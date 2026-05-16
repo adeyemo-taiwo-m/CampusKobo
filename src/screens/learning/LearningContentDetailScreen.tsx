@@ -394,19 +394,9 @@ const LearningContentDetailScreen = () => {
         showBookmark={type === 'article' || type === 'video'}
         isBookmarked={checkIsBookmarked(id as string)}
         onBookmark={() => toggleBookmark(id as string)}
+        progress={type === 'article' && scrollY > 200 ? scrollProgress : undefined}
       />
 
-      {/* Sticky Progress Bar for Articles - appears after scrolling past title */}
-      {type === 'article' && scrollY > 300 && (
-        <View style={styles.stickyProgressContainer}>
-          <ProgressBar 
-            progress={scrollProgress} 
-            height={3} 
-            fillColor={PRIMARY_GREEN} 
-            backgroundColor="transparent"
-          />
-        </View>
-      )}
 
       <ScrollView 
         onScroll={handleScroll}
@@ -426,14 +416,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: BACKGROUND,
-  },
-  stickyProgressContainer: {
-    position: 'absolute',
-    top: 100, // Matches the height of the Header component
-    left: 0,
-    right: 0,
-    zIndex: 100,
-    backgroundColor: WHITE,
   },
   heroImageContainer: {
     width: '100%',

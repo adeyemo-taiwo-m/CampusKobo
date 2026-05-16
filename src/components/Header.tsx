@@ -36,6 +36,7 @@ interface HeaderProps {
   onSearch?: () => void;
   transparent?: boolean;
   tintColor?: string;
+  progress?: number;
 }
 
 export const Header = ({
@@ -57,6 +58,7 @@ export const Header = ({
   onSearch,
   transparent,
   tintColor = TEXT_PRIMARY,
+  progress,
 }: HeaderProps) => {
   const { user, apiUser } = useAppContext();
   return (
@@ -132,6 +134,11 @@ export const Header = ({
           )}
         </View>
       </View>
+      {progress !== undefined && (
+        <View style={styles.progressContainer}>
+          <View style={[styles.progressFill, { width: `${Math.min(1, Math.max(0, progress)) * 100}%` }]} />
+        </View>
+      )}
     </SafeAreaView>
   );
 };
@@ -211,5 +218,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     marginLeft: 8,
+  },
+  progressContainer: {
+    height: 3,
+    width: "100%",
+    backgroundColor: "transparent",
+  },
+  progressFill: {
+    height: "100%",
+    backgroundColor: "#19a051", // PRIMARY_GREEN
   },
 });
