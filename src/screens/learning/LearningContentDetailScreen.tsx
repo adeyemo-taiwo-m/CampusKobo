@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { Audio, AVPlaybackStatus } from 'expo-av';
+import { Audio, AVPlaybackStatus, Video, ResizeMode } from 'expo-av';
 import Slider from '@react-native-community/slider';
 import {
   WHITE,
@@ -63,6 +63,7 @@ const LearningContentDetailScreen = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [hasMarkedProgress, setHasMarkedProgress] = useState(false);
   const [isSeeking, setIsSeeking] = useState(false);
+  const videoRef = useRef<Video>(null);
 
   // Audio Playback States
   const [sound, setSound] = useState<Audio.Sound | null>(null);
@@ -142,6 +143,15 @@ const LearningContentDetailScreen = () => {
   };
 
   const togglePlayback = async () => {
+    if (type === 'video' && videoRef.current) {
+      if (isPlaying) {
+        await videoRef.current.pauseAsync();
+      } else {
+        await videoRef.current.playAsync();
+      }
+      return;
+    }
+
     if (!sound) return;
     if (isPlaying) {
       await sound.pauseAsync();
@@ -151,12 +161,24 @@ const LearningContentDetailScreen = () => {
   };
 
   const seekForward = async () => {
+    if (type === 'video' && videoRef.current) {
+      const newPosition = Math.min(audioDuration, audioPosition + 15000);
+      await videoRef.current.setPositionAsync(newPosition);
+      return;
+    }
+
     if (!sound || !playbackStatus?.isLoaded) return;
     const newPosition = Math.min(audioDuration, audioPosition + 15000);
     await sound.setPositionAsync(newPosition);
   };
 
   const seekBackward = async () => {
+    if (type === 'video' && videoRef.current) {
+      const newPosition = Math.max(0, audioPosition - 15000);
+      await videoRef.current.setPositionAsync(newPosition);
+      return;
+    }
+
     if (!sound || !playbackStatus?.isLoaded) return;
     const newPosition = Math.max(0, audioPosition - 15000);
     await sound.setPositionAsync(newPosition);
@@ -167,7 +189,9 @@ const LearningContentDetailScreen = () => {
   };
 
   const onSlidingComplete = async (value: number) => {
-    if (sound) {
+    if (type === 'video' && videoRef.current) {
+      await videoRef.current.setPositionAsync(value);
+    } else if (sound) {
       await sound.setPositionAsync(value);
     }
     setIsSeeking(false);
@@ -321,32 +345,30 @@ const LearningContentDetailScreen = () => {
   const renderVideo = () => (
     <>
       <View style={styles.videoPlayer}>
-        <Image 
-          source={getLearningImageSource(displayContent as any)} 
-          style={styles.videoThumbnail}
-          resizeMode="cover"
+        <Video
+          ref={videoRef}
+          style={styles.video}
+          source={{ uri: displayContent.media_url }}
+          useNativeControls
+          resizeMode={ResizeMode.CONTAIN}
+          isLooping={false}
+          onPlaybackStatusUpdate={onPlaybackStatusUpdate}
         />
-        <View style={styles.videoOverlay}>
-          <TouchableOpacity style={styles.playButtonLarge}>
-            <Ionicons name="play" size={40} color={WHITE} />
-          </TouchableOpacity>
-          
-          {/* Video Controls Overlay */}
-          <View style={styles.videoControlsOverlay}>
-            <View style={styles.videoControlsLeft}>
-              <TouchableOpacity><Ionicons name="play-skip-back" size={24} color={WHITE} /></TouchableOpacity>
-              <TouchableOpacity style={styles.controlMargin}><Ionicons name="refresh" size={24} color={WHITE} style={{ transform: [{ scaleX: -1 }] }} /></TouchableOpacity>
-              <TouchableOpacity style={styles.controlMargin}><Ionicons name="refresh" size={24} color={WHITE} /></TouchableOpacity>
-            </View>
-            <View style={styles.videoControlsRight}>
-              <TouchableOpacity><Ionicons name="settings-outline" size={20} color={WHITE} /></TouchableOpacity>
-              <TouchableOpacity style={styles.controlMargin}><Ionicons name="play-skip-forward" size={24} color={WHITE} /></TouchableOpacity>
-            </View>
+        {!isPlaying && audioPosition === 0 && (
+          <View style={styles.videoOverlay}>
+            <Image 
+              source={getLearningImageSource(displayContent as any)} 
+              style={styles.videoThumbnail}
+              resizeMode="cover"
+            />
+            <TouchableOpacity 
+              style={styles.playButtonLarge}
+              onPress={togglePlayback}
+            >
+              <Ionicons name="play" size={40} color={WHITE} />
+            </TouchableOpacity>
           </View>
-          <View style={styles.videoBottomProgress}>
-             <ProgressBar progress={0.6} height={3} backgroundColor="rgba(255,255,255,0.3)" fillColor={WHITE} />
-          </View>
-        </View>
+        )}
       </View>
 
       <View style={styles.contentPadding}>
@@ -359,16 +381,20 @@ const LearningContentDetailScreen = () => {
         <View style={styles.metaRow}>
           <Ionicons name="videocam-outline" size={14} color={TEXT_SECONDARY} />
           <Text style={styles.metaText}> Video • {displayContent.duration} • April 2026</Text>
-          <Text style={styles.timeRemainingText}>2:00 / 3:00</Text>
-          <Text style={styles.percentText}>60%</Text>
+          <Text style={styles.timeRemainingText}>{formatMs(audioPosition)} / {formatMs(audioDuration)}</Text>
+          <Text style={styles.percentText}>{audioDuration > 0 ? Math.round((audioPosition / audioDuration) * 100) : 0}%</Text>
         </View>
 
         <View style={styles.progressWrapper}>
-          <ProgressBar progress={0.6} height={8} fillColor={PRIMARY_GREEN} />
+          <ProgressBar 
+            progress={audioDuration > 0 ? audioPosition / audioDuration : 0} 
+            height={8} 
+            fillColor={PRIMARY_GREEN} 
+          />
         </View>
 
         <Text style={styles.bodyText}>
-          In this video, you will learn how to create your first budget, guiding you through the step by step process.
+          {displayContent.content || 'In this video, you will learn essential financial tips and strategies.'}
         </Text>
         
         <Text style={styles.subHeader}>In this video you will learn:</Text>
@@ -736,11 +762,11 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 220,
     backgroundColor: '#000',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 30,
     overflow: 'hidden',
+  },
+  video: {
+    width: '100%',
+    height: '100%',
   },
   videoThumbnail: {
     ...StyleSheet.absoluteFillObject,
@@ -752,32 +778,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.4)',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  videoControlsOverlay: {
-    position: 'absolute',
-    bottom: 20,
-    left: 20,
-    right: 20,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  videoControlsLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  videoControlsRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  controlMargin: {
-    marginLeft: 15,
-  },
-  videoBottomProgress: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
   },
   playButtonLarge: {
     width: 64,
