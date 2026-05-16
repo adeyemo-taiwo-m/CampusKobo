@@ -439,7 +439,7 @@ export const ProfileSettingsScreen = () => {
 
                 <TouchableOpacity 
                   style={[styles.saveBtn, isSaving && styles.disabledBtn]}
-                  onPress={() => handleSaveProfile(editName)}
+                  onPress={() => handleSaveProfile(userName)}
                   disabled={isSaving}
                 >
                   {isSaving ? (
